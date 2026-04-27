@@ -1,69 +1,88 @@
+---
+description: Geplante Verbesserungen und langfristige Richtung des Plugins.
+---
+
 # Roadmap
 
-Offene Arbeits-Posten und Vision für zukünftige Versionen.
+Diese Seite zeigt, woran gearbeitet wird und wohin sich das Plugin entwickelt. Alle Punkte sind **geplant**, keine Termine sind festgelegt. Prioritäten können sich verschieben.
 
-## Nahfristig (nächste Releases)
+{% hint style="info" %}
+Wenn du einen Punkt priorisiert haben möchtest: Lege ein Issue im Tracker deines Teams an und begründe den konkreten Projekt-Bedarf. Die Roadmap ist kein Versprechen — sie zeigt die aktuelle Bewertung.
+{% endhint %}
 
-### Bug-Fixes (aus dem Backlog)
+---
 
-* **Widget-Lifetime**: Viewport-Widget sauber aus- und wiederbinden nach Level-Wechsel.
-* **Wait-Node Abort-Cleanup**: Timer sauber abbrechen.
-* **PlayAnimation Abort-Cleanup**: Montage-Delegates unbinden.
-* **Input-Mode-Restore**: Vorherigen Modus cachen statt hart-auf-GameOnly.
-* **FailBehavior in ExecuteNode**: Requirement-Ergebnis + FailBehavior konsequent auswerten.
+## Kurzfristig: Offene Lücken schließen
+
+### Bug-Fixes
+
+Die folgenden Issues aus der [Known-Issues-Liste](../troubleshooting/known-issues.md) haben hohe Priorität:
+
+- **Widget-Lifetime**: Viewport-Widget sauber aus- und wiederbinden nach Level-Wechsel.
+- **Wait-Node Abort-Cleanup**: Timer sauber abbrechen, wenn ein Dialog abgebrochen wird.
+- **PlayAnimation Abort-Cleanup**: Montage-Delegates korrekt aufräumen.
+- **Input-Mode-Restore**: Vorherigen Input-Modus cachen statt hart auf `GameOnly` zu setzen.
+- **FailBehavior in ExecuteNode**: Requirement-Ergebnis und FailBehavior konsequent auswerten.
 
 ### Feature-Lücken
 
-* **`bOverride2D` auf SayLine / PlaySound**: Node-Level 2D-Override freischalten.
-* **SayLine `VolumeMultiplier` / `PitchMultiplier`**: Analog PlaySound.
-* **SetVariable Tag-Typ**: UI-Pfad fertigstellen.
-* **SetVariable Participant-Scope**: Schreib-Pfad auf PersistentMemory.
-* **Wait-Node Condition-Modus**: Polling-Requirement-Check.
-* **Live-Requirement-Pills im Preview**: Choice/Branch-Pills in Echtzeit einfärben.
-* **Cross-Asset-Step-Into im Debugger**.
-* **QuickSave-Helper**: Finalisierung der API.
+- **`bOverride2D` auf SayLine / PlaySound**: Node-Level 2D-Override freischalten.
+- **SayLine `VolumeMultiplier` / `PitchMultiplier`**: Analog zu PlaySound.
+- **SetVariable Tag-Typ**: UI-Pfad für Tag-Variablen fertigstellen.
+- **SetVariable Participant-Scope**: Direkter Schreibpfad auf persistenten Speicher.
+- **Wait-Node Condition-Modus**: Polling-basierter Requirement-Check als dritter Wait-Modus.
+- **Live-Requirement-Pills im Preview**: Choice- und Branch-Pills im Preview-Runner in Echtzeit einfärben.
+- **Cross-Asset Step-Into im Debugger**: Debugger folgt dem Flow in verlinkte Assets.
+- **QuickSave-Helper**: API-Implementierung finalisieren.
 
-## Mittelfristig
+---
 
-### UMG-Themes
+## Mittelfristig: Qualität und Komfort
 
-Drei Starter-Themes ausliefern:
+### UMG Starter-Themes
 
-* **Horror**: dunkel, blutrot, pixelig.
-* **Visual Novel**: großer Portrait-Bereich, weiche Animation.
-* **RPG**: klassische Dialog-Box mit Name-Plate.
+Drei fertige Widget-Vorlagen zum sofortigen Einsatz:
+
+- **Horror**: Dunkles Layout, rote Akzente, pixeliger Font-Stil.
+- **Visual Novel**: Großer Portrait-Bereich, weiche Ein-/Ausblend-Animation.
+- **RPG**: Klassische Dialogbox mit Name-Plate und Icon-Slot.
 
 ### Bridge-Erweiterung
 
-* `OnNodeReached`-Delegate auf der Bridge (nicht nur Instance).
-* Read-API für Scope-Stack-Info.
-* Write-API für Save-/Restore-Snapshots der Instance-Variables.
+- `OnNodeReached`-Delegate auf der Bridge (nicht nur auf der Instance).
+- Read-API für aktuelle Scope-Infos.
+- Write-API für Save-/Restore-Snapshots von Instance-Variablen — nützlich für Checkpoint-Systeme.
 
 ### Babel-Polish
 
-* Sample-Caching für Procedural-Blips.
-* Parametrisierbare Phoneme-Prosodie-Kurven.
-* Pro-Speaker-Profile als DataTable für schnelle Varianz.
+- Sample-Caching für prozedurale Blips (Performance-Verbesserung).
+- Parametrisierbare Phonem-Prosodie-Kurven für natürlichere Stimmprofile.
+- Per-Speaker-Profile als DataTable für schnelle projektweite Varianz.
 
 ### Editor-Features
 
-* **Live-Validation** als optionaler Opt-in (asynchroner Debounce-Check).
-* **Minimap** als eigener Tab (derzeit Outline bevorzugt, aber Minimap wäre nice-to-have).
-* **Cross-Asset-Navigation bei Link-Nodes**: Editor öffnet Ziel-Asset automatisch bei Step-Into.
+- **Live-Validation**: Optionaler asynchroner Debounce-Check nach Änderungen.
+- **Minimap-Tab**: Eigener Tab neben dem Outline-Panel.
+- **Cross-Asset-Navigation**: Editor öffnet Ziel-Asset automatisch, wenn man auf einen Link-Node klickt.
 
 ### Replikation
 
-* `ClientUpdateConversation`-RPC mit net-serialisierbarer Message.
-* Net-safe Struct-Variants für `FMayDialogueMessage` und `FMayDialogueChoiceEntry`.
-* Verify Multiplayer-Pfade (Host + Client) über Integration-Tests.
+- `ClientUpdateConversation`-RPC mit net-serialisierbarer Message.
+- Net-sichere Struct-Varianten für Dialog-Messages und Choice-Entries.
+- Multiplayer-Pfade (Host + Client) über Integrations-Tests verifizieren.
 
-## Langfristig
+> 📸 **Bild-Platzhalter:** `roadmap-theme-preview.png` — Drei Widget-Themes nebeneinander in PIE.
+> *Setup:* Drei PIE-Fenster geöffnet, je eines mit Horror-, VN- und RPG-Theme. Dieselbe SayLine „Was willst du hier?" wird in allen drei Themes angezeigt. Sichtbar sind die Unterschiede in Hintergrundfarbe, Font, Portrait-Position und Button-Stil.
 
-### DataTable-Integration
+---
 
-Speaker-Templates als DataTable-Rows:
+## Langfristig: Erweiterter Funktionsumfang
 
-```
+### DataTable-Integration für Speaker
+
+Speaker-Definitionen als DataTable-Rows, die projektweite Änderungen an einem einzigen Ort ermöglichen:
+
+```text
 Speaker_Guard
 ├── DisplayName: "Wächter"
 ├── Portrait: P_Guard
@@ -73,33 +92,31 @@ Speaker_Guard
 └── BabelProfile: BP_Babel_Guard
 ```
 
-Assets referenzieren die Row statt eigenen Speaker-Struct zu halten. Änderungen an der Row propagieren projektweit.
+Assets referenzieren die Row statt einen eigenen Speaker-Struct zu halten. Änderungen am Speaker propagieren automatisch in alle Assets.
 
 ### Visual-Preview-Widget
 
-Im Asset-Editor ein WYSIWYG-Widget, das SayLines mit Portrait, Emotion-Tag-Visualisierung und Typewriter rendert — ohne Preview-Runner starten zu müssen.
+Ein WYSIWYG-Vorschau-Panel direkt im Asset-Editor: SayLines werden mit Portrait, Emotion-Tag-Visualisierung und Typewriter gerendert — ohne den Preview-Runner starten zu müssen.
 
 ### Import / Export
 
-* **Import aus Articy, Yarn-Spinner, Twine**: Dialog-Scripts nach MayDialogue portieren.
-* **Export als JSON**: für externe Script-Analyse und Übersetzungs-Pipelines.
+- **Import aus Articy, Yarn-Spinner, Twine**: Bestehende Dialog-Skripte nach MayDialogue portieren.
+- **Export als JSON**: Für externe Script-Analyse, Übersetzungs-Pipelines und Qualitätssicherung.
 
-### Node-Marketplace
+### Node-Erweiterungen durch die Community
 
-Community-contributed Nodes (eigene Requirement-/SideEffect-/Action-Klassen) als Share-Paket.
+Ein strukturiertes Format für Community-contributed Nodes — eigene Requirement-, SideEffect- und Action-Klassen als verteilbares Share-Paket.
+
+---
 
 ## Nicht-Ziele
 
-Was wir **bewusst nicht** tun werden (siehe auch [Non-Goals im README](../../README.md#ist-maydialogue-das-richtige-für-dich)):
+Das Plugin bleibt auf seinen Kernbereich fokussiert. Folgende Themen sind bewusst ausgeschlossen:
 
-* Kein Quest-System.
-* Kein Cutscene-Sequencer.
-* Kein Voice-Recording-Tool.
-* Keine Multiplayer-UX (Voting, geteilte Sessions).
-* Kein Live-Collaboration-Editor.
+- Kein Quest-System (separate Verantwortlichkeit).
+- Kein Cutscene-Sequencer.
+- Kein Voice-Recording- oder Voice-Casting-Tool.
+- Keine Multiplayer-UX (geteilte Sessions, Voting).
+- Kein Live-Collaboration-Editor.
 
-Das Plugin bleibt **fokussiert**. Features, die den Dialog-Scope sprengen, gehören in separate Werkzeuge.
-
-## Community-Input
-
-Wenn du Features auf dieser Roadmap priorisiert haben willst: Issue im Tracker öffnen mit Begründung (welche konkrete Projekt-Notwendigkeit?). Die Roadmap ist nicht in Stein gemeißelt.
+Features, die den Dialog-Scope sprengen, gehören in separate Werkzeuge — damit das Plugin schlank und wartbar bleibt.

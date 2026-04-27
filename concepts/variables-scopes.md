@@ -1,159 +1,144 @@
+---
+description: Dialogue-Scope vs. Participant-Scope — wann du welchen nimmst und wie du darauf zugreifst.
+---
+
 # Variablen & Scopes
 
-MayDialogue hat ein **zwei-Scope-Modell** für Variablen. Dieses Kapitel erklärt beide, zeigt wann du welchen nutzt, und wie du sie aus Dialog, Blueprint oder C++ ansprichst.
+MayDialogue hat zwei Orte, an denen Variablen leben. Die Wahl des richtigen Scopes ist die einzige Entscheidung, die du treffen musst — der Rest ist mechanisch gleich.
 
 ## Die zwei Scopes
 
-| Scope | Lebensdauer | Storage | Typische Nutzung |
-| --- | --- | --- | --- |
-| **Dialogue** | Nur während des laufenden Gesprächs | `UMayDialogueInstance.DialogueVariables` (`FInstancedPropertyBag`) | Counter innerhalb einer Szene, Zwischenzustände, Aggregationen |
-| **Participant** | Überdauert Gespräche & (optional) Saves | `UMayDialogueParticipant.PersistentMemory` (`FInstancedPropertyBag`, SaveGame) | „Hat mich schon mal getroffen", Beziehungswerte, Weltkenntnisse |
+| | Dialogue-Scope | Participant-Scope |
+| --- | --- | --- |
+| **Lebt** | Nur während des Gesprächs | Überdauert das Gespräch |
+| **Gespeichert in** | Der laufenden Instanz | Der Participant-Komponente (SaveGame-markiert) |
+| **Typischer Einsatz** | Zwischenstände, Counter, Aggregationen innerhalb einer Szene | „Hat mich schon getroffen", Beziehungswerte, Weltkenntnisse |
 
-## Unterstützte Typen
+Faustregel: Wenn die Variable nach dem Dialog irrelevant ist → **Dialogue**. Wenn sie beim nächsten Gespräch noch gelten soll → **Participant**.
 
-Enum `EMayDialogueVariableType`:
+## Entscheidungsbaum
 
-* `Bool`
-* `Int`
-* `Float`
-* `String`
-* `Tag` (`FGameplayTag`)
-
-Diese fünf Typen decken die allermeisten Dialog-Variablen-Fälle ab. Wer komplexere Daten braucht, nutzt ein Projekt-eigenes Subsystem oder hängt Properties direkt an die Participant-Komponente.
-
-## Deklaration
-
-Variablen werden im **Variables-Panel** des Asset-Editors angelegt:
-
-| Spalte | Bedeutung |
-| --- | --- |
-| `Name` | Eindeutiger Name innerhalb des Scopes (FName). |
-| `Typ` | Einer der fünf Typen. |
-| `Scope` | Dialogue oder Participant. |
-| `Default` | Initialwert. |
-
-## Setzen & Lesen im Dialog-Graph
-
-### Setzen
-
-**`SetVariable`** existiert in zwei Formen:
-
-* Als **Action-Node** (eigene Box im Flow).
-* Als **SideEffect-Sub-Node** an einem bestehenden Node.
-
-Beide zeigen dieselben Properties: Variable-Name, Typ, Scope, Value. Für Participant-Scope: zusätzlich der `TargetParticipantTag` (wer bekommt die Variable gesetzt).
-
-### Lesen
-
-Lesen passiert über **Requirements** (auf Choice / Branch):
-
-* **CheckDialogueVariable** (Beispiel aus Projekt-Logik, aus dem Plugin ableitbar).
-* **CheckParticipantVariable**.
-
-Oder – wenn du kein generisches Requirement hast – über eigene Blueprint-Requirements, die das Variable-Query intern machen.
-
-## Setzen & Lesen aus Code
-
-### Dialogue-Scope
-
-```cpp
-UMayDialogueInstance* Instance = Subsystem->GetActiveDialogue();
-if (!Instance) return;
-
-// Setzen
-Instance->SetDialogueVariableBool("HasAngered", true);
-Instance->SetDialogueVariableInt("Provocations", 3);
-
-// Lesen
-bool Angered = Instance->GetDialogueVariableBool("HasAngered");
-int32 Count = Instance->GetDialogueVariableInt("Provocations");
+```text
+Neue Variable gebraucht?
+    │
+    ├─ Nur für dieses Gespräch relevant?
+    │       └─→ Dialogue-Scope
+    │
+    └─ Muss das Gespräch überdauern?
+            ├─ Bis Level-Wechsel reicht?
+            │       └─→ Participant-Scope (nicht persistiert)
+            └─ Muss im SaveGame bleiben?
+                    └─→ Participant-Scope (SaveGame automatisch)
 ```
 
-### Participant-Scope
-
-```cpp
-UMayDialogueParticipant* Part = Actor->FindComponentByClass<UMayDialogueParticipant>();
-if (!Part) return;
-
-// Setzen
-Part->SetPersistentBool("HasMet", true);
-Part->SetPersistentFloat("Friendship", 12.5f);
-Part->SetPersistentTag("LastMood", FGameplayTag::RequestGameplayTag("Mood.Friendly"));
-
-// Lesen mit Default
-bool HasMet = Part->GetPersistentBool("HasMet", false);
-float Friendship = Part->GetPersistentFloat("Friendship", 0.0f);
-```
-
-### Generische Namespace-API
-
-`MayDialogue::Variables::Get(...)` und `...::Set(...)` lesen/schreiben als String – praktisch für Bridge-Tools (Cheat-Menüs, Debug-UIs):
-
-```cpp
-FString ValueAsString;
-bool bSuccess = MayDialogue::Variables::Get(
-    Instance, Participant,
-    EMayDialogueVariableScope::Participant,
-    "HasMet",
-    EMayDialogueVariableType::Bool,
-    ValueAsString
-);
-```
-
-## OnVariableChanged
-
-Jede Variablen-Mutation (in beiden Scopes) broadcastet `OnVariableChanged`:
-
-```cpp
-Instance->OnVariableChanged.AddDynamic(this, &AQuestDirector::HandleDialogVarChanged);
-
-void AQuestDirector::HandleDialogVarChanged(
-    FName VarName,
-    EMayDialogueVariableScope Scope,
-    EMayDialogueVariableType Type,
-    FString NewValueAsString)
-{
-    if (VarName == "QuestAccepted" && NewValueAsString == "true")
-    {
-        // Quest starten
-    }
-}
-```
-
-## Wann welcher Scope?
-
-```mermaid
-flowchart TD
-    Q[Neue Variable gebraucht]
-    Q -->|Nur für dieses Gespräch relevant| D[Dialogue-Scope]
-    Q -->|Muss Gespräch überleben| P[Participant-Scope]
-    P -->|Muss Save-Game überleben| PS[Participant-Scope<br/>+ SaveGame]
-    P -->|Nur bis Level-Wechsel| PA[Participant-Scope,<br/>nicht persistiert]
-```
-
-Beispiele:
+**Beispiele:**
 
 | Variable | Scope | Warum |
 | --- | --- | --- |
 | „Hat der Spieler schon nach dem Namen gefragt" | Dialogue | Nur diese Session relevant |
-| „Wie oft wurde provoziert" | Dialogue | Counter innerhalb der Szene |
-| „Spieler kennt das Geheimnis" | Participant + Save | Gilt für alle folgenden Gespräche mit dieser Figur |
-| „Friendship-Level" | Participant + Save | Persistente Beziehung |
-| „Hat in diesem Level schon gesprochen" | Participant, nicht persistiert | Session-scoped, aber gesprächsübergreifend |
+| „Wie oft wurde in dieser Szene provoziert" | Dialogue | Counter, Gespräch endet danach |
+| „Spieler kennt das Geheimnis" | Participant + Save | Gilt für alle späteren Gespräche |
+| „Friendship-Level mit NPC" | Participant + Save | Persistente Beziehung |
+| „Hat in diesem Level schon gesprochen" | Participant, nicht persistiert | Gesprächsübergreifend, aber Level-scoped |
 
-## Einschränkungen
+## Variablen deklarieren
 
-* **Keine Rechenoperationen.** `SetVariable` setzt Werte, nicht Ausdrücke. „Friendship += 5" ist aktuell nicht im Graph machbar; entweder du berechnest es in einem Blueprint-SideEffect oder nutzt ein eigenes Requirement/SideEffect-Pair.
-* **Kein Tag-Branch in SetVariable.** Aktuell kein UI-Code-Pfad für `Tag`-Werte im SetVariable-Node (Backlog-Item 9 in `BACKLOG.md`).
-* **Variables::Copy ist nicht implementiert.** Bulk-Kopie zwischen Scopes / Participants steht auf der Roadmap.
-* **SetVariable schreibt derzeit nur in Instance-Scope, nicht in Participant-PersistentMemory.** (Backlog-Item 8). Bis dahin: für Participant-Schreiben ein Blueprint-SideEffect benutzen, der `SetPersistentXxx` auf der Komponente aufruft.
+Variablen werden im **Variables-Panel** des Asset-Editors angelegt — nicht im Blueprint, nicht im C++.
 
-## Zusammengefasst
+> 📸 **Bild-Platzhalter:** `variables-panel.png` — Variables-Panel mit mehreren Einträgen.
+> *Setup:* Asset-Editor, Variables-Panel-Tab geöffnet. Tabelle mit vier Spalten: Name, Typ, Scope, Default. Drei Einträge sichtbar: 1. `HasAngered | Bool | Dialogue | false`. 2. `ProvocationCount | Int | Dialogue | 0`. 3. `HasMet | Bool | Participant | false`. Add-Button unten links sichtbar.
 
-* **Dialogue-Scope** für alles, was nur innerhalb eines Gesprächs lebt.
-* **Participant-Scope** für alles, was den Actor überdauern soll.
-* Fünf Typen: Bool, Int, Float, String, Tag.
-* `OnVariableChanged` als Hook für externe Systeme.
-* Ein paar Features (Participant-Schreiben aus SetVariable-Node, Tag-Branch, Bulk-Copy) sind Work-in-Progress.
+Unterstützte Typen: `Bool`, `Int`, `Float`, `String`, `Tag` (FGameplayTag).
 
-Weiter: [Emotionen & Tag-Container](emotions-tags.md).
+## Variablen im Graph setzen
+
+**SetVariable** gibt es in zwei Formen — gleiche Logik, andere visuelle Prominenz:
+
+- Als **eigenständiger Action-Node** im Graph-Flow (wenn das Setzen der Hauptschritt ist).
+- Als **SideEffect-Sub-Node** an einem anderen Node (wenn es nebenbei passiert).
+
+> 📸 **Bild-Platzhalter:** `setvariable-as-node.png` — SetVariable-Node als eigenständige Box im Graph.
+> *Setup:* Graph-Ausschnitt. `SayLine "Wer bist du?"` (Output-Pin) → `SetVariable`-Node (violette Title-Bar). Details-Panel rechts: `VariableName = HasAngered`, `Typ = Bool`, `Scope = Dialogue`, `Value = true`. Output-Pin des SetVariable-Nodes führt zu einem weiteren Node.
+
+> 📸 **Bild-Platzhalter:** `setvariable-as-sideeffect.png` — SetVariable als SideEffect-Pill an einer SayLine.
+> *Setup:* Eine SayLine im Graph ausgewählt. Im Node-Body unten: ein SideEffect-Pill mit Text `⚙ SetVariable: HasMet = true`. Kein eigenständiger Node im Graph — die Pill ist im Body der SayLine sichtbar.
+
+## Variablen im Graph lesen
+
+Lesen passiert über **Requirements** an Choice- oder Branch-Nodes:
+
+- **CheckDialogueVariable** — prüft einen Wert im Dialogue-Scope.
+- **CheckParticipantVariable** — prüft einen Wert im Participant-Scope.
+
+> 📸 **Bild-Platzhalter:** `requirement-check-variable.png` — Branch-Node mit CheckDialogueVariable-Requirement.
+> *Setup:* Branch-Node im Graph (blaue Title-Bar). Im Details-Panel rechts unter „Requirements": ein Eintrag `CheckDialogueVariable — ProvocationCount >= 3`. Output-Pins: True → SayLine „Genug davon!", False → SayLine (weiter wie gewohnt). Beide Pins sichtbar.
+
+## Aus Blueprint lesen und schreiben
+
+**Dialogue-Scope:**
+
+> 📸 **Bild-Platzhalter:** `bp-dialogue-variable-read.png` — Blueprint: GetDialogueVariableBool auf der aktiven Instanz.
+> *Setup:* BP-Graph eines EventHandlers. `Get Active Dialogue` (Subsystem) → `Get Dialogue Variable Bool`. Pin `Variable Name = "HasAngered"`. Return-Value führt zu einem Branch-Node. Alle Pins beschriftet.
+
+```cpp
+UMayDialogueInstance* Instance = UMayDialogueSubsystem::Get(this)->GetActiveDialogue();
+
+// Schreiben
+Instance->SetDialogueVariableBool("HasAngered", true);
+Instance->SetDialogueVariableInt("ProvocationCount", 3);
+
+// Lesen
+bool Angered = Instance->GetDialogueVariableBool("HasAngered");
+int32 Count  = Instance->GetDialogueVariableInt("ProvocationCount");
+```
+
+**Participant-Scope:**
+
+```cpp
+UMayDialogueParticipant* Part = Actor->FindComponentByClass<UMayDialogueParticipant>();
+
+// Schreiben
+Part->SetPersistentBool("HasMet", true);
+Part->SetPersistentFloat("Friendship", 12.5f);
+
+// Lesen mit Default
+bool HasMet      = Part->GetPersistentBool("HasMet", false);
+float Friendship = Part->GetPersistentFloat("Friendship", 0.0f);
+```
+
+## Auf Variablen-Änderungen reagieren
+
+Jede Variablen-Mutation (beide Scopes) broadcastet `OnVariableChanged`. Dein Quest-System oder ein Analytics-Logger kann sich hier einklinken:
+
+```cpp
+Instance->OnVariableChanged.AddDynamic(this, &AQuestDirector::HandleVarChanged);
+
+void AQuestDirector::HandleVarChanged(FName VarName, EMayDialogueVariableScope Scope,
+                                       EMayDialogueVariableType Type, FString NewValue)
+{
+    if (VarName == "QuestAccepted" && NewValue == "true")
+    {
+        QuestSystem->StartQuest("FindTheKey");
+    }
+}
+```
+
+## Bekannte Einschränkungen
+
+{% hint style="warning" %}
+**SetVariable aus dem Graph schreibt aktuell nur in den Dialogue-Scope.** Für Participant-Scope aus dem Graph: ein Blueprint-SideEffect, der `SetPersistentXxx` direkt auf der Komponente aufruft.
+{% endhint %}
+
+{% hint style="info" %}
+**Rechenoperationen** (z.B. `Friendship += 5`) sind im Graph nicht direkt möglich. Lösung: den aktuellen Wert in einem Blueprint-SideEffect auslesen, rechnen und zurückschreiben.
+{% endhint %}
+
+## Zusammenfassung
+
+- **Dialogue-Scope**: nur während des Gesprächs, automatisch weg wenn der Dialog endet.
+- **Participant-Scope**: überdauert Gespräche, SaveGame-ready.
+- Typen: Bool, Int, Float, String, Tag.
+- Deklaration im Variables-Panel des Asset-Editors.
+- `OnVariableChanged` als Hook für externe Systeme.
+
+Weiter: [Emotionen & Tags](emotions-tags.md).

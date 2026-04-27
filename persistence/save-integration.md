@@ -1,98 +1,111 @@
+---
+description: Wie du MayDialogue in dein eigenes SaveGame-System einbindest.
+---
+
 # SaveGame-Integration
 
-Wenn dein Projekt bereits ein eigenes SaveGame-System hat, kannst du MayDialogues Participant-Memory nahtlos einbetten.
+Wenn dein Projekt bereits ein SaveGame-System hat, fügst du MayDialogue-Daten nahtlos ein. Die Participant-Komponente ist schon vorbereitet.
 
-## Das `SaveGame`-Flag
+## Das UPROPERTY(SaveGame)-Flag
 
-Auf der Participant-Komponente:
+Auf `UMayDialogueParticipant`:
 
 ```cpp
-UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category="Persistence")
+UPROPERTY(SaveGame)
 FInstancedPropertyBag PersistentMemory;
 ```
 
-Das `SaveGame`-Specifier sorgt dafür, dass UE's `FArchive`-Serialisierung die Property in ein SaveGame einbettet, **sofern** der Serializer auf `SaveGame`-Flag hört.
+Das `SaveGame`-Specifier sagt UE's Serialisierer: "Diese Property beim Serialisieren eines SaveGame-Archives mitschreiben." Du musst nichts weiter tun, solange dein Archiv `ArIsSaveGame = true` setzt.
 
-## Standard-UE-Archive
+## Schritt 1 — Beim Speichern
 
-Der übliche Code für Actor-Snapshot:
-
-```cpp
-FMemoryWriter Writer(OutBytes);
-FObjectAndNameAsStringProxyArchive Ar(Writer, /*bLoadIfFindFails=*/false);
-Ar.ArIsSaveGame = true;
-
-Actor->Serialize(Ar);
-```
-
-`ArIsSaveGame = true` bewirkt, dass nur Properties mit `SaveGame`-Flag serialisiert werden. Deine `PersistentMemory` ist dabei.
-
-## Beim Laden
-
-Inverse Richtung:
+Wenn dein Projekt speichert, iterierst du alle Participants und serialisierst den Actor:
 
 ```cpp
-FMemoryReader Reader(InBytes);
-FObjectAndNameAsStringProxyArchive Ar(Reader, false);
-Ar.ArIsSaveGame = true;
+// In deinem SaveSystem oder SaveGame-Handler:
+TArray<AActor*> Participants;
+UGameplayStatics::GetAllActorsWithComponent(World, UMayDialogueParticipant::StaticClass(), Participants);
 
-Actor->Serialize(Ar);
+for (AActor* Actor : Participants)
+{
+    TArray<uint8> Bytes;
+    FMemoryWriter Writer(Bytes);
+    FObjectAndNameAsStringProxyArchive Ar(Writer, /*bLoadIfFindFails=*/false);
+    Ar.ArIsSaveGame = true;
+
+    Actor->Serialize(Ar);  // PersistentMemory wird mitgeschrieben, weil SaveGame-Flag
+    // Bytes in dein SaveData-Struct packen, Schlüssel = Actor-Name oder GUID
+}
 ```
 
-UE stellt die Property wieder her. Die `FInstancedPropertyBag` kennt ihr Schema und deserialisiert sauber.
+> 📸 **Bild-Platzhalter:** `saveint-blueprint-save.png` — Blueprint-Graph: Alle Actors mit UMayDialogueParticipant iterieren und serialisieren.
+> *Setup:* BP-Graph im SaveSystem-Blueprint. `Get All Actors With Component` (ComponentClass = MayDialogueParticipant) → ForEach-Loop → `Save Actor To Bytes`-Funktion (aus eigener Utility-Library). Schleifenausgang führt in ein `SaveData`-Array. Kein MayDialogue-spezifischer Knoten nötig — normaler UE-SaveGame-Pfad.
 
-## Empfohlener Projekt-Flow
+## Schritt 2 — Beim Laden
 
-```mermaid
-flowchart TD
-    Save[User triggert Save]
-    Save --> Snap[Projekt-SaveSystem snapshotted alle Participants]
-    Snap --> Ser[Serialize Actor + PersistentMemory]
-    Ser --> Slot[Write to SaveGame-Slot]
-
-    Load[User triggert Load]
-    Load --> Read[Read SaveGame-Slot]
-    Read --> Spawn[Spawn Actors]
-    Spawn --> Deser[Deserialize → PersistentMemory restoriert]
-```
-
-## Was genau wird gespeichert?
-
-Pro Participant die `PersistentMemory`-PropertyBag. Das ist ein **typed-dynamic Dictionary**: Bool, Int, Float, String, Tag-Paare. Jede Variable, die du via `SetPersistentXxx()` geschrieben hast, lebt dort.
-
-**Nicht** gespeichert:
-
-* Aktuell laufende Dialog-Instance (sie wird beim Load neu gestartet, falls nötig).
-* Dialogue-Scope-Variablen der alten Instance.
-* UI-State.
-
-## Actor-Spawning-Sync
-
-Wichtig: PersistentMemory überlebt nur, wenn die **Participant-Komponente am gleichen Actor** re-instanziiert wird. Typisches Muster:
-
-1. Level hat NPC „Guard_01".
-2. Beim Save: Actor-Identität (Name oder Guid) + PersistentMemory werden gespeichert.
-3. Beim Load: Level wird geladen, NPC erscheint, `PersistentMemory` wird aus SaveGame restoriert (z.B. über einen `ISaveLoadInterface` am Actor oder via AssetRegistry-Matching).
-
-Wenn dein Projekt Actors nicht im Level-File hat, sondern dynamisch spawnt: sorge dafür, dass der Re-Spawn-Pfad dieselbe ParticipantTag-Identität hat.
-
-## Alternative: Manuelles Persistieren
-
-Wenn du die PropertyBag nicht über den Standard-Archive-Pfad speichern willst, kannst du sie auch **explizit** aus dem Participant holen:
+Inverse Richtung: die gespeicherten Bytes auf die Actors anwenden.
 
 ```cpp
+for (auto& [ActorName, Bytes] : SavedData)
+{
+    AActor* Actor = FindActorByName(World, ActorName);  // deine Lookup-Logik
+    if (!Actor) continue;
+
+    FMemoryReader Reader(Bytes);
+    FObjectAndNameAsStringProxyArchive Ar(Reader, false);
+    Ar.ArIsSaveGame = true;
+
+    Actor->Serialize(Ar);  // PersistentMemory wird wiederhergestellt
+}
+```
+
+`FInstancedPropertyBag` kennt sein eigenes Schema und deserialisiert sich korrekt, solange das Schema zwischen Save und Load unverändert ist.
+
+## Manuelles Vorgehen (Alternative)
+
+Du musst den Standard-Archive-Pfad nicht nutzen. Du kannst die PropertyBag auch direkt aus dem Participant holen und in dein SaveGame-Struct stecken:
+
+```cpp
+// Beim Speichern:
+UMayDialogueParticipant* Part = Actor->FindComponentByClass<UMayDialogueParticipant>();
 FInstancedPropertyBag Memory = Part->PersistentMemory;
-// in dein eigenes SaveGame packen
-```
+MySaveData.DialogueMemories.Add(Part->ParticipantTag.GetTagName(), Memory);
 
-Und beim Load:
-
-```cpp
+// Beim Laden:
+FInstancedPropertyBag LoadedMemory = MySaveData.DialogueMemories.FindRef(Part->ParticipantTag.GetTagName());
 Part->PersistentMemory = LoadedMemory;
 ```
 
-Das ist flexibler, erfordert aber dass du die Sync-Point selbst orchestrierst.
+Das gibt dir volle Kontrolle über den Sync-Zeitpunkt.
 
-## Global Memory (optional)
+> 📸 **Bild-Platzhalter:** `saveint-manual-bp.png` — Blueprint-Graph: Manuelles Get/Set PersistentMemory.
+> *Setup:* BP-Graph zeigt `Get Component by Class` (MayDialogueParticipant) → `Get Persistent Memory` → `Add to SaveData Map`. Zweiter Teil: `Load from Map` → `Set Persistent Memory`. Beide Teile im selben Graph, mit Kommentar-Boxen "Beim Speichern" und "Beim Laden" beschriftet.
 
-`UMayDialogueSaveGame` hat zusätzlich ein `GlobalMemory`-Feld (`FInstancedPropertyBag`), das du für Projekt-weite Dialog-Flags nutzen kannst, die keinem Participant gehören (z.B. *„Hat der Spieler das Intro-Video gesehen?"*). Zugriff via Projekt-Code.
+## Was genau wird gespeichert
+
+Pro Participant wird die `PersistentMemory`-PropertyBag gespeichert — ein typisiertes Dictionary aus Bool-, Int-, Float-, String- und GameplayTag-Werten. Jede Variable, die du per `SetPersistentBool()`, `SetPersistentInt()` etc. geschrieben hast, lebt dort.
+
+**Nicht** gespeichert werden:
+
+* Laufende Dialog-Instances (sie werden neu gestartet, falls nötig).
+* Dialogue-Scope-Variablen.
+* UI-State.
+
+## Actor-Identität beim Load
+
+PersistentMemory überlebt nur, wenn die Participant-Komponente beim Load am richtigen Actor landet. Typisches Muster:
+
+1. Level enthält NPC "Guard_01" (in der Szene platziert).
+2. Beim Save: Actor-Name oder GUID + PersistentMemory werden gespeichert.
+3. Beim Load: Level wird geladen, NPC erscheint wieder, PersistentMemory wird von deinem System über den Namen/GUID zurückgeschrieben.
+
+{% hint style="warning" %}
+**Dynamisch gespawnte NPCs:** Wenn ein Actor nicht im Level liegt, sondern dynamisch gespawnt wird, stelle sicher, dass der Spawn-Pfad denselben `ParticipantTag` und eine stabile Identität (z.B. eine gespeicherte GUID) wiederverwendet.
+{% endhint %}
+
+## GlobalMemory
+
+`UMayDialogueSaveGame` hat zusätzlich ein `GlobalMemory`-Feld (`FInstancedPropertyBag`). Nutze es für Projekt-weite Dialog-Flags, die keinem bestimmten Participant gehören, z.B. *"Hat der Spieler das Tutorial-Gespräch gesehen?"*. Du greifst per Code auf `UMayDialogueSaveGame::GlobalMemory` zu und speicherst es zusammen mit den Participant-Daten.
+
+> 📸 **Bild-Platzhalter:** `saveint-flow-diagram.png` — Zeitstrahl: User drückt Speichern → System iteriert Participants → Archive serialisiert → Slot geschrieben. Beim Laden: Slot gelesen → Actor gefunden → Archive deserialisiert → PersistentMemory wiederhergestellt.
+> *Setup:* Einfaches Flussdiagramm mit zwei Pfaden: "Speichern" (oben) und "Laden" (unten). Speichern: Rechteck "User drückt Speichern" → "Iterate Participants" → "Serialize ArIsSaveGame=true" → "Write Slot". Laden: "Load Slot" → "Find Actor by Name" → "Deserialize" → "PersistentMemory restored". Pfeile deutlich, Schritte nummeriert.

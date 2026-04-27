@@ -1,108 +1,121 @@
-# Mehrsprachigkeit
+---
+description: Text per FText-Gather lokalisieren und Voice-Files pro Kultur zuweisen – der komplette L10n-Workflow.
+---
 
-MayDialogue unterstützt Lokalisierung auf zwei Ebenen: **Text** über das Standard-UE-Gather-System (`FText`) und **Voice** über die `VoicePerCulture`-Map am SayLine-Node. Dieses Rezept zeigt dir den kompletten Workflow von der Kultur-Konfiguration bis zur getesteten Zeile.
+# Mehrsprachigkeit
 
 ## Szenario
 
-Dein Horror-Spiel soll in Deutsch, Englisch und Japanisch erscheinen. Ein NPC sagt zwei Zeilen mit Vertonung. Jede Kultur hat eigenen Text und eigene Voice-Files.
+Dein Spiel erscheint auf Deutsch, Englisch und Japanisch. Ein NPC sagt zwei Zeilen, jede mit eigener Vertonung pro Sprache. Dieses Rezept zeigt den kompletten Weg: Kulturen konfigurieren, Text gathern, Voice-Map befüllen, Sprache zur Laufzeit wechseln.
+
+## Was du lernst
+
+- Kulturen im UE-Projekt registrieren.
+- FText-Gather für Dialog-Assets ausführen.
+- `VoicePerCulture`-Map am SayLine-Node befüllen.
+- Laufzeit-Sprachwechsel per Blueprint und C++.
 
 ## Voraussetzungen
 
-* UE-Projekt hat mindestens zwei Cultures unter *Edit → Project Settings → Packaging → Localization*.
-* Ein *Localization Target* für das Projekt (`Game.po` / `Game.locres`) existiert.
-* Voice-Files als `USoundBase` (Wave oder MetaSound) importiert, benannt z.B. `SW_Villager_Line01_DE`, `SW_Villager_Line01_EN`, `SW_Villager_Line01_JA`.
+- [Einfaches NPC-Gespräch](simple-npc-talk.md) abgeschlossen.
+- UE-Localization-Target für das Projekt angelegt.
+- Voice-Files als `USoundBase` importiert: `SW_Villager_Line01_DE`, `_EN`, `_JA`.
+
+## Mini-Graph
+
+```text
+[Entry]
+   │
+   ▼
+[SayLine: Dorfbewohner – "Guten Tag, Fremder."  VoicePerCulture: {de, en, ja}]
+   │
+   ▼
+[SayLine: Dorfbewohner – "Seid auf der Hut."    VoicePerCulture: {de, en, ja}]
+   │
+   ▼
+[Exit: Completed]
+```
+
+> 📸 **Bild-Platzhalter:** `multilingual-dialogue-graph-overview.png` — Asset-Editor mit einer SayLine, VoicePerCulture-Map ausgeklappt.
+> *Setup:* Asset `DA_Villager_Intro` geöffnet. SayLine ausgewählt, Details-Panel rechts zeigt `DialogueText = "Guten Tag, Fremder."` und darunter `VoicePerCulture`-Map mit drei Zeilen: `de → SW_Villager_Line01_DE`, `en → SW_Villager_Line01_EN`, `ja → SW_Villager_Line01_JA`.
 
 ## Schritt-für-Schritt
 
 ### 1. Kulturen im Projekt registrieren
 
-In den *Project Settings → Internationalization*:
+**Edit → Project Settings → Internationalization**:
+- `Native Culture`: `de`
+- `Cultures to Stage`: `de`, `en`, `ja`
 
-* Native Culture: `de`
-* Cultures to Stage: `de`, `en`, `ja`
+### 2. Dialog-Asset anlegen und Text eingeben
 
-Damit landen die Culture-Keys in den `.locres`-Files.
+Asset: `DA_Villager_Intro`. SayLine `DialogueText` in der Native-Culture (Deutsch): *„Guten Tag, Fremder."*
 
-### 2. Dialog-Asset anlegen
+`FText` speichert beim Asset-Save automatisch einen Text Key – das Gather-System nutzt diesen später.
 
-`DA_Villager_Intro`. SayLine mit Text in *Native-Culture* (hier Deutsch):
+### 3. Voice-per-Culture-Map befüllen
 
-| Property | Wert |
-| --- | --- |
-| `DialogueText` | *„Guten Tag, Fremder."* |
-
-`FText` merkt sich beim Asset-Save automatisch einen *Text Key*, den das Gather-System später nutzt.
-
-### 3. Voice-per-Culture-Map füllen
-
-Am SayLine-Node hat `DialogueVoice` den Typ `TMap<FString, USoundBase*>`. Füge drei Einträge hinzu:
+Am SayLine-Node unter `DialogueVoice` → Map mit drei Einträgen:
 
 | Key | Value |
-| --- | --- |
+|-----|-------|
 | `de` | `SW_Villager_Line01_DE` |
 | `en` | `SW_Villager_Line01_EN` |
 | `ja` | `SW_Villager_Line01_JA` |
 
-{% hint style="info" %}
-Der Fallback-Key ist konventionsmäßig `""` (leerer String). Wenn du ihn setzt, wird er als Voice verwendet, falls die aktuelle Kultur nicht gefunden wird. Lasse das Feld aber nur dann leer, wenn du stattdessen Babel-Synthese aktivieren willst.
-{% endhint %}
+Für den Fallback-Key `""` (leerer String): wird genutzt, wenn die aktuelle Kultur nicht in der Map ist. Leer lassen wenn Babel-Synthese aktiv sein soll.
 
 ### 4. Text-Gather ausführen
 
-*Window → Localization Dashboard* öffnen. Im Dialog-Localization-Target:
+**Window → Localization Dashboard** → Gather Text → Compile Text → Edit (für Übersetzungseingabe).
 
-1. *Gather Text* ausführen – scanned alle Assets inkl. Dialog-Graphs.
-2. *Compile Text* – erzeugt die `.locres`.
-3. *Edit* öffnet den Culture-Editor, in dem du die englische und japanische Übersetzung des Textes einträgst.
-
-Alternativ per CLI:
+Per CLI:
 
 ```bash
 "C:/Program Files/Epic Games/UE_5.7/Engine/Binaries/Win64/UnrealEditor-Cmd.exe" ^
   "C:/UnrealEngine/VHS/VHS.uproject" ^
-  -run=GatherText ^
-  -Target=Game
+  -run=GatherText -Target=Game
 ```
 
-### 5. Runtime-Sprachwechsel
+> 📸 **Bild-Platzhalter:** `multilingual-dialogue-localization-dashboard.png` — Localization Dashboard nach erfolgreichem Gather.
+> *Setup:* Window → Localization Dashboard geöffnet. Game-Target sichtbar, Status-Spalte zeigt grünen Haken nach Gather+Compile. Kulturen-Liste mit de/en/ja und Fortschritts-Balken.
 
-Culture wird von UE gesetzt. Typische Wege:
+### 5. Übersetzungen eintragen
 
-**Blueprint**:
+Im Culture-Editor (Compile → Edit) die englischen und japanischen Texte eingeben. MayDialogue nutzt beim Dialog-Start die aktive UE-Kultur für die Textanzeige.
 
+### 6. Laufzeit-Sprachwechsel
+
+**Blueprint:**
+
+```text
+[Set Current Culture]
+   └─ Culture: "en"
 ```
-[Set Current Culture]   "en"
-```
 
-**C++**:
+**C++:**
 
 ```cpp
 FInternationalization::Get().SetCurrentCulture(TEXT("en"));
 ```
 
-Beim nächsten Dialog-Start nutzt das Plugin die neue Kultur sowohl für Text-Darstellung (`FText::AsCultureInvariant()` bleibt die Ausnahme) als auch für Voice-Auswahl.
+Beim nächsten Dialog-Start nutzt das Plugin die neue Kultur für Text und Voice-Auswahl.
 
-## Wie die Voice-Auflösung funktioniert
+## Voice-Auflösung
 
-```mermaid
-graph LR
-    A[ExecuteNode SayLine] --> B[Get FInternationalization::GetCurrentCulture]
-    B --> C{Key in VoicePerCulture?}
-    C -- Ja --> D[USoundBase spielen]
-    C -- Nein --> E{Fallback ""-Key gesetzt?}
-    E -- Ja --> D
-    E -- Nein --> F{Babel aktiv?}
-    F -- Ja --> G[Babel-Synthese nach Speaker-Profil]
-    F -- Nein --> H[Stille Line, Typewriter läuft trotzdem]
+```text
+ExecuteNode SayLine
+   → Aktuelle Kultur holen (FInternationalization)
+   → Key in VoicePerCulture?
+       ├─ Ja → Voice abspielen
+       └─ Nein → Fallback-Key ("") gesetzt?
+                   ├─ Ja → Fallback-Voice abspielen
+                   └─ Nein → Babel aktiv? → Synthese / Stille
 ```
 
-Die [Drei-Ebenen-Fallback-Kette](../audio/three-level-fallback.md) kommt zusätzlich ins Spiel, wenn der Speaker-Override oder Babel-Profil-Override eingreift.
+## Empfohlene Ordner-Struktur
 
-## Voice-Files organisieren
-
-Eine bewährte Projekt-Struktur:
-
-```
+```text
 Content/
   Dialogue/
     Villager/
@@ -113,46 +126,35 @@ Content/
         ja/SW_Villager_Line01.wav
 ```
 
-Durch die Kultur-Ordner kannst du in Perforce gezielt Culture-Sets staged/shipped ein- oder ausschließen (*Asset Staging Rules* im Packaging-Abschnitt).
+Über Kultur-Ordner kannst du in Perforce gezielt Culture-Sets beim Packaging ein- oder ausschließen.
 
-## Mix: Teilweise Vertonung
-
-Nicht jede Zeile muss alle Kulturen bedienen. Typisches Muster:
+## Mix: Nur teilweise vertont
 
 | Szenario | Setup |
-| --- | --- |
-| Nur Englisch vertont, andere nur Text | Einzigen `en`-Key füllen, Rest leer → Babel oder Stille bei anderen Cultures. |
-| Deutsch + Englisch vertont, Japanisch nur Text | `de` + `en` im Map, `ja` leer → Plugin fällt bei `ja` auf Babel oder Stille. |
-| Alle Cultures Babel, nur Schlüsselzeilen vertont | VoiceMap pro SayLine selektiv befüllen. |
+|----------|-------|
+| Nur EN vertont, andere nur Text | Einzigen `en`-Key füllen |
+| DE + EN vertont, JA nur Text | `de` + `en` befüllen, `ja` leer lassen |
+| Alle Kulturen über Babel | VoiceMap leer, Babel in Projekt-Settings aktivieren |
 
-## Lokalisierungs-Best-Practices
+> 📸 **Bild-Platzhalter:** `multilingual-dialogue-ingame-preview.png` — Preview-Runner mit aktivem Dialog auf Englisch.
+> *Setup:* Preview-Runner Panel mit englischer Kultur. Textbox zeigt `"Good day, stranger."`, Speaker-Name `Villager`. Hinweis: Culture muss vor dem Preview-Start gesetzt sein.
 
-* **FText nie per `FromString`** bauen. Das verhindert Gather.
-* **Namespace pro Asset** setzen. `FText`s in einem Asset bekommen automatisch einen Namespace aus dem Asset-Pfad – damit keine Kollisionen mit gleichem String in anderen Assets.
-* **EmotionTags** als `FGameplayTag` sind nicht lokalisierbar (sollen sie auch nicht sein – das sind Daten, kein Display-Text).
-* **Speaker-DisplayName** ebenfalls als `FText` pflegen, nicht als `FString`.
+## Variation / Weiter gehen
+
+- Babel-Synthese für fehlende Kulturen aktivieren → [Audio → Babel-System](../audio/babel-system.md).
+- Speaker-DisplayName ebenfalls als FText pflegen (nicht als FString), damit er mitgegathert wird.
+- Kultur-spezifische Emotionen: EmotionTags sind GameplayTags (nicht lokalisierbar), also sprachunabhängig.
 
 ## Troubleshooting
 
-### Die englische Voice wird abgespielt, der Text bleibt deutsch
+**Englische Voice spielt, Text bleibt deutsch.**
+Localization-Target nicht Compiled nach dem Gather. `.locres`-Datei fehlt. Re-Run Compile Text.
 
-* Das Localization-Target wurde nicht *Compiled* nach dem Gather. Die `.locres` fehlt. Re-Run *Compile Text*.
-* Die Kultur wurde nicht gesetzt – prüfe mit `FInternationalization::Get().GetCurrentCulture()`.
+**Voice-Fallback greift nicht.**
+Leerer `""`-Key nicht befüllt. Entweder Babel aktivieren (`bEnableBabelVoice` in Projekt-Settings) oder den Key explizit füllen.
 
-### Der Voice-Fallback greift nicht
+**Gather findet den Text nicht.**
+Text wurde per Blueprint-Literal in ein Variable-Feld gelegt statt direkt am Asset. Nur `FText`-Properties in Dialog-Graphs werden gegathert.
 
-* Der leere `""`-Key ist nicht gefüllt. Entweder Babel aktivieren ([bEnableBabelVoice](../getting-started/project-settings.md)) oder den leeren Key explizit mit einer generischen Default-Voice belegen.
-
-### Fonts haben keine japanischen Glyphen
-
-* Das ist kein MayDialogue-Problem, sondern ein UMG-Font-Thema. Dein Dialog-Widget braucht einen Font mit CJK-Support oder eine Font-Fallback-Kette. Siehe UE-Docs zu *Composite Font Assets*.
-
-### Gather findet den Text nicht
-
-* Der Text wurde per Blueprint-Literal in ein Variable-Feld gelegt statt am Asset. Dialog-Graphs werden gegathered, aber nur die Properties vom Typ `FText`.
-
-## Nächster Schritt
-
-* [Audio → Lokalisierung (VoicePerCulture)](../audio/localization.md) – tiefergehende Erklärung der Map, Wildcard-Keys und Culture-Subtypes.
-* [Audio → Babel-System](../audio/babel-system.md) – wenn du für manche Kulturen keine Voice-Aufnahme hast und lieber prozedural synthetisierst.
-* [Wiederverwendbare Dialog-Fragmente](linking-dialogues.md) – dasselbe Fragment, das du hier in mehrere Sprachen übersetzt hast, teilen alle NPCs, die dieses Farewell nutzen.
+**Japanische Schrift nicht sichtbar.**
+Das ist kein MayDialogue-Problem – das UMG-Widget braucht einen Font mit CJK-Support oder eine Font-Fallback-Kette (UE Composite Font Assets).

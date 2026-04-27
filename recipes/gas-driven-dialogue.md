@@ -1,177 +1,155 @@
-# GAS-getriebener Dialog
+---
+description: Tags prüfen, Effekte anwenden, Variablen zählen – der vollständige GAS-Loop in einem Dialog.
+---
 
-Dieses Rezept kombiniert die drei GAS-Bausteine des Plugins – **CheckAttribute**, **AddTag/RemoveTag** und **ApplyEffect** – zu einem realistischen Mini-Gespräch, das Welt-Zustand sowohl liest als auch schreibt. Wenn du dieses Rezept durchgearbeitet hast, verstehst du den kompletten GAS-Loop von MayDialogue.
+# GAS-getriebener Dialog
 
 ## Szenario
 
-Ein Kräuterweib bietet dem Spieler einen Trank an. Der Dialog läuft so:
+Ein Kräuterweib bietet dem Spieler einen Heiltrank an. Sie prüft seinen Gesundheitszustand (Attribut), erkennt ob er sie schon kennt (Tag), heilt ihn auf Wunsch (GameplayEffect), merkt sich die Trankkäufe (Participant-Variable) und vergibt beim ersten Treffen einen Story-Tag. Dieses Rezept zeigt den kompletten GAS-Loop: lesen, schreiben, reagieren.
 
-1. Sie fragt, ob der Spieler verletzt ist – prüft `Health`-Attribut.
-2. Ist Health unter 50 → Heilungs-Option verfügbar.
-3. Wählt der Spieler „Heile mich" → ApplyEffect (`GE_SmallHeal`), SetVariable-Counter im Participant, AddTag `Story.Met.Herbwoman`.
-4. Verlässt der Spieler die Frau ohne Kauf → RemoveTag `Story.Met.Herbwoman` nicht, denn „kennengelernt" bleibt kennengelernt.
-5. Beim zweiten Besuch (Tag vorhanden) → alternative Begrüßungs-Variante.
+## Was du lernst
 
-## Beteiligte Nodes
+- Branch auf HasTag für Ersttreffen vs. Wiedertreffen.
+- CheckAttribute-Requirement an einer Choice.
+- ApplyEffect-Action-Node für einen Heiltrank.
+- SideEffect-Sub-Node für einen Zähler-Increment.
+- AddTag dauerhaft via GAS-Variante setzen.
 
-* [Entry](../nodes/core/entry.md), [Exit](../nodes/core/exit.md)
-* [Branch](../nodes/core/branch.md) mit [HasTag-Requirement](../gas/requirements.md#umaydlgrequirement_hastag)
-* [SayLine](../nodes/core/say-line.md), [PlayerChoice](../nodes/core/player-choice.md)
-* [ApplyEffect-Action](../nodes/actions/apply-effect.md)
-* [AddTag-Action](../nodes/actions/add-tag.md)
-* [SetVariable-SideEffect](../nodes/actions/set-variable.md)
-* [CheckAttribute-Requirement](../gas/requirements.md#umaydlgrequirement_checkattribute)
+## Voraussetzungen
 
-## Graph-Mock-Up
+- [Verzweigungen mit Bedingungen](branching-conditions.md) abgeschlossen.
+- GAS aktiv, AttributeSet mit `Health` registriert.
 
-```
+## Mini-Graph
+
+```text
 [Entry]
    │
    ▼
 [Branch]
- ├─ BP1: HasTag("Story.Met.Herbwoman") → [SayLine: "Schön, dich wiederzusehen."]
- └─ BP2: <default>                     → [SayLine: "Ich kenne dich nicht..."] → [AddTag: Story.Met.Herbwoman]
-                                             │
-                                             └──────┬───────────────────────────┘
-                                                    ▼
-                                            [PlayerChoice]
-                                               ├─ "Einen Trank bitte." (Req: CheckAttribute Health < 50)
-                                               │      └─► [ApplyEffect: GE_SmallHeal] (SideEffect: SetVariable PotionsBought +=1)
-                                               │              └─► [SayLine: "Besser?"] → [Exit]
-                                               └─ "Nein danke."
-                                                       └─► [Exit]
+   ├─ BP1: HasTag(Story.Met.Herbwoman) → [SayLine: "Schön, dich wiederzusehen."]
+   └─ BP2: <Fallback>                  → [SayLine: "Ich kenne dich noch nicht."]
+                                               │
+                                          [AddTag: Story.Met.Herbwoman → Player]
+                                               │
+                                        ┌──────┴──────────────────────────┐
+                                        ▼
+                                  [PlayerChoice]
+                                    ├─ "Einen Trank bitte."  (Req: Health < 50, FailedButVisible)
+                                    │       └─► [ApplyEffect: GE_SmallHeal]
+                                    │               ├─ SideEffect: PotionsBought += 1
+                                    │               └─► [SayLine: "Besser?"] → [Exit: Completed]
+                                    └─ "Nein danke." → [Exit: Completed]
 ```
+
+> 📸 **Bild-Platzhalter:** `gas-driven-dialogue-graph-overview.png` — Vollständiger Kräuterweib-Dialog im Asset-Editor.
+> *Setup:* Asset `DA_Herbwoman_Visit` geöffnet. Sichtbar: Entry → Branch (Diamant, zwei Outputs). Oberer Pfad: SayLine Wiedertreffen → PlayerChoice. Unterer Pfad: SayLine Ersttreffen → AddTag-Node (hellgrüne Box) → PlayerChoice. PlayerChoice mit zwei Choices, obere Choice hat Lock-Icon (Requirement). Von Wahl 1: ApplyEffect-Node (lila Box) → SayLine → Exit. Von Wahl 2: direkt Exit.
 
 ## Schritt-für-Schritt
 
-### 1. Tags registrieren
+### 1. Tags und Variable definieren
 
-Im Projekt (`DefaultGameplayTags.ini` oder C++ native Tag-Declaration):
-
+In `DefaultGameplayTags.ini`:
+```ini
++GameplayTagList=(Tag="Story.Met.Herbwoman",DevComment="Spieler kennt die Kräuterfrau")
++GameplayTagList=(Tag="Dialogue.Speaker.Herbwoman",DevComment="")
 ```
-Story.Met.Herbwoman
-Dialogue.Speaker.Herbwoman
-```
 
-### 2. Asset anlegen
+Im Asset `DA_Herbwoman_Visit` unter **Variables-Panel**: Variable `PotionsBought`, Typ `Int`, Scope `Participant`, Default `0`.
 
-`DA_Herbwoman_Visit`. Speaker *Kräuterweib* mit Tag `Dialogue.Speaker.Herbwoman`. Participant-Variable `PotionsBought` vom Typ `Int`, Default 0, Scope *Participant*.
+### 2. Branch für Erst-/Wiedertreffen
 
-### 3. Branch mit Wieder-/Ersttreffen
-
-Branch-Node einfügen. Erster BranchPoint mit [HasTag-Requirement](../gas/requirements.md#umaydlgrequirement_hastag):
-
-* `RequiredTag`: `Story.Met.Herbwoman`
-* `bCheckOnInstigator`: `true` (Tag liegt am Spieler)
-
-Zweiter BranchPoint ohne Requirements (Default-Pfad).
-
-### 4. First-Visit-Pfad
-
-Nach der einführenden SayLine einen [AddTag-Action-Node](../nodes/actions/add-tag.md):
+Branch-Node einfügen. BranchPoint[0]: HasTag-Requirement:
 
 | Property | Wert |
-| --- | --- |
+|----------|------|
+| `RequiredTag` | `Story.Met.Herbwoman` |
+| `bCheckOnInstigator` | `true` |
+
+BranchPoint[1]: leer (Fallback).
+
+### 3. Ersttreffen-Pfad: Tag setzen
+
+Nach der einführenden SayLine ein **AddTag**-Action-Node:
+
+| Property | Wert |
+|----------|------|
 | `TargetParticipantTag` | `Dialogue.Participant.Player` |
 | `Tag` | `Story.Met.Herbwoman` |
-| `bApplyPermanent` | `true` (via Infinite-GE oder LooseTag) |
+| `bApplyPermanent` | `true` (via Infinite-GE) |
 
-### 5. PlayerChoice mit Attribut-Gate
+> 📸 **Bild-Platzhalter:** `gas-driven-dialogue-addtag-details.png` — Details-Panel des AddTag-Nodes.
+> *Setup:* AddTag-Node ausgewählt. Details: `TargetParticipantTag = Dialogue.Participant.Player`, `Tag = Story.Met.Herbwoman`, `bApplyPermanent = true`.
 
-Der erste Choice-Eintrag bekommt ein [CheckAttribute-Requirement](../gas/requirements.md#umaydlgrequirement_checkattribute):
+### 4. PlayerChoice mit Attribut-Gate
+
+Erster Choice-Eintrag bekommt ein **CheckAttribute**-Requirement:
 
 | Property | Wert |
-| --- | --- |
+|----------|------|
 | `Attribute` | `UVHSAttributeSet::Health` |
 | `ComparisonOp` | `<` |
 | `ComparisonValue` | `50.0` |
 | `FailureResult` | `FailedButVisible` |
 | `UnavailableReason` | *„Du scheinst gesund."* |
 
-So sieht der Spieler die Option immer, kann sie aber nur wählen, wenn sein Health unter 50 liegt. Bei Hover erscheint die Begründung.
+Der Spieler sieht die Option immer – kann sie aber nur wählen wenn Health < 50. Bei Hover erscheint die Begründung.
 
-### 6. ApplyEffect + SideEffect
+### 5. ApplyEffect mit Zähler-SideEffect
 
-Vom Heilungs-Choice-Output auf einen [ApplyEffect-Action-Node](../nodes/actions/apply-effect.md):
+Vom Heilungs-Choice-Output → **ApplyEffect**-Node:
 
 | Property | Wert |
-| --- | --- |
+|----------|------|
 | `EffectClass` | `GE_SmallHeal` |
 | `TargetParticipantTag` | `Dialogue.Participant.Player` |
 | `EffectLevel` | `1.0` |
-| `bApplyFromInstigator` | `true` |
 
-Am ApplyEffect-Node noch einen SideEffect-Sub-Node *SetVariable*:
+Am ApplyEffect-Node **SideEffect → SetVariable**:
+- `Name: PotionsBought`, `Scope: Participant`, `Op: Increment`, `Value: 1`.
 
-```
-SetVariable
-  Name:  PotionsBought
-  Scope: Participant
-  Type:  Int
-  Op:    Increment
-  Value: 1
-```
+> 📸 **Bild-Platzhalter:** `gas-driven-dialogue-applyeffect-details.png` — ApplyEffect-Node mit SideEffect-Pill.
+> *Setup:* ApplyEffect-Node ausgewählt. Details: `EffectClass = GE_SmallHeal`, `TargetParticipantTag = Dialogue.Participant.Player`. Im Node-Body unten: SideEffect-Pill `SetVariable PotionsBought += 1`.
 
-### 7. Compile & Test
+### 6. Compile und PIE-Test
 
-Debugger mit PIE öffnen. Am ASC des Spielers siehst du nach dem Trank:
+Im Debugger nach dem Trank prüfen: Health steigt, `Story.Met.Herbwoman` liegt am Player-ASC, `PotionsBought = 1`.
 
-* `Health` steigt entsprechend des GameplayEffects.
-* `Story.Met.Herbwoman` liegt auf dem Player-ASC.
-* Kräuterweib-Participant hat `PotionsBought = 1`.
+## Loose-Tag vs. GameplayEffect
 
-## Vollständige ApplyEffect-Mechanik
+| Modus | Pro | Contra |
+|-------|-----|--------|
+| `LooseGameplayTag` | Einfach, kein GE nötig | Nicht repliziert, nicht persistiert |
+| Via Infinite-GE | Repliziert, persistiert | Braucht einen GE-Asset |
 
-| Schritt | Was passiert |
-| --- | --- |
-| 1 | Target-ASC auflösen (via ParticipantTag → Participant → Actor → ASC). |
-| 2 | Instigator-ASC als Source setzen (für AttributeCaptureSources). |
-| 3 | `MakeOutgoingSpec(EffectClass, Level, Context)`. |
-| 4 | `ApplyGameplayEffectSpecToSelf` auf Target-ASC. |
-| 5 | Bei Failure (kein ASC, kein Target): TaskResult::Abort oder Skip je nach FailBehavior. |
+Für Story-Tags die ins SaveGame sollen: **immer GE-Variante**.
 
-## Design-Fragen: Loose-Tag vs. GameplayEffect
+## Blueprint-Triggering
 
-`AddTag`-Node hat zwei Varianten:
-
-| Modus | Pro | Con |
-| --- | --- | --- |
-| `LooseGameplayTag` | Einfach, kein GE nötig. | Nicht repliziert, nicht persistiert. Client sieht Tag nicht. |
-| `Via GameplayEffect` (Infinite) | Repliziert, persistiert (mit GE-Handles), kann gezielt entfernt werden. | Etwas mehr Setup, du brauchst einen GE-Asset. |
-
-Für Story-Tags, die ins SaveGame gehören, **immer** GE-Variante. Für transiente (nur-aktuelles-Spiel) Tags reicht Loose.
-
-{% hint style="warning" %}
-**Bekannt**: AddTag greift aktuell nur auf den *lokalen* ASC; im Dedicated-Server-Setup musst du den Add-Call via Participant-RPC auf den Server-ASC routen. Siehe [Bridge & Lifecycle-Events](../runtime/bridge-events.md).
-{% endhint %}
-
-## Runtime-Trigger
-
-Nichts Besonderes:
-
-```cpp
-Sub->StartDialogue(DA_Herbwoman_Visit, Player, Herbwoman);
+```text
+[Event OnInteract]
+   │
+   ▼
+[MayDialogueLibrary → Start Dialogue]
+   ├─ Asset:      DA_Herbwoman_Visit
+   ├─ Instigator: Get Player Pawn
+   └─ Target:     Self
 ```
 
-Alles Weitere passiert innerhalb des Dialogs.
+## Variation / Weiter gehen
+
+- `PotionsBought` persistent speichern → [Persistence → Participant-Memory](../persistence/participant-memory.md).
+- CheckAttribute-Requirement für eine ganze Branch-Entscheidung statt nur eine Choice nutzen.
+- Eigenes GAS-Requirement bauen (z.B. „Spieler hat Ability X") → [Eigenen Requirement in Blueprint bauen](custom-blueprint-requirement.md).
 
 ## Troubleshooting
 
-### ApplyEffect zeigt keine Wirkung
+**ApplyEffect zeigt keine Wirkung.**
+`EffectClass` ist leer. Target hat keinen ASC. Der GE ist Instant, aber das AttributeSet klemmt `Current = Max` nicht in `PostGameplayEffectExecute`.
 
-* `EffectClass` ist leer – häufigster Fehler. Re-Check.
-* Target hat keinen ASC – oder der ParticipantTag zeigt auf eine Participant-Komponente ohne zugeordneten Actor.
-* Der GE ist Instant, aber dein Health-Attribut hat keine `PostGameplayEffectExecute`-Logik, die Current = Max klampt.
+**Tag gesetzt, Branch nimmt trotzdem Fallback.**
+Loose-Tag und Branch prüfen im selben Frame. In seltenen Fällen cached MayDialogue den Tag-State – Workaround: GE-Variante nutzen.
 
-### Tag wird gesetzt, aber Branch nimmt trotzdem den Default-Pfad
-
-* Du schreibst den Tag über Loose, und der Branch prüft am nächsten Frame (Scope-Stack-Pop). In seltenen Cases cached MayDialogue den Tag-State pro Frame – das ist noch ein Backlog-Item. Workaround: GE-Variante nutzen.
-
-### CheckAttribute liefert nie Passed
-
-* `Attribute` ist nicht korrekt angebunden. Im Attribute-Dropdown muss exakt dein `UVHSAttributeSet::Health`-FNames-Pair erscheinen. Wenn es leer ist, ist das AttributeSet nicht im ASC registriert.
-
-## Nächster Schritt
-
-* [Eigene GAS-Nodes erstellen](../gas/extending.md) – z.B. ein Requirement, das auf *Kombinationen* von Tags prüft.
-* [Persistence → Participant-Memory](../persistence/participant-memory.md) – damit `PotionsBought` Spielstände überlebt.
+**CheckAttribute liefert nie Passed.**
+Attribut im Dropdown leer oder falsch verlinkt. Das AttributeSet muss am ASC des Spielers registriert sein.

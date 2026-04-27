@@ -1,163 +1,247 @@
-# Quick Start – Dein erster Dialog in 5 Minuten
+---
+description: Dialog-Asset anlegen, NPC ins Level, testen — in fünf Minuten.
+---
 
-Diese Anleitung bringt dich vom leeren Projekt zu einem spielbaren NPC-Dialog im Level. Du brauchst nur das installierte Plugin (siehe [Installation](installation.md)).
+# Quick Start
 
-## Was du erreichen wirst
+Am Ende dieser Anleitung steht ein spielbarer NPC-Dialog im Level: Ein Wächter stellt eine Frage, der Spieler wählt aus zwei Antworten, jede führt zu einer anderen Reaktion. Kein UMG-Setup, kein Audio-Handling, kein Input-Gefrickel — das Plugin erledigt das alles.
 
-Ein NPC steht im Level. Wenn der Spieler über eine Blueprint-Taste / Trigger den Dialog auslöst, spielt sich ein kurzer Text-Dialog mit zwei Antwort-Choices ab. Alles funktioniert **ohne eine einzige Zeile Blueprint-Logik für Text-Rendering, Audio oder Input**.
+Voraussetzung: Plugin installiert (siehe [Installation](installation.md)).
 
-## Schritt 1 · Dialog-Asset anlegen
+---
 
-1. Content Browser → Rechtsklick in `Content/Dialogues/` (Ordner ggf. anlegen).
-2. **Miscellaneous → MayDialogue Asset** wählen.
-3. Asset benennen: `DA_Greeting_Simple`.
-4. Doppelklick öffnet den Asset-Editor.
+## Schritt 1 — Dialog-Asset anlegen
 
-Du siehst den Graph mit einem **Entry-Node**. Der ist immer da und immer der Einstiegspunkt.
+1. Content Browser öffnen.
+2. Rechtsklick in `Content/Dialogues/` (Ordner ggf. anlegen).
+3. **Miscellaneous → MayDialogue Asset** wählen.
+4. Asset benennen: `DA_Greeting_Simple`.
+5. Doppelklick öffnet den Graph-Editor.
 
-## Schritt 2 · Sprecher definieren
+Du siehst einen leeren Graph mit einem **Entry-Node** (grüne Kapsel). Der Entry-Node ist immer vorhanden und immer der Startpunkt des Dialogs.
 
-Im **Speakers-Panel** (rechts/Seitenleiste):
+> 📸 **Bild-Platzhalter:** `quickstart-01-new-asset.png` — Content Browser mit dem neuen Asset `DA_Greeting_Simple`.
+> *Setup:* Content Browser, Ordner `Content/Dialogues/`, das neue Asset mit dem MayDialogue-Icon sichtbar. Roter Pfeil auf das Asset.
 
+> 📸 **Bild-Platzhalter:** `quickstart-02-empty-graph.png` — Leerer MayDialogue-Graph mit Entry-Node.
+> *Setup:* Graph-Editor geöffnet mit dem Asset `DA_Greeting_Simple`. Sichtbar: nur der Entry-Node (grüne kompakte Kapsel) in der Mitte des Graphen, sonst leere Canvas. Speakers-Panel rechts leer, Outline-Panel links leer.
+
+---
+
+## Schritt 2 — Sprecher definieren
+
+Im **Speakers-Panel** (Seitenleiste des Asset-Editors):
+
+**Sprecher 1 — Wächter:**
 1. **Add Speaker** klicken.
-2. Tag: `Dialogue.Speaker.Guard` – falls der Tag noch nicht existiert, wird er angelegt.
+2. Tag: `Dialogue.Speaker.Guard`.
 3. DisplayName: `Wächter`.
-4. NodeColor: z.B. dunkelrot.
+4. NodeColor: Dunkelrot.
 
-Ein zweiter Sprecher für den Spieler:
-
+**Sprecher 2 — Spieler:**
 1. **Add Speaker** klicken.
 2. Tag: `Dialogue.Speaker.Player`.
 3. DisplayName: `Du`.
-4. NodeColor: z.B. neutralgrau.
+4. NodeColor: Grau.
 
-## Schritt 3 · Erste SayLine
+> 📸 **Bild-Platzhalter:** `quickstart-03-speakers-panel.png` — Speakers-Panel mit zwei konfigurierten Sprechern.
+> *Setup:* Das Speakers-Panel rechts im Asset-Editor. Zwei Einträge sichtbar: "Wächter" mit dunkelrotem Farb-Chip und Tag `Dialogue.Speaker.Guard`; "Du" mit grauem Farb-Chip und Tag `Dialogue.Speaker.Player`. Beide Einträge vollständig ausgeklappt, alle Felder sichtbar.
+
+---
+
+## Schritt 3 — Erste SayLine
 
 1. Rechtsklick im Graph → **Say Line** wählen.
-2. Node wird platziert, Title-Bar bekommt die Wächter-Farbe, sobald du…
-3. …im Details-Panel den `SpeakerTag` auf `Dialogue.Speaker.Guard` setzt.
-4. `DialogueText`: `"Halt! Wer bist du?"`.
-5. Entry-Output-Pin mit dem Input-Pin der SayLine verbinden.
+2. Den neuen Node im Details-Panel (oder per Doppelklick im Node) konfigurieren:
+   * `SpeakerTag`: `Dialogue.Speaker.Guard`
+   * `DialogueText`: `Halt! Wer bist du?`
+3. Entry-Output-Pin mit dem Input-Pin der SayLine verbinden.
 
-## Schritt 4 · Player-Choice
+Die Title-Bar des Nodes nimmt automatisch die Farbe des gewählten Sprechers an (dunkelrot).
+
+> 📸 **Bild-Platzhalter:** `quickstart-04-first-sayline.png` — Graph mit Entry-Node und erster SayLine verbunden.
+> *Setup:* Graph zeigt von links nach rechts: `Entry`-Node (grüne Kapsel), Pfeil zum `SayLine`-Node (dunkelrote Title-Bar, Text "Halt! Wer bist du?" sichtbar im Node-Body, Sprecher: Wächter). Verbindungspfeil zwischen Entry-Output-Pin und SayLine-Input-Pin sichtbar.
+
+> 📸 **Bild-Platzhalter:** `quickstart-05-sayline-properties.png` — Details-Panel der ersten SayLine.
+> *Setup:* SayLine-Node ausgewählt. Details-Panel rechts zeigt: `SpeakerTag = Dialogue.Speaker.Guard`, `DialogueText = "Halt! Wer bist du?"`, `AdvanceModeOverride = (keiner)`. Rote Pfeile auf SpeakerTag und DialogueText.
+
+---
+
+## Schritt 4 — PlayerChoice anlegen
 
 1. Rechtsklick im Graph → **Player Choice** wählen.
-2. SayLine-Output mit PlayerChoice-Input verbinden.
-3. `PromptText`: `"Du antwortest:"`.
-4. Im Choices-Array **Add Element**, **zweimal**.
-5. Choice 0: Text `"Ein Freund des Königs."`
-6. Choice 1: Text `"Das geht dich nichts an."`
+2. SayLine-Output-Pin mit PlayerChoice-Input-Pin verbinden.
+3. Im Details-Panel: `PromptText` = `Du antwortest:` (optional).
+4. Im Choices-Array zwei Elemente hinzufügen:
+   * Choice 0: Text `Ein Freund des Königs.`
+   * Choice 1: Text `Das geht dich nichts an.`
 
-## Schritt 5 · Zwei Antworten für die Wahl
+> 📸 **Bild-Platzhalter:** `quickstart-06-playerchoice.png` — PlayerChoice-Node mit zwei Choices im Graph.
+> *Setup:* Graph zeigt die Kette `Entry → SayLine → PlayerChoice`. Der PlayerChoice-Node ist breiter als die SayLine, im Body sind zwei Choice-Sub-Nodes als Pills sichtbar: "Ein Freund des Königs." und "Das geht dich nichts an.". Rechts am Node zwei Output-Pins (Pin 0 und Pin 1).
 
-Für jede Choice brauchst du eine SayLine als Reaktion:
+---
 
-1. **Say Line 1** – SpeakerTag `Dialogue.Speaker.Guard`, Text: `"Dann passiere in Frieden."`
-2. **Say Line 2** – SpeakerTag `Dialogue.Speaker.Guard`, Text: `"Dann verzieh dich!"`
+## Schritt 5 — Reaktions-SayLines
 
-Verbinde:
+Für jede Choice eine eigene SayLine als Reaktion:
 
-* Output-Pin 0 des PlayerChoice → SayLine 1.
-* Output-Pin 1 des PlayerChoice → SayLine 2.
+**SayLine A:**
+* `SpeakerTag`: `Dialogue.Speaker.Guard`
+* `DialogueText`: `Dann passiere in Frieden.`
 
-## Schritt 6 · Exit
+**SayLine B:**
+* `SpeakerTag`: `Dialogue.Speaker.Guard`
+* `DialogueText`: `Dann verzieh dich!`
 
-1. Rechtsklick im Graph → **Exit** wählen. Einmal reicht.
-2. Beide SayLines mit dem Exit verbinden.
+Verbinden:
+* Output-Pin 0 des PlayerChoice → SayLine A Input-Pin.
+* Output-Pin 1 des PlayerChoice → SayLine B Input-Pin.
+
+> 📸 **Bild-Platzhalter:** `quickstart-07-reactions.png` — Beide Reaktions-SayLines im Graph mit Verbindungen vom PlayerChoice.
+> *Setup:* Graph zeigt `PlayerChoice` mit zwei abgehenden Pfeilen: Output-Pin 0 → SayLine A "Dann passiere in Frieden." (dunkelrot); Output-Pin 1 → SayLine B "Dann verzieh dich!" (dunkelrot). Beide SayLines rechts vom PlayerChoice, die Verbindungslinien deutlich sichtbar beschriftet mit "0" und "1".
+
+---
+
+## Schritt 6 — Exit
+
+1. Rechtsklick im Graph → **Exit** wählen.
+2. SayLine A Output-Pin → Exit Input-Pin verbinden.
+3. SayLine B Output-Pin → Exit Input-Pin verbinden (gleicher Exit-Node).
 
 Dein Graph sieht jetzt so aus:
 
 ```
 [Entry] → [SayLine: "Halt!"] → [PlayerChoice]
-                                 ├── Output 0 → [SayLine: "Passiere"] ─┐
-                                 └── Output 1 → [SayLine: "Verzieh"] ──┤
-                                                                     [Exit]
+                                 ├─ Pin 0 → [SayLine: "Passiere"] ─┐
+                                 └─ Pin 1 → [SayLine: "Verzieh"]  ─┤
+                                                                  [Exit]
 ```
 
-## Schritt 7 · Compile
+> 📸 **Bild-Platzhalter:** `quickstart-08-final-graph.png` — Fertiger Graph mit allen Nodes und Verbindungen.
+> *Setup:* Übersichtsfoto des gesamten Graphen `DA_Greeting_Simple`. Von links nach rechts: `Entry` (grüne Kapsel) → `SayLine "Halt! Wer bist du?"` (dunkelrot) → `PlayerChoice` (breit, 2 Output-Pins) → oben `SayLine "Dann passiere"` (dunkelrot) und unten `SayLine "Dann verzieh dich!"` (dunkelrot) → beide Pfeile treffen sich am gemeinsamen `Exit` (rote Kapsel). Layout horizontal, alle Verbindungspfeile klar sichtbar.
 
-**Toolbar → Compile**. Falls der Validator Fehler meldet, behebe sie laut Panel **Compiler Results**. Die häufigsten Fehler:
+---
 
-* Unverbundene Output-Pins → einen Output an Exit hängen.
-* Sprecher-Tag leer → im Details-Panel setzen.
-* Leere SayLines → Text eintragen.
+## Schritt 7 — Compile
 
-## Schritt 8 · NPC im Level
+**Toolbar → Compile** klicken.
+
+Falls der Validator Fehler meldet, behebe sie im **Compiler Results**-Panel:
+
+| Fehler | Ursache | Lösung |
+| --- | --- | --- |
+| Unverbundener Output-Pin | Ein Node hat keinen Ausgang | Output-Pin an Exit oder nächsten Node hängen |
+| Sprecher-Tag leer | SayLine ohne Speaker | Im Details-Panel SpeakerTag setzen |
+| Leere SayLine | Kein Text | Text eintragen |
+
+---
+
+## Schritt 8 — NPC ins Level setzen
 
 1. Level öffnen.
-2. Beliebigen Character / StaticMesh-Actor als **Wächter** platzieren.
-3. Im Details-Panel des Actors: **Add Component → MayDialogue Participant**.
+2. Beliebigen Actor als Wächter-Platzhalter ins Level setzen (z.B. einen Character Blueprint oder einen StaticMesh-Actor).
+3. Actor in der Details-Panel: **Add Component → MayDialogue Participant**.
 4. Komponente konfigurieren:
-   * `ParticipantTag`: `Dialogue.Speaker.Guard`.
-   * `DisplayName`: `Wächter`.
-   * `DefaultDialogue`: `DA_Greeting_Simple` (das gerade erstellte Asset).
+   * `ParticipantTag`: `Dialogue.Speaker.Guard`
+   * `DisplayName`: `Wächter`
+   * `DefaultDialogue`: `DA_Greeting_Simple`
 
 {% hint style="info" %}
-Dein **Spieler-Pawn** braucht ebenfalls eine `MayDialogueParticipant`-Komponente mit `ParticipantTag = Dialogue.Speaker.Player`, damit SayLines für den Spieler korrekt adressiert werden können (auch wenn du im Quick Start keine spielerseitigen SayLines nutzt).
+Dein **Spieler-Pawn** braucht ebenfalls eine `MayDialogueParticipant`-Komponente mit `ParticipantTag = Dialogue.Speaker.Player`. Auch wenn der Spieler im Quick Start keine eigenen SayLines hat, muss das Plugin wissen, wer der Instigator ist.
 {% endhint %}
 
-## Schritt 9 · Dialog starten
+> 📸 **Bild-Platzhalter:** `quickstart-09-participant-component.png` — Details-Panel des Wächter-Actors mit MayDialogueParticipant-Komponente.
+> *Setup:* Details-Panel eines Level-Actors. In der Komponenten-Liste ist `MayDialogueParticipant` sichtbar (ausgewählt). Darunter die Properties: `ParticipantTag = Dialogue.Speaker.Guard`, `DisplayName = Wächter`, `DefaultDialogue = DA_Greeting_Simple`. Roter Pfeil auf `DefaultDialogue`.
 
-Im Blueprint-Graph deines Trigger-Actors (z.B. Box-Trigger oder Interact-Button):
+---
 
-**Variante A — direkt per Participant:**
+## Schritt 9 — Dialog auslösen (Blueprint)
 
-1. Reference zum Wächter-Actor holen → **Get Component by Class: MayDialogueParticipant**.
-2. Auf dem Participant: **Start Default Dialogue** aufrufen.
-3. `Other`-Parameter: Referenz zur Spieler-Participant-Komponente (damit der Dialog einen Target kennt).
+Im Blueprint-Graph deines Trigger-Actors oder deiner Spieler-Logik:
 
-**Variante B — über die Library:**
+**Variante A — direkt über den Participant:**
+
+1. Referenz zum Wächter-Actor holen.
+2. **Get Component by Class: MayDialogueParticipant** aufrufen.
+3. Auf dem Participant: **Start Default Dialogue** aufrufen.
+4. `Other`-Parameter: Referenz zur Spieler-Participant-Komponente.
+
+**Variante B — über die Library-Funktion:**
 
 ```
-MayDialogueLibrary.StartDialogue(
-    WorldContext = Self,
-    Asset        = DA_Greeting_Simple,
-    Instigator   = PlayerPawn,
-    Target       = GuardActor
-)
+MayDialogueLibrary → StartDialogue
+  WorldContext = Self
+  Asset        = DA_Greeting_Simple
+  Instigator   = PlayerPawn
+  Target       = GuardActor
 ```
 
-## Schritt 10 · Testen
+> 📸 **Bild-Platzhalter:** `quickstart-10-blueprint-trigger.png` — Blueprint-Graph eines Trigger-Actors mit dem StartDialogue-Aufruf.
+> *Setup:* BP-Graph eines Box-Trigger-Actors. Event `OnComponentBeginOverlap` → `Get Component by Class (MayDialogueParticipant)` auf dem Wächter-Actor → `Start Default Dialogue` mit `Other` = Spieler-Participant-Referenz. Alle Pins beschriftet, Ausführungspfeile sichtbar.
 
-**PIE starten**. Geh zum Wächter, triggere den Dialog. Du solltest sehen:
+{% hint style="info" %}
+**Variante für C++:**
 
-* Ein Widget erscheint am Viewport (Slate-Debug-Widget, weil noch kein UMG zugewiesen).
+```cpp
+UMayDialogueParticipantComponent* GuardParticipant =
+    Guard->FindComponentByClass<UMayDialogueParticipantComponent>();
+if (GuardParticipant)
+{
+    GuardParticipant->StartDefaultDialogue(PlayerParticipant);
+}
+```
+{% endhint %}
+
+---
+
+## Schritt 10 — Testen
+
+**PIE starten**, zum Wächter gehen und den Trigger auslösen.
+
+Was du siehst:
+* Ein Widget erscheint im Viewport (Slate-Debug-Widget, solange noch kein UMG-Widget gesetzt ist).
 * Der Wächter spricht: *"Halt! Wer bist du?"*.
 * Zwei Choice-Buttons erscheinen.
-* Klick auf eine Choice führt zur passenden Reaktion und beendet den Dialog.
+* Klick auf eine Choice führt zur passenden Reaktion und der Dialog endet.
+
+> 📸 **Bild-Platzhalter:** `quickstart-11-ingame.png` — In-Game-Screenshot des laufenden Dialogs im PIE.
+> *Setup:* PIE aktiv. Im Viewport ist das Slate-Debug-Widget sichtbar: oben der Sprecher-Name "Wächter", darunter der Text "Halt! Wer bist du?", unten zwei Choice-Buttons "Ein Freund des Königs." und "Das geht dich nichts an.". Der Wächter-Actor im Hintergrund sichtbar.
 
 {% hint style="success" %}
-**Geschafft.** Du hast einen spielbaren Dialog ohne UMG, ohne Audio-Setup, ohne Input-Handling.
+Du hast einen spielbaren Dialog ohne UMG-Setup, ohne Audio-Konfiguration und ohne Input-Handling-Code.
 {% endhint %}
 
-## Was als Nächstes?
-
-* **Variablen & Bedingungen** kennenlernen → [Walkthrough](first-dialogue.md).
-* **Das UMG durch eigene Widgets ersetzen** → [UI-Architektur](../ui/umg-architecture.md).
-* **Audio hinzufügen** → [Audio-System](../audio/README.md).
-* **Choices an GAS-Attribute knüpfen** → [GAS-Integration](../gas/README.md).
+---
 
 ## Fehlerbehebung
 
 <details>
-<summary>Kein Widget erscheint beim Start</summary>
+<summary>Kein Widget erscheint beim Dialog-Start</summary>
 
-Prüfe in **Project Settings → Plugins → MayDialogue**, ob `bUseSlateDialogueWidget` aktiv ist und ob ein `DefaultDialogueWidgetClass` gesetzt ist. Standardmäßig erscheint das Slate-Debug-Widget auch ohne UMG.
+Prüfe in **Edit → Project Settings → Plugins → MayDialogue**, ob `bUseSlateDialogueWidget` aktiviert ist. Standardmäßig erscheint das Slate-Debug-Widget auch ohne gesetztes UMG-Widget.
 </details>
 
 <details>
-<summary>Dialog startet nicht</summary>
+<summary>Dialog startet gar nicht</summary>
 
 Prüfe:
-
-* Hat das Asset einen Entry-Node und **wurde es compiled**?
-* Hat der Wächter-Actor eine `MayDialogueParticipant`-Komponente mit korrektem Tag?
-* Hat der Spieler-Pawn ebenfalls einen Participant?
-* Der Ausgabe-Log zeigt Log-Warnings, wenn etwas fehlt.
+* Hat das Asset einen Entry-Node und wurde es compiliert (Toolbar → Compile)?
+* Hat der Wächter-Actor eine `MayDialogueParticipant`-Komponente mit dem richtigen Tag?
+* Hat der Spieler-Pawn ebenfalls eine Participant-Komponente?
+* Der Output-Log zeigt Warnungen, wenn etwas fehlt — dort nach `MayDialogue` suchen.
 </details>
 
 <details>
-<summary>"Halt! Wer bist du?" wird gespielt, aber keine Antwort-Buttons</summary>
+<summary>Die Frage erscheint, aber keine Choice-Buttons</summary>
 
-Das passiert, wenn der PlayerChoice-Node keine Outputs hat oder die Requirements aller Choices fehlschlagen (FailedAndHidden). Öffne das Asset, prüfe die Choices-Liste und verbinde ihre Output-Pins.
+Das passiert, wenn der PlayerChoice-Node keine verbundenen Output-Pins hat oder alle Choices aufgrund von Requirements verborgen sind. Öffne das Asset, prüfe die Choices-Liste im PlayerChoice-Node.
 </details>
+
+---
+
+## Was als Nächstes?
+
+* Variablen, Branching und GAS-Requirements kennenlernen → [Walkthrough](first-dialogue.md)
+* Eigenes UMG-Widget statt Slate-Debug-Widget → [UI-Architektur](../ui/umg-architecture.md)
+* Audio hinzufügen → [Audio-System](../audio/README.md)
+* Choices an GAS-Attribute knüpfen → [GAS-Integration](../gas/README.md)

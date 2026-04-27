@@ -1,101 +1,173 @@
+---
+description: Alle Funktionen des MayDialogueSubsystem mit Use-Case und Beispiel.
+---
+
 # Subsystem-API
 
-`UMayDialogueSubsystem` ist ein `UWorldSubsystem`, das zusätzlich `FTickableGameObject` und `IMayDialogueBridge` implementiert. Eine Instanz pro UE-Welt.
+`UMayDialogueSubsystem` ist der zentrale Orchestrator — ein `UWorldSubsystem`, von dem es pro Welt genau eine Instanz gibt. Er startet Dialoge, hält die aktive Instance am Leben und broadcastet globale Events.
 
 ## Zugriff
 
-```cpp
-// C++
-UMayDialogueSubsystem* Sub = UMayDialogueSubsystem::Get(World);
+### Blueprint
 
-// Blueprint
-Get Game Instance → Get World → Get Subsystem (MayDialogue)
+```text
+[Get MayDialogue Subsystem]   ← Suche nach "MayDialogue" in der Node-Palette
 ```
 
-Oder kompakter per Library:
+> 📸 **Bild-Platzhalter:** `subsystem-access-bp.png` — BP-Graph mit Subsystem-Zugriff und gecachter Variable.
+> *Setup:* Beliebiges Blueprint. `Event BeginPlay` → `Get MayDialogue Subsystem` → lokale Variable `DialogueSubsystem` (Typ: MayDialogue Subsystem Object Reference). Darunter ein zweiter Bereich mit `Is Valid` auf der Variable.
 
-```cpp
-UMayDialogueLibrary::GetDialogueSubsystem(WorldContext);
-```
-
-## Lifecycle-Methoden
+### C++
 
 ```cpp
-UMayDialogueInstance* StartDialogue(UMayDialogueAsset* Asset, AActor* Instigator, AActor* Target);
-bool                  CanStartDialogue(UMayDialogueAsset* Asset, AActor* Instigator, AActor* Target) const;
-void                  StopDialogue(UMayDialogueInstance* Instance);
-void                  StopAllDialogues();
+UMayDialogueSubsystem* Sub = GetWorld()->GetSubsystem<UMayDialogueSubsystem>();
+
+// Oder als statischer Helper (benötigt UMayDialogueLibrary.h):
+UMayDialogueSubsystem* Sub = UMayDialogueLibrary::GetDialogueSubsystem(this);
 ```
 
-| Methode | Wirkung |
-| --- | --- |
-| `StartDialogue` | Pre-Flight-Check → Instance erzeugen → Start am Entry. Liefert die Instance oder nullptr bei Failure. |
-| `CanStartDialogue` | Reiner Query; gibt an, ob ein Start klappen würde. |
-| `StopDialogue` | Bricht eine bestimmte Instance ab. |
-| `StopAllDialogues` | Bricht alle aktiven Instances ab. |
+---
 
-## Query-Methoden
+## Dialog starten und stoppen
+
+| Funktion | Use-Case |
+|---|---|
+| `StartDialogue(Asset, Instigator, Target)` | Dialog starten. Liefert die Instance oder `nullptr` bei Fehler. |
+| `CanStartDialogue(Asset, Instigator, Target)` | Prüfen ob ein Start klappen würde, ohne ihn auszulösen (z.B. für Interaktions-Prompts). |
+| `StopDialogue(Instance)` | Gezielt eine Instance abbrechen. |
+| `StopAllDialogues()` | Alle aktiven Dialoge abbrechen (Level-Wechsel, Spielertod). |
+
+### Beispiel: Dialog starten und Ergebnis prüfen
+
+```text
+[Get MayDialogue Subsystem] → [Start Dialogue]
+  ├─ Asset:      DA_TraderGreeting
+  ├─ Instigator: Player Pawn
+  └─ Target:     Trader Actor
+       │ Return Value (UMayDialogueInstance)
+       ▼
+[Is Valid]
+  ├─ True  → Alles OK
+  └─ False → Log Warning
+```
 
 ```cpp
-UMayDialogueInstance* GetActiveDialogue() const;   // aktive (neueste) oder nullptr
-bool                  IsAnyDialogueActive() const;
+if (auto* Inst = Sub->StartDialogue(DA_TraderGreeting, Player, Trader))
+{
+    // Inst ist die laufende Instance
+}
 ```
 
-## Tick
-
-Das Subsystem implementiert `FTickableGameObject::Tick(...)`. Verantwortlich für:
-
-* **Camera-Blend-Fortschritt** (während aktiver CameraFocus-Blends).
-* **Auto-Advance-Timer** (Advance-Mode `Timer`).
-* **Choice-Timeout**.
-* **Async-Node-Watchdogs**.
-* **Cleanup** von beendeten Instanzen am Frame-Ende.
-
-Du musst nie selbst ticken – alles läuft automatisch.
-
-## Subsystem-Delegates
+### Beispiel: Interaktions-Prompt nur zeigen wenn Dialog möglich
 
 ```cpp
-UPROPERTY(BlueprintAssignable)
-FOnAnyDialogueEvent OnAnyDialogueStarted;
-
-UPROPERTY(BlueprintAssignable)
-FOnAnyDialogueEvent OnAnyDialogueEnded;
+bool bCanTalk = Sub->CanStartDialogue(DA_TraderGreeting, Player, Trader);
+InteractionPromptWidget->SetVisibility(bCanTalk ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 ```
 
-Beide feuern **pro Instance** – nicht nur pro aktive. Wenn parallel mehrere Instances starten und enden (was auf einer Welt selten vorkommen sollte, da das Subsystem Single-Active erzwingt), bekommst du für jede einzelne ein Event.
+---
 
-## IMayDialogueBridge-Implementierung
+## Aktiven Dialog abfragen
 
-Das Subsystem implementiert das `IMayDialogueBridge`-Interface (siehe [Bridge & Lifecycle-Events](bridge-events.md)):
+| Funktion | Rückgabe | Use-Case |
+|---|---|---|
+| `GetActiveDialogue()` | `UMayDialogueInstance*` oder `nullptr` | Instance holen um direkt Variable zu lesen oder Delegates zu binden. |
+| `IsAnyDialogueActive()` | `bool` | Schnell-Check: läuft gerade irgendwas? |
+
+### Beispiel: Overlap-Trigger nur feuern wenn kein Dialog läuft
+
+```text
+[Event Begin Overlap]
+    │
+    ▼
+[Is Any Dialogue Active]  (Get MayDialogue Subsystem → Is Any Dialogue Active)
+    │ (bool)
+    ▼
+[Branch]
+  ├─ False → [Start Dialogue] ...
+  └─ True  → (nichts tun)
+```
 
 ```cpp
-virtual UMayDialogueAsset* GetActiveDialogueAsset() const;
-virtual FGuid              GetCurrentNodeGUID() const;
-virtual TArray<AActor*>    GetActiveParticipants() const;
-virtual bool               GetDialogueVariable(FName, EMayDialogueVariableType, FString& OutValueAsString) const;
-// ... etc.
+void ATrigger::OnBeginOverlap(AActor* Other)
+{
+    if (!Sub->IsAnyDialogueActive())
+    {
+        Sub->StartDialogue(DA_Hint, Other, this);
+    }
+}
 ```
 
-Externe Systeme können MayDialogue also ausschließlich über das `IMayDialogueBridge`-Interface konsumieren, ohne direkt auf den Subsystem-Typ zu zeigen.
+---
 
-## Typische Blueprint-Nutzung
+## Globale Event-Delegates
 
+Die Subsystem-Delegates feuern **für jeden Dialog** — ideal für globale Listener (Audio-Ducking, Analytics, Quest-Log).
+
+| Delegate | Wann | Parameter |
+|---|---|---|
+| `OnAnyDialogueStarted` | Direkt nachdem eine neue Instance startet | `UMayDialogueInstance*` |
+| `OnAnyDialogueEnded` | Direkt nachdem eine Instance endet (egal ob Completed/Aborted) | `UMayDialogueInstance*` |
+
+### Blueprint: Event binden
+
+> 📸 **Bild-Platzhalter:** `subsystem-delegate-bind-bp.png` — BP-Graph für Event-Binding am Subsystem.
+> *Setup:* Quest-Director-Blueprint, `Event BeginPlay`. `Get MayDialogue Subsystem` → `Bind Event to On Any Dialogue Ended` → Custom Event `Handle Dialogue Ended` (Input-Pin: `Instance` vom Typ `MayDialogueInstance Object Reference`). Custom Event hat eine `Branch`-Node darunter: `Get Dialogue Asset` von der Instance verglichen mit einer Asset-Referenz.
+
+```text
+[Event BeginPlay]
+    │
+    ▼
+[Get MayDialogue Subsystem]
+    │
+    ├─→ [Bind Event to On Any Dialogue Started]  ──► Custom Event: On Dialogue Started
+    └─→ [Bind Event to On Any Dialogue Ended]    ──► Custom Event: On Dialogue Ended
 ```
-Get May Dialogue Subsystem
-  │
-  ├→ Is Any Dialogue Active?  (bool)
-  │
-  ├→ Get Active Dialogue       (UMayDialogueInstance)
-  │
-  └→ Bind Event to On Any Dialogue Started / Ended
+
+### C++: Audio-Ducking-Beispiel
+
+```cpp
+void UAudioManager::BeginPlay()
+{
+    if (auto* Sub = GetWorld()->GetSubsystem<UMayDialogueSubsystem>())
+    {
+        Sub->OnAnyDialogueStarted.AddDynamic(this, &UAudioManager::DuckMusic);
+        Sub->OnAnyDialogueEnded.AddDynamic(this, &UAudioManager::RestoreMusic);
+    }
+}
+
+void UAudioManager::DuckMusic(UMayDialogueInstance* Instance)
+{
+    MusicComponent->SetVolumeMultiplier(0.2f);
+}
+
+void UAudioManager::RestoreMusic(UMayDialogueInstance* Instance)
+{
+    MusicComponent->SetVolumeMultiplier(1.0f);
+}
 ```
 
-## Replication
+---
 
-Das Subsystem ist aktuell **server-seitig**. Multiplayer-Synchronisation erfolgt über Participant-RPCs (siehe [Participants & Sprecher](../concepts/participants-speakers.md#netz-awareness-multiplayer-ready)). Clients erhalten ihre Messages über den lokalen Participant, nicht direkt vom Subsystem.
+## Read/Write direkt am Subsystem
 
-## Anmerkungen
+Das Subsystem stellt alle Lese- und Schreib-Methoden der aktiven Instance als Blueprint-Callable bereit — du brauchst dafür keine Instance-Referenz zu halten.
 
-* Das Subsystem ist **nicht repliziert** – jeder Client hat sein eigenes Subsystem-Objekt mit lokalem State.
-* Beim Level-Travel wird das Subsystem zerstört; `Deinitialize()` ruft automatisch `StopAllDialogues()` auf.
+Vollständige Beschreibung: [Read/Write-API](read-write-api.md).
+
+---
+
+## Automatisches Tick-Management
+
+Das Subsystem läuft automatisch jeden Frame und kümmert sich um:
+
+- Auto-Advance-Timer (AdvanceMode `Timer`)
+- Choice-Timeouts
+- Camera-Blend-Fortschritt
+- Cleanup beendeter Instances am Frame-Ende
+
+Du musst nichts selbst ticken.
+
+{% hint style="info" %}
+Beim Level-Travel wird das Subsystem zerstört. Es ruft dabei automatisch `StopAllDialogues()` auf — alle offenen Dialoge werden sauber beendet.
+{% endhint %}

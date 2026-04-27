@@ -1,188 +1,163 @@
+---
+description: Was passiert von Start bis Exit — und wie der Cleanup funktioniert.
+---
+
 # Instance & Lifecycle
 
-Ein `UMayDialogueAsset` ist nur eine Blaupause. Das **laufende Gespräch** ist eine `UMayDialogueInstance`. Dieses Kapitel zeigt dir, welche Zustände eine Instance durchläuft, wie sie Nodes traversiert und wie sie sauber aufräumt.
+Das Dialog-Asset ist die Blaupause. Das **laufende Gespräch** ist eine Instanz — ein kurzlebiges Objekt, das für genau einen Dialog existiert. Dieses Kapitel zeigt, welche Phasen eine Instanz durchläuft und was du an welchem Punkt tun kannst.
 
-## Die Zustands-Maschine
+## Der Lebenszyklus auf einen Blick
 
-```mermaid
-stateDiagram-v2
-    [*] --> Inactive
-    Inactive --> Active: StartDialogue()
-    Active --> WaitingForAdvance: ReceiveMessage()
-    WaitingForAdvance --> Active: AdvanceDialogue()
-    Active --> WaitingForChoice: PresentChoices()
-    WaitingForChoice --> Active: SelectChoice()
-    WaitingForChoice --> Aborted: Timeout w/o default
-    Active --> Completed: EndDialogue(Completed)
-    Active --> Aborted: AbortDialogue() / EndDialogue(Failed)
-    Completed --> [*]
-    Aborted --> [*]
+```text
+[Kein Dialog]
+      │
+      │  StartDialogue()
+      ▼
+   [Aktiv]  ──── SayLine bereit ──→  [Wartet auf Advance]
+      │                                      │
+      │  PlayerChoice bereit                 │  AdvanceDialogue()
+      ▼                                      │
+[Wartet auf Choice] ◄──────────────────────┘
+      │
+      │  SelectChoice(Index)
+      ▼
+   [Aktiv]  ──── Exit-Node erreicht ──→  [Completed / Failed]
+      │
+      │  AbortDialogue() von außen
+      ▼
+   [Aborted]
 ```
 
-Enum: `EMayDialogueStatus { Inactive, Active, WaitingForAdvance, WaitingForChoice, Completed, Aborted }`.
+Das Plugin verwendet ein robustes Lifecycle-System, das sicherstellt, dass eine Instanz immer sauber aufräumt — unabhängig davon, wie sie endet.
 
-## Startphase
+> 📸 **Bild-Platzhalter:** `lifecycle-state-diagram.png` — Zustandsdiagramm als Grafik (kein Mermaid-Code).
+> *Setup:* Handgezeichneter oder sauber gestalteter Flussplan mit sechs Zuständen als Kästen: Inaktiv, Aktiv, WartendAufAdvance, WartendAufChoice, Completed, Aborted. Pfeile beschriftet mit den auslösenden Aktionen (StartDialogue, ReceiveMessage, AdvanceDialogue, SelectChoice, Exit-Node, AbortDialogue). Completed und Aborted haben einen dicken Rahmen (Endzustände).
 
-`UMayDialogueSubsystem::StartDialogue(Asset, Instigator, Target)` macht fünf Dinge:
+## Startphase: Was beim StartDialogue passiert
 
-1. **Pre-Flight**: Hat das Asset einen Entry? Ist kein anderer Dialog aktiv (oder wird er zuerst abgebrochen)?
-2. **Instance erzeugen**: `NewObject<UMayDialogueInstance>(...)`.
-3. **Participants auflösen**: Die im Asset referenzierten Sprecher-Tags werden gegen die in der Welt lebenden `UMayDialogueParticipant`-Komponenten gematcht.
-4. **OnDialogueStarted broadcasten** – sowohl am Subsystem als auch an der Instance.
-5. **Entry-Node ansteuern**: `ContinueToNode(Asset.EntryPointGuid)`.
+Wenn du `StartDialogue(Asset, Instigator, Target)` aufrufst, laufen fünf Schritte ab:
 
-## Node-Ausführung
+1. **Pre-Flight-Check** — Hat das Asset einen Entry-Node? Ist bereits ein anderer Dialog aktiv?
+2. **Instanz erzeugen** — Eine neue Instanz wird erstellt und an die Welt gebunden.
+3. **Participants auflösen** — Die Sprecher-Tags im Asset werden mit den Participant-Komponenten im Level abgeglichen.
+4. **OnDialogueStarted feuern** — Dein Code kann jetzt reagieren.
+5. **Entry-Node ansteuern** — Der erste Node wird ausgeführt.
 
-Jeder Node überschreibt `ExecuteNode(Context) → FMayDialogueTaskResult`. Das TaskResult ist der **Flow-Control-Kern**:
+> 📸 **Bild-Platzhalter:** `blueprint-on-dialogue-started.png` — Blueprint-Graph, der auf OnDialogueStarted reagiert.
+> *Setup:* BP-Graph eines GameMode- oder HUD-Actors. Event `OnDialogueStarted` (Delegate-Bind) → `Set Input Mode UI Only` → `Show Mouse Cursor = true`. Alle Pins beschriftet. Deutlich: kein manuelles Widget-Erstellen nötig — das Plugin macht das selbst.
 
-```cpp
-struct FMayDialogueTaskResult
-{
-    EMayDialogueTaskResultType Type;
-    FGuid NextNodeGuid;
+## Node-Ausführung: Was jeder Node zurückgibt
 
-    static FMayDialogueTaskResult Advance(FGuid Next);
-    static FMayDialogueTaskResult Abort();
-    static FMayDialogueTaskResult PauseAndPresentChoices();
-    static FMayDialogueTaskResult ReturnToStart();
-    static FMayDialogueTaskResult ReturnToLast();
-    static FMayDialogueTaskResult ReturnToCurrent();
-};
-```
+Jeder Node gibt nach seiner Ausführung einen Anweisung zurück, wie der Dialog weiterlaufen soll:
 
-### TaskResult-Typen
-
-| Typ | Wirkung |
+| Rückgabe | Was passiert |
 | --- | --- |
-| `AdvanceDialogue` | Weiter zum angegebenen Next-Node. |
-| `AdvanceDialogueWithChoice` | Semantischer Marker (nach Choice-Selektion). |
-| `PauseDialogueAndPresentChoices` | Setzt `WaitingForChoice`, broadcastet `OnChoicesPresented`. |
-| `ReturnToLastChoice` | Springt zurück zum letzten PlayerChoice. |
-| `ReturnToCurrentChoice` | Wiederholt die aktuelle Choice-Präsentation. |
-| `ReturnToDialogueStart` | Springt an den Entry zurück. |
-| `AbortDialogue` | Beendet als `Aborted`. |
+| Advance (Next-Node) | Direkt zum angegebenen nächsten Node springen. |
+| Pause + Choices präsentieren | Instanz wartet. Widget zeigt Choice-Buttons. |
+| Zurück zum letzten Choice | Springt zum zuletzt präsentierten PlayerChoice zurück. |
+| Zurück zum Dialog-Start | Springt an den Entry zurück. |
+| Abort | Dialog endet als Aborted. |
 
-Die Instance interpretiert das Result und ruft die passende Methode (`AdvanceDialogue`, `PresentChoices`, `AbortDialogue` …).
+Als Nutzer musst du diese Mechanik nicht direkt ansteuern — die Nodes des Plugins verwenden sie intern korrekt.
 
-## Requirements vor der Ausführung
+## Requirements: Wann wird ein Node ausgeführt?
 
-Bevor ein Node ausgeführt wird, prüft die Instance dessen `Requirements` (falls vorhanden). Das Ergebnis ist `EMayDialogueRequirementResult`:
+Bevor ein Node ausgeführt wird, prüft die Instanz seine Requirements (falls vorhanden).
 
-* **Passed** – Node wird normal ausgeführt.
-* **FailedButVisible** / **FailedAndHidden** – Node wird *nicht* ausgeführt. Weiter geht's je nach `FailBehavior` (`Skip` oder `Abort`).
+| Ergebnis | Was passiert |
+| --- | --- |
+| Passed | Node wird normal ausgeführt. |
+| FailedButVisible | Node-Inhalt wird dem Spieler gezeigt, ist aber nicht wählbar. |
+| FailedAndHidden | Node erscheint gar nicht. |
+
+Wenn ein Requirement fehlschlägt, entscheidet das `FailBehavior`-Feld des Nodes, ob der Dialog überspringt oder abbricht.
+
+## Choices: Der interaktive Schritt
+
+Ein `PlayerChoice`-Node baut seine Liste in drei Schritten:
+
+1. **Bauen** — Für jede Choice werden Requirements geprüft und ein Eintrag mit Availability, Text und Tags erstellt.
+2. **Filtern** — `FailedAndHidden`-Choices werden entfernt.
+3. **Präsentieren** — Die Instanz wartet. Das Widget zeigt die verbleibenden Choices.
+
+Wenn der Spieler klickt → `SelectChoice(Index)`:
+
+1. Die Availability wird erneut geprüft (Variablen könnten sich geändert haben).
+2. SideEffects der Choice werden ausgeführt.
+3. Der Dialog springt zum Ziel-Node der Choice.
+
+> 📸 **Bild-Platzhalter:** `choices-ingame-widget.png` — In-Game-Widget mit aktiven Choice-Buttons.
+> *Setup:* PIE-Modus, Dialog aktiv. Widget zeigt unten drei Buttons nebeneinander. Button 1: „Ein Freund des Königs." (weiß, klickbar). Button 2: „Das geht dich nichts an." (ausgegraut, Tooltip: „Nicht verfügbar"). Button 3 ist nicht sichtbar (FailedAndHidden gefiltert). Hintergrund: das Level mit dem Wächter-NPC.
+
+## Async-Nodes: Wenn ein Node wartet
+
+Manche Nodes pausieren den Dialog, bis ein externes Event eintrifft:
+
+- **Wait** — wartet auf einen Timer oder einen Event-Tag.
+- **PlayAnimation** — wartet optional bis eine Montage endet.
+- **CameraFocus** — wartet auf das Ende der Blend-Zeit.
+
+Der Dialog bleibt in diesem Zustand aktiv, aber keine neuen Nodes werden ausgeführt, bis das Event feuert.
 
 {% hint style="warning" %}
-**Bekannte Einschränkung.** In der aktuellen Version wertet `ExecuteNode_Implementation` das Ergebnis der Requirement-Evaluation noch nicht konsequent aus. Das `FailBehavior`-Feld greift nicht vollständig; geplant für ein Folge-Update (Backlog-Item 5 in `BACKLOG.md`).
+Wenn ein async Node stecken bleibt (Event-Tag feuert nie, Montage endet nie), bleibt die Instanz hängen. Der Validator im Editor warnt, wenn ein async Node keine klare Fortsetzung hat.
 {% endhint %}
 
-## Choices
+## Links & Sub-Dialoge
 
-Ein **PlayerChoice**-Node baut seine Choice-Liste in drei Schritten:
+Ein `Link`-Node oder `SubGraph`-Node verzweigt in einen anderen Dialog oder einen eingebetteten Unter-Graph. Das Plugin merkt sich dabei den Rücksprung-Punkt.
 
-1. **Build**: Für jede Choice: Requirements evaluieren, `FMayDialogueChoiceEntry` erzeugen (mit Availability, Text, Tags, Target).
-2. **Filter**: `FailedAndHidden`-Choices werden entfernt.
-3. **Present**: `Instance::PresentChoices(Choices, Timeout, DefaultIndex)` setzt `Status = WaitingForChoice` und broadcastet `OnChoicesPresented`.
+Wenn der verlinkte Dialog endet:
+- Gibt es einen Rücksprung-Punkt → der Dialog setzt dort fort.
+- Gibt es keinen → der Dialog endet normal als Completed.
 
-Das UI nimmt den Entry-Array und rendert Buttons. Der Spieler klickt → `Instance::SelectChoice(Index)`:
+So können Dialog-Fragmente beliebig tief verschachtelt werden, ohne dass du den Rücksprung selbst verwalten musst.
 
-1. **Re-Evaluate**: Die Availability der gewählten Choice wird erneut geprüft (falls sich Variablen in der Wartezeit änderten).
-2. **SideEffects**: `Choice.SideEffects` werden ausgeführt.
-3. **Transition**: Zum `TargetNodeGuid` der Choice.
+## Endphase: Drei Wege zum Ende
 
-## Async-Nodes
+### Completed
 
-Manche Nodes warten auf externe Events statt sofort zu resultieren:
+Der Dialog erreicht einen `Exit`-Node mit Status `Completed`:
 
-* **Wait** mit Duration / EventTag.
-* **PlayAnimation** mit `bWaitForMontageEnd`.
-* **CameraFocus** mit Blend-Time (je nach Implementierung).
+1. Alle wartenden Timer und Event-Listener werden getrennt.
+2. Laufende Voice-Wiedergabe wird gestoppt.
+3. Kamera wird auf den Ursprung zurückgeblendet (wenn ein CameraFocus aktiv war).
+4. `OnDialogueEnded` feuert mit Status `Completed`.
+5. Das Subsystem entfernt die Instanz am Frame-Ende.
 
-Pattern:
+### Failed
 
-1. Node registriert sich via `Instance::RegisterActiveAsyncNode(Node)`.
-2. Node merkt sich den `NextNodeGuid` und den Trigger (Timer, Montage-End-Delegate, Event-Listener).
-3. Trigger feuert → Node ruft `Instance::ForceTransitionToNode(NextNodeGuid)`.
+Wie Completed, aber der Exit-Node hat Status `Failed`. Nützlich um im aufrufenden Code zwischen „abgeschlossen" und „fehlgeschlagen" zu unterscheiden.
 
-Beim Abort ruft die Instance `CleanupPendingAsyncNodes()`, damit keine Delegates mehr auf eine zerstörte Instance zielen.
+### Aborted
 
-{% hint style="info" %}
-Wenn ein async Node stecken bleibt (z.B. Event-Tag feuert nie, Montage endet nie), bleibt die Instance in `Active` hängen. Der [Validator](../editor/asset-editor.md#validator) warnt, wenn ein async Node keine klare Continuation hat.
-{% endhint %}
+Ausgelöst von außen: neuer Dialog startet, Level-Wechsel, oder dein Code ruft `AbortDialogue()` auf. Gleicher Cleanup wie bei Completed, aber Status = `Aborted`.
 
-## Links & Scope-Stack
+> 📸 **Bild-Platzhalter:** `exit-node-details.png` — Details-Panel eines Exit-Nodes.
+> *Setup:* Exit-Node im Graph ausgewählt. Details-Panel rechts zeigt: `ExitStatus = Completed` (Dropdown). Kein weiterer Property-Eintrag. Der Node selbst ist als rote Kapsel im Graph sichtbar.
 
-**Link**- und **SubGraph**-Nodes pushen einen Frame auf den **Scope-Stack**:
+## Delegate-Hooks: Wo du dich einklinken kannst
 
-```
-ScopeStack: [
-  { Asset: "A", ReturnNodeGuid: "SayLine_X" },
-  { Asset: "B", ReturnNodeGuid: "LinkNode_Y" }
-]
-```
-
-Beim Exit eines verlinkten Dialogs:
-
-1. Wenn Stack **nicht leer**: Pop, weiter am `ReturnNodeGuid`.
-2. Wenn Stack **leer**: Dialog endet als Completed.
-
-So funktionieren beliebig tief geschachtelte Dialog-Fragmente (Common-Greeting, Common-Farewell).
-
-## Immediate-Transitions & Safety
-
-Wenn mehrere Nodes mit `AdvanceMode = Immediate` hintereinander stehen, werden sie in **einer** Instance-Tick-Iteration durchlaufen – kein neuer Frame dazwischen. Damit das nicht zu Endlosschleifen wird:
-
-* Visited-Set pro Chain.
-* (Geplant, Backlog) Max-Hops-Limit.
-
-## End-Phase
-
-### EndDialogue (Completed)
-
-Erreicht durch einen Exit-Node mit `ExitStatus = Completed`:
-
-1. `CleanupPendingAsyncNodes()` – alle Timer / Event-Listener trennen.
-2. `ActiveVoiceComponent` stoppen.
-3. Laufende Montagen unbinden.
-4. Camera auf Ursprung zurück-blenden (wenn `CameraFocus` aktiv).
-5. `OnDialogueEnded` broadcasten mit `ExitStatus = Completed`, Dauer, Instigator, Target.
-6. Subsystem markiert die Instance zur Entfernung; `CleanupCompletedDialogues` beseitigt sie am Frame-Ende.
-
-### AbortDialogue
-
-Erreicht durch externen Aufruf (neuer Dialog startet, Level-Travel, Code-Abort):
-
-* Gleicher Cleanup wie oben.
-* `ExitStatus = Aborted`.
-
-### EndDialogue (Failed)
-
-Erreicht durch Exit-Node mit `ExitStatus = Failed` oder Requirement-Abort:
-
-* Wie Completed, aber Status = Failed.
-
-## Lebenszyklus-Delegates
-
-Die wichtigsten Hooks, an die du dich anklemmen kannst:
-
-| Delegate | Aufruf-Zeitpunkt | Parameter |
+| Delegate | Wann | Typischer Einsatz |
 | --- | --- | --- |
-| `OnDialogueStarted` | Beim Start | Asset, Instigator, Target, StartTime |
-| `OnNodeReached` | Nach Node-Execution | NodeGuid, Node* |
-| `OnMessageReceived` | Sobald SayLine-Message feststeht | `FMayDialogueMessage&` |
-| `OnChoicesPresented` | Sobald Choices stehen | Array |
-| `OnChoiceMade` | Nach `SelectChoice` | ChoiceIndex |
-| `OnVariableChanged` | Variable-Mutation | Name, Scope, Typ, NewValue |
-| `OnDialogueEventFired` | FireEvent-Node | EventTag |
-| `OnDialogueEnded` | Beim Ende | Asset, ExitStatus, Duration, Instigator, Target |
+| `OnDialogueStarted` | Beim Start | Input-Modus umschalten, Kamera vorbereiten |
+| `OnMessageReceived` | Pro SayLine | Audio starten, Untertitel setzen, Animation triggern |
+| `OnChoicesPresented` | Wenn Choices bereitstehen | Buttons rendern (falls eigenes Widget) |
+| `OnChoiceMade` | Nach Auswahl | Analytics, Achievements |
+| `OnVariableChanged` | Pro Variable-Mutation | Quest-System benachrichtigen |
+| `OnDialogueEnded` | Beim Ende | Input-Modus zurücksetzen, Quest-Check auslösen |
 
-Alle sind **Multicast** – mehrere Systeme können parallel lauschen.
+Alle Delegates sind **Multicast** — mehrere Systeme können gleichzeitig lauschen.
 
-## Was du merken solltest
+> 📸 **Bild-Platzhalter:** `blueprint-on-dialogue-ended.png` — Blueprint-Graph für OnDialogueEnded.
+> *Setup:* BP-Graph eines PlayerControllers. `Bind Event to OnDialogueEnded` → Event feuert, Parameter `ExitStatus` geprüft mit `Switch on EMayDialogueExitStatus` → Zweig Completed führt zu `Quest Check Complete`, Zweig Aborted führt zu `Restore Player Input`. Alle Pins sauber beschriftet.
 
-* Eine Instance ist ein reines `UObject`, keine Actor-Komponente. Lebensdauer = Dialog-Dauer.
-* TaskResults sind der Kern des Flow-Controls – jeder Node gibt deklarativ zurück, was passieren soll.
-* Requirements entscheiden über Sichtbarkeit und Availability.
-* Async-Nodes müssen sauber aufräumen – sonst Zombie-State.
-* Scope-Stack macht Link/SubGraph robust.
+## Zusammenfassung
 
-Weiter mit den Akteuren: [Participants & Sprecher](participants-speakers.md).
+- Eine Instanz entsteht beim Start und wird am Ende automatisch aufgeräumt — kein manuelles Verwalten nötig.
+- Zustände: Aktiv, WartendAufAdvance, WartendAufChoice, Completed, Aborted, Failed.
+- Async-Nodes pausieren den Dialog; der Cleanup trennt alle Listener sauber.
+- `Link`/`SubGraph` macht verschachtelte Dialoge ohne manuellen Rücksprung-Code.
+- Die Delegate-Hooks sind der Weg, wie externe Systeme (Quest, Audio, Analytics) reagieren.
+
+Weiter: [Participants & Sprecher](participants-speakers.md).

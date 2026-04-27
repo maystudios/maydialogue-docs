@@ -1,86 +1,97 @@
+---
+description: Prozedurale Nonsense-Stimmen wenn kein Voice-Asset vorhanden ist – als Entwicklungs-Platzhalter oder dauerhafter Klang-Stil.
+---
+
 # Babel-System
 
-**Babel** ist eine prozedurale Nonsense-Stimmen-Engine. Sie erzeugt aus Text akustisches Begleit-Material – nützlich als **Platzhalter** in der Entwicklung oder als **dauerhafter Stil** (Fears-to-Fathom-like, Animal-Crossing-like, Chattering-Monster).
+## Was ist Babel?
+
+Babel erzeugt automatisch akustisches Begleit-Material für jede Dialogue-Zeile, die kein Voice-Asset hat. Das Ergebnis klingt wie Sprache, ist aber kein echtes Wort – "Nonsense Speech".
+
+**Zwei typische Einsatzfälle:**
+
+- **Platzhalter in der Entwicklung:** Babel überbrückt, bis echte Voice-Aufnahmen vorliegen. Kein Stille im PIE-Test, keine fehlenden Audio-Flags – der Dialog klingt schon nach etwas.
+- **Dauerhafter Stil:** Babel als bewusstes Design-Mittel. Animal-Crossing-Blips, Fears-to-Fathom-Murmeln, unheimliche Kreatur-Phoneme – Babel ist darauf ausgelegt, im Fertigen Spiel zu bleiben, wenn du willst.
 
 ## Wann greift Babel?
 
-Globaler Schalter in den [Project Settings](../getting-started/project-settings.md):
+Babel ist standardmäßig aktiv. Es greift für eine SayLine, wenn:
 
-* `bEnableBabelVoice = true` (Default).
+1. Die `DialogueVoice`-Map keinen Eintrag für die aktuelle Culture hat **und**
+2. Kein Default-Voice-Asset vorhanden ist
 
-Auf einer SayLine greift Babel, wenn:
+Globaler Schalter in den Project Settings:
 
-1. Kein Voice-Asset für die aktuelle Culture existiert.
-2. Oder Voice-Asset wurde bewusst leer gelassen.
+> 📸 **Bild-Platzhalter:** `babel-project-settings.png` — Project Settings mit MayDialogue-Audio-Sektion, Fokus auf bEnableBabelVoice und DefaultBabelProfile.
+> *Setup:* Editor → Edit → Project Settings → Plugins → MayDialogue → Audio. Sichtbar: `bEnableBabelVoice = true` (Checkbox angehakt), `DefaultBabelProfile` als Asset-Slot mit einem zugewiesenen `BP_Babel_Default`-Asset. Roter Pfeil auf beide Felder.
 
-## Architektur
-
-```mermaid
-flowchart LR
-    Speaker[Speaker.BabelProfile] --> Synth[UMayDialogueBabelSynth]
-    Settings[bEnableBabelVoice] --> Synth
-    Text[Typewriter Character Reveal] --> Synth
-    Synth --> Audio[AudioComponent oder PlaySound2D]
-```
-
-## Komponenten
-
-### `UMayDialogueBabelProfile`
-
-Ein `UPrimaryDataAsset` mit den **Parameter-Sätzen** (siehe [Babel-Profile](babel-profiles.md)).
-
-### `UMayDialogueBabelSynth`
-
-Ein `UObject` (kein Component) mit Methoden:
-
-```cpp
-void Initialize(UMayDialogueBabelProfile* Profile, UWorld* World);
-void OnCharacterRevealed(TCHAR Character, int32 CharIndex, int32 TotalChars);
-void StartContinuousSpeech(const FString& FullText, float CharsPerSecond);
-void Tick(float DeltaTime);
-void Stop();
-```
+| Setting | Wirkung |
+|---|---|
+| `bEnableBabelVoice` | Babel global an/aus (Default: `true`) |
+| `DefaultBabelProfile` | Profil wenn kein Sprecher-Profil gesetzt |
 
 ## Zwei Synthese-Modi
 
-| Modus | Wie | Wofür |
-| --- | --- | --- |
-| **BlipPerCharacter** | Pro enthülltem Zeichen wird eine Sound-Probe gespielt. | Fears-to-Fathom-Style, VN-Blips, Animal-Crossing-Chatter. |
-| **PhonemeBase** | Generiert sinusoidale Tones basierend auf Zeichen-Typ (Vokal/Konsonant). | Abstrakte, nicht-wörtliche „Stimme" für unheimliche Kreaturen. |
+Babel kann auf zwei verschiedene Weisen klingen:
+
+| Modus | Wie es klingt | Typischer Einsatz |
+|---|---|---|
+| **BlipPerCharacter** | Pro enthülltem Zeichen ein kurzer Sound ("bip bip bip") | VN-Blips, Animal-Crossing-Stil, freundliche NPCs |
+| **PhonemeBase** | Sinusoidale Töne basierend auf Vokal/Konsonant-Typ | Abstrakte Kreaturen, unheimliche Stimmen, nicht-menschliche Entitäten |
 
 ## Zwei Sync-Modi
 
-| Modus | Wie |
-| --- | --- |
-| **TypewriterSync** | Reagiert auf Typewriter-`OnCharacterRevealed`-Events. |
-| **Continuous** | Startet einen internen Timer und spielt unabhängig vom Typewriter. |
+Wie Babel mit dem Typewriter-Text synchronisiert:
 
-Der übliche Case ist **TypewriterSync + BlipPerCharacter** – klassisches *„bleep bleep bleep"* pro Zeichen.
+| Modus | Wie | Wann |
+|---|---|---|
+| **TypewriterSync** | Reagiert auf jeden enthüllten Buchstaben des Typewriters | Standard – präzise Synchronisation, jeder Blip mit dem richtigen Zeichen |
+| **Continuous** | Interner Timer, unabhängig vom Typewriter | Wenn du keinen Typewriter nutzt oder Kreatur-Groll simulierst |
+
+Der übliche Case ist **BlipPerCharacter + TypewriterSync**: ein Blip pro Zeichen, synchron mit der Textanimation.
 
 ## Babel pro Sprecher
 
-Jeder Speaker im Asset kann ein **eigenes `BabelProfile`** haben:
+Jeder Sprecher kann ein **eigenes Babel-Profil** haben. Das ist der Kern der Babel-Flexibilität:
 
-* Der Wächter klingt anders als der Geist.
-* Das Kind klingt anders als der Erwachsene.
-* Der Monster-NPC hat keine Blips, sondern ein Phoneme-basiertes Groll-Muster.
+- Der Wächter hat kurze, tiefe Blips
+- Das Kind hat hohe, schnelle Blips
+- Der Geist hat PhonemeBase mit niedriger Frequenz
+- Der Monster-NPC hat keine Blips, sondern ein kontinuierliches Phoneme-Groll-Muster
 
-## Integration im Widget
+Babel-Profil am Sprecher setzen: Speakers-Panel → Sprecher aufklappen → `BabelProfile` → Asset auswählen.
 
-**Legacy-Pfad** (monolithisches Widget): `BabelSynth::OnCharacterRevealed` wird automatisch aus `UMayDialogueWidget::GetTypewriterText` gerufen.
+> 📸 **Bild-Platzhalter:** `babel-speaker-profile-assignment.png` — Speakers-Panel mit zwei verschiedenen Sprechern, jeder mit eigenem BabelProfile-Asset.
+> *Setup:* Dialog-Asset öffnen, Speakers-Panel. Zwei Sprecher ausgeklappt sichtbar: "Guard" mit `BabelProfile = BP_Babel_Guard`, "Ghost" mit `BabelProfile = BP_Babel_Ghost`. Asset-Icons gut erkennbar, unterschiedliche Asset-Namen zeigen Individualität.
 
-**Component-Pfad** (UMG-Komponenten): Du musst im Blueprint `TextWidget->OnCharacterRevealed` an `BabelSynth->OnCharacterRevealed` binden. Aktuelles Gap – siehe [UI-Architektur](../ui/umg-architecture.md#typische-fehler).
+## Babel-Profile anlegen
 
-Im **Preview-Runner** wird Babel automatisch 2D gespielt.
+Ein Babel-Profil ist ein DataAsset:
 
-## Qualitäts-Anspruch
+1. Content Browser → Rechtsklick → **DataAsset**
+2. Parent-Class: `UMayDialogueBabelProfile`
+3. Benennen (z.B. `BP_Babel_Ghost`)
+4. Öffnen und Parameter setzen
 
-Babel ist **nicht nur ein Platzhalter**. Das Ziel ist: so gut klingen, dass man es im Final-Game behalten will, wenn man will. Pro-Speaker-Varianz, konfigurierbare Samples, Vokal-Pitch-Shift, Punctuation-Pausen – alles da.
+> 📸 **Bild-Platzhalter:** `babel-profile-asset-open.png` — Geöffnetes BabelProfile-Asset im Details-Panel mit ausgefüllten Werten.
+> *Setup:* Content Browser → DataAsset `BP_Babel_Ghost` doppelklicken. Details-Panel zeigt alle Properties: `BabelMode = PhonemeBase`, `SyncMode = Continuous`, `PhonemeBaseFrequency = 120`, `PhonemeFrequencyRange = 40`, `PhonemeDuration = 0.12`, `bApplyProsody = true`, `Volume = 0.5`. Roter Pfeil auf `BabelMode`.
 
-## Limitationen
+Details zu allen Properties: [Babel-Profile](babel-profiles.md).
 
-* **Procedural Blip-Caching fehlt** – pro Zeichen wird eine neue `USoundWaveProcedural` allokiert (akzeptabel für Fallback, aber Produktion sollte `BlipSounds` setzen).
-* **Continuous Mode im Component-Pfad** feuert `Tick` nicht automatisch – Designer muss das in BP tun.
-* **Babel-Qualität ist Work-in-Progress** (Backlog-Item 16). Funktional, aber noch nicht final-polish.
+## Preview-Runner
 
-Weiter: [Babel-Profile](babel-profiles.md).
+Im Preview-Runner wird Babel automatisch **2D** gespielt – korrekt für den Editor-Test ohne Level-Setup. Im PIE mit einem Sprecher-Actor spielt Babel 3D (sofern kein `Force2D`-Override aktiv ist).
+
+## Widget-Integration
+
+**Monolithisches Widget (Legacy):** `BabelSynth::OnCharacterRevealed` wird automatisch aus dem Typewriter-Text gefeuert – kein Setup nötig.
+
+**UMG-Komponenten-Pfad:** Im Blueprint musst du `TextWidget->OnCharacterRevealed` manuell an `BabelSynth->OnCharacterRevealed` binden. Sieh dazu [UI-Architektur](../ui/umg-architecture.md).
+
+{% hint style="info" %}
+**Qualitäts-Anspruch:** Babel ist nicht nur ein Debug-Platzhalter. Mit eigenen BlipSounds, PitchVariation und PunctuationPause kann das Ergebnis so gut klingen, dass du es im fertigen Spiel behalten willst.
+{% endhint %}
+
+{% hint style="warning" %}
+**Continuous Mode im Komponenten-Pfad:** `Tick` läuft nicht automatisch – du musst es im Blueprint deines Widgets manuell aufrufen. Im SayLine-Fallback-Pfad (ohne Widget) tickt Babel selbst.
+{% endhint %}

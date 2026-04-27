@@ -1,106 +1,151 @@
+---
+description: Ein DataAsset mit allen Synthese-Parametern für einen Sprecher – so klingt jeder Charakter anders, auch ohne Voice-Aufnahmen.
+---
+
 # Babel-Profile
 
-Ein `UMayDialogueBabelProfile` ist ein **DataAsset**, das die Synthese-Parameter für einen Sprecher bündelt.
+Ein `UMayDialogueBabelProfile` bündelt alle Synthese-Parameter für einen Sprecher: Modus, Pitch, Samples, Timing, Volume. Jeder Sprecher kann ein eigenes Profil bekommen.
 
-## Erstellen
+## Profil anlegen
 
-1. Content Browser → Rechtsklick → **DataAsset**.
-2. Parent-Class: `UMayDialogueBabelProfile`.
-3. Benennen, z.B. `BP_Babel_Ghost`.
+1. Content Browser → Rechtsklick → **DataAsset**
+2. Parent-Class: `UMayDialogueBabelProfile`
+3. Benennen, z.B. `BP_Babel_Ghost`, `BP_Babel_Guard`, `BP_Babel_Child`
+4. Doppelklicken und Parameter setzen
 
-## Eigenschaften
+> 📸 **Bild-Platzhalter:** `babel-profiles-create-datatasset.png` — "Pick DataAsset Class"-Dialog mit UMayDialogueBabelProfile in der Klassen-Liste.
+> *Setup:* Content Browser → Rechtsklick → DataAsset → Klassen-Picker öffnet sich. In der Suchliste: `UMayDialogueBabelProfile` markiert und sichtbar. OK-Button im Fokus. Zeigt den Erstellungs-Workflow.
 
-### Mode
+## Alle Properties im Überblick
 
-| Property | Typ | Default |
-| --- | --- | --- |
-| `BabelMode` | `EMayDialogueBabelMode` | `BlipPerCharacter` |
-| `SyncMode` | `EMayDialogueBabelSyncMode` | `TypewriterSync` |
+### Modus
+
+| Property | Typ | Default | Wirkung |
+|---|---|---|---|
+| `BabelMode` | Enum | `BlipPerCharacter` | Synthese-Methode: Blip oder Phonem |
+| `SyncMode` | Enum | `TypewriterSync` | Zeitsteuerung: Typewriter-Events oder kontinuierlich |
 
 ### Blip-Mode-Parameter
 
+Aktiv wenn `BabelMode = BlipPerCharacter`:
+
 | Property | Typ | Default | Wirkung |
-| --- | --- | --- | --- |
-| `BlipSounds` | `TArray<USoundBase*>` | leer | Pool von Samples; Char-Index mod Array-Size wählt. |
-| `BasePitch` | float | 1.0 | Basis-Multiplikator. |
-| `PitchVariation` | float | 0.15 | ±-Range für Zufall pro Blip. |
-| `bVaryPitchByVowel` | bool | true | Vokale bekommen `VowelPitchMultiplier`. |
-| `VowelPitchMultiplier` | float | 1.2 | Pitch-Scale für Vokale. |
-| `bSkipSpaces` | bool | true | Keine Blips bei Leerzeichen. |
-| `bSkipRepeatedChars` | bool | false | Kein Blip, wenn Char gleich dem vorherigen. |
+|---|---|---|---|
+| `BlipSounds` | Array\<USoundBase\> | leer | Pool von Sample-Assets; Char-Index mod Array-Size wählt das Sample |
+| `BasePitch` | float | 1.0 | Basis-Pitch-Multiplikator für alle Blips |
+| `PitchVariation` | float | 0.15 | ±-Zufall pro Blip (0.0 = monoton, 1.0 = sehr variabel) |
+| `bVaryPitchByVowel` | bool | true | Vokale bekommen `VowelPitchMultiplier` |
+| `VowelPitchMultiplier` | float | 1.2 | Pitch-Skala speziell für Vokal-Zeichen |
+| `bSkipSpaces` | bool | true | Keine Blips bei Leerzeichen |
+| `bSkipRepeatedChars` | bool | false | Kein Blip wenn Zeichen gleich dem vorherigen |
+
+> 📸 **Bild-Platzhalter:** `babel-profiles-blip-params.png` — Geöffnetes BabelProfile-Asset (BlipPerCharacter-Modus) mit ausgefüllten Blip-Parametern.
+> *Setup:* DataAsset `BP_Babel_Child` öffnen. Details-Panel: `BabelMode = BlipPerCharacter`, `SyncMode = TypewriterSync`. Darunter Blip-Sektion: `BlipSounds` mit 3 Assets gefüllt (BP_Sample_01, 02, 03), `BasePitch = 1.2`, `PitchVariation = 0.35`, `bVaryPitchByVowel = true`, `VowelPitchMultiplier = 1.4`, `bSkipSpaces = true`. Alle Felder gut lesbar.
 
 ### Phoneme-Mode-Parameter
 
+Aktiv wenn `BabelMode = PhonemeBase`:
+
 | Property | Typ | Default | Wirkung |
-| --- | --- | --- | --- |
-| `PhonemeBaseFrequency` | float | 200 Hz | Grundfrequenz. |
-| `PhonemeFrequencyRange` | float | 100 Hz | Variation pro Phonem. |
-| `PhonemeDuration` | float | 0.06 s | Ton-Länge. |
-| `bApplyProsody` | bool | true | Frequenz je Zeichen-Typ anpassen (Vokal/Konsonant/Zischlaut/Nasal). |
+|---|---|---|---|
+| `PhonemeBaseFrequency` | float | 200 Hz | Grundfrequenz der generierten Töne |
+| `PhonemeFrequencyRange` | float | 100 Hz | Variation pro Phonem-Typ |
+| `PhonemeDuration` | float | 0.06 s | Wie lange jeder generierte Ton klingt |
+| `bApplyProsody` | bool | true | Vokal/Konsonant/Zischlaut/Nasal bekommen unterschiedliche Frequenzen |
 
 ### Timing
 
 | Property | Typ | Default | Wirkung |
-| --- | --- | --- | --- |
-| `PunctuationPause` | float | 0.15 s | Extra-Pause nach `.`, `!`, `?`. |
-| `CommaPause` | float | 0.08 s | Extra-Pause nach `,`. |
+|---|---|---|---|
+| `PunctuationPause` | float | 0.15 s | Extra-Pause nach `.` `!` `?` |
+| `CommaPause` | float | 0.08 s | Extra-Pause nach `,` |
 
 ### Volume
 
 | Property | Typ | Default | Wirkung |
-| --- | --- | --- | --- |
-| `Volume` | float | 0.7 | Master-Volumen für alle Blips/Phoneme des Profils. |
-| `bUseProceduralDefaults` | bool | true | Wenn `BlipSounds` leer: generiere Procedural-Blips on-the-fly. |
+|---|---|---|---|
+| `Volume` | float | 0.7 | Master-Volume des Profils (Babel soll nicht lauter sein als echte Voices) |
+| `bUseProceduralDefaults` | bool | true | Wenn `BlipSounds` leer: generiere einfache Sinus-Piepser on-the-fly |
 
-## Beispiel-Profile
+## Fertige Beispiel-Profile
 
-### Freundlicher NPC – Animal-Crossing-Style
+### Freundlicher NPC — Animal-Crossing-Stil
 
-```
-BabelMode          = BlipPerCharacter
-SyncMode           = TypewriterSync
-BlipSounds         = [BP_Sample_01, BP_Sample_02, BP_Sample_03]  (drei weiche „boop"-Samples)
-BasePitch          = 1.1
-PitchVariation     = 0.3
-bVaryPitchByVowel  = true
+```text
+BabelMode            = BlipPerCharacter
+SyncMode             = TypewriterSync
+BlipSounds           = [BP_Sample_Boop_01, BP_Sample_Boop_02, BP_Sample_Boop_03]
+BasePitch            = 1.1
+PitchVariation       = 0.30
+bVaryPitchByVowel    = true
 VowelPitchMultiplier = 1.3
-bSkipSpaces        = true
-PunctuationPause   = 0.25
-Volume             = 0.6
+bSkipSpaces          = true
+PunctuationPause     = 0.25
+Volume               = 0.6
 ```
 
-### Unheimlicher Geist – Phoneme-Stil
+Klingt lebendig, freundlich, variabel. Drei weiche "boop"-Samples reichen für Variation.
 
+### Unheimlicher Geist — Phoneme-Groll
+
+```text
+BabelMode             = PhonemeBase
+SyncMode              = Continuous
+PhonemeBaseFrequency  = 120
+PhonemeFrequencyRange = 40
+PhonemeDuration       = 0.12
+bApplyProsody         = true
+Volume                = 0.5
 ```
-BabelMode              = PhonemeBase
-SyncMode               = Continuous
-PhonemeBaseFrequency   = 120
-PhonemeFrequencyRange  = 40
-PhonemeDuration        = 0.12
-bApplyProsody          = true
+
+Kein Typewriter-Sync, kontinuierliches Murmeln. Tiefe Frequenz, wenig Variation = bedrohlich.
+
+### Debug-Fallback — Neutral
+
+```text
+BabelMode              = BlipPerCharacter
+BlipSounds             = (leer)
+bUseProceduralDefaults = true
 Volume                 = 0.5
 ```
 
-### Neutral – Fallback für Debug
+Generiert einfache Sinus-Piepser. Kein Asset nötig, sofort einsatzbereit.
 
-```
-BabelMode               = BlipPerCharacter
-BlipSounds              = (leer)
-bUseProceduralDefaults  = true  // generiert einfache Sinus-Piepser
-Volume                  = 0.5
-```
+> 📸 **Bild-Platzhalter:** `babel-profiles-three-examples.png` — Content Browser mit drei Babel-Profile-Assets nebeneinander: BP_Babel_NPC, BP_Babel_Ghost, BP_Babel_Debug.
+> *Setup:* Content Browser gefiltert auf `BP_Babel_`. Drei DataAsset-Icons sichtbar: `BP_Babel_NPC`, `BP_Babel_Ghost`, `BP_Babel_Debug`. Tooltips oder Asset-Details zeigen unterschiedliche BabelMode-Werte.
 
-## Zuweisen an einen Sprecher
+## Profil einem Sprecher zuweisen
 
-Im Speakers-Panel des Dialog-Assets: im Sprecher-Eintrag das Feld **BabelProfile** auf das Asset setzen. Alle SayLines dieses Sprechers nutzen nun das Profil (sofern kein Voice-Asset vorhanden ist).
+Im Speakers-Panel des Dialog-Assets:
+
+1. Sprecher-Eintrag aufklappen
+2. Feld `BabelProfile` → Asset-Slot → Profil auswählen
+
+Alle SayLines dieses Sprechers nutzen nun das Profil – sofern kein Voice-Asset für die aktuelle Culture vorhanden ist.
 
 ## Globaler Fallback
 
-In [Project Settings](../getting-started/project-settings.md): `DefaultBabelProfile`. Wird genutzt, wenn weder Speaker-Profile noch Voice-Asset vorhanden sind.
+In den Project Settings: `DefaultBabelProfile`. Wird genutzt wenn:
+- Kein Voice-Asset vorhanden
+- Kein Sprecher-Profil gesetzt
+- `bEnableBabelVoice = true`
+
+Setze hier das neutrale Debug-Profil als Basis.
 
 ## Designer-Tipps
 
-* **Samples in leicht unterschiedlichen Tonhöhen** aufnehmen (3-5 Varianten reichen). Babel verteilt sie per Char-Index, das erzeugt Variation.
-* **BasePitch und Variation gemeinsam tunen**: hohe Variation = lebendig, niedrige = monoton/unheimlich.
-* **Volume bewusst unter 1.0** halten – Babel soll nicht lauter sein als echte Voices.
-* **Keine langen Samples** (< 100 ms) – sonst überlagern sich die Blips beim Typewriter.
+{% hint style="success" %}
+**Samples in leicht unterschiedlichen Tonhöhen aufnehmen** (3–5 Varianten reichen). Babel verteilt sie per Char-Index – das erzeugt organische Variation ohne Pitch-Shifting-Artefakte.
+{% endhint %}
+
+{% hint style="info" %}
+**BasePitch und PitchVariation zusammen tunen:**
+- Hohe Variation (0.3–0.5) = lebendig, spielerisch
+- Niedrige Variation (0.0–0.1) = monoton, unheimlich, roboterhaft
+{% endhint %}
+
+{% hint style="warning" %}
+**Samples kurz halten** (unter 100 ms). Längere Samples überlagern sich beim Typewriter und klingen matschig.
+
+**Volume bewusst unter 1.0** setzen – Babel soll nie lauter sein als echte Voices, wenn diese später eingesetzt werden.
+{% endhint %}

@@ -1,59 +1,81 @@
+---
+description: Der MayDialogue Asset-Editor – welche Panels es gibt und wie du damit arbeitest.
+---
+
 # Der Editor
 
-Das `MayDialogueEditor`-Modul ist der Ort, an dem **Designer arbeiten**. Es ist ein vollwertiger Asset-Editor-Toolkit mit zehn Dock-Tabs, eigenem Graph-Schema, integriertem Debugger und In-Editor-Preview.
+Wenn du ein MayDialogue-Asset im Content Browser doppelklickst, öffnet sich der **Asset-Editor**. Hier entwirfst, testest und debuggst du Dialoge – ohne eine einzige Zeile Code.
 
-## Worum es hier geht
+> 📸 **Bild-Platzhalter:** `editor-overview-annotated.png` — Gesamtansicht des Asset-Editors mit geöffnetem Beispiel-Dialog.
+> *Setup:* Asset `DA_Guard_Greeting` öffnen. Alle Standard-Tabs sichtbar: Graph groß in der Mitte, Details-Panel rechts, Outline links, Compiler-Results unten. Rote Pfeile annotieren: 1) Toolbar mit Save/Compile/Play-Buttons, 2) Graph-Canvas mit drei verbundenen Nodes, 3) Speakers-Panel-Tab-Reiter rechts oben.
 
-In den folgenden Kapiteln findest du:
+## Die Panels im Überblick
 
-* **Asset-Editor** – die Tab-Layouts, Toolbars und Commands.
-* **Graph-Panel** – die Hauptarbeitsfläche mit Nodes, Pins, Drähten.
-* **Speakers-Panel** – Sprecher-Liste des Assets mit Farben, Namen, Portraits.
-* **Variables-Panel** – Variable-Definitionen für beide Scopes.
-* **Outline** – flache Liste aller Nodes mit Such- und Filter-Funktion.
-* **Find-in-Dialogue** – Volltext-Suche über das ganze Asset.
-* **Preview-Runner** – Play-Button ohne PIE.
-* **Debugger & Breakpoints** – PIE-seitiges Stepping durch Dialoge.
-* **Komfort-Features** – Auto-Layout, Knots, Kommentare, Undo/Redo.
+| Panel | Wofür | Seite |
+| --- | --- | --- |
+| **Graph** | Dialog-Struktur bauen – Nodes verbinden, Texte schreiben | [Graph-Panel](graph-panel.md) |
+| **Details** | Properties des selektierten Nodes bearbeiten | [Asset-Editor](asset-editor.md) |
+| **Speakers** | Sprecher anlegen, Farben und Portraits setzen | [Speakers-Panel](speakers-panel.md) |
+| **Variables** | Dialog-Variablen deklarieren und Default-Werte setzen | [Variables-Panel](variables-panel.md) |
+| **Outline** | Alle Nodes als durchsuchbare Liste sehen, per Klick anspringen | [Outline](outline.md) |
+| **Find Results** | Texte, Tags und Variablen-Namen im ganzen Asset suchen | [Find-in-Dialogue](find.md) |
+| **Preview** | Dialog direkt im Editor abspielen – kein PIE nötig | [Preview-Runner](preview-runner.md) |
+| **Debugger Watch** | Variablen live beobachten während PIE läuft | [Debugger](debugger.md) |
+| **Compiler Results** | Fehler und Warnungen nach dem Compile-Durchlauf | [Asset-Editor](asset-editor.md) |
+| **Palette** | Verfügbare Node-Typen per Drag-and-Drop einfügen | [Graph-Panel](graph-panel.md) |
 
-## Tab-Übersicht
+Alle Tabs sind frei andockbar. Dein Layout wird pro Benutzer gespeichert.
+
+## Standard-Layout
 
 ```
-┌───────────────────────────────────────────────────────────────────┐
-│  Graph   │  Details  │  Outline  │  Preview  │  Speakers  │       │
-├──────────┴───────────┴───────────┴───────────┴────────────┤       │
-│                                                           │ Debug │
-│                     Graph-Canvas                          │ Watch │
-│                                                           │       │
-├───────────────────────────────────────────────────────────┤       │
-│  Compiler Results   │  Find Results   │  Variables   │ Palette   │
-└───────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│  [Save]  [Compile]  [Auto-Layout]  [Play]  [Find]  [Breakpoint]  │  ← Toolbar
+├───────────┬──────────────────────────────────────┬───────────────┤
+│           │                                      │               │
+│  Outline  │           Graph-Canvas               │    Details    │
+│           │                                      │    Speakers   │
+│           │                                      │    Variables  │
+│           │                                      │    Palette    │
+├───────────┴──────────────────────────────────────┴───────────────┤
+│        Compiler Results  │  Find Results  │  Debugger Watch      │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
-Tabs sind frei andockbar. Das Default-Layout optimiert auf: Graph groß in der Mitte, Details rechts, Compiler-Feedback unten.
+> 📸 **Bild-Platzhalter:** `editor-default-layout.png` — Standard-Tab-Layout mit leerem neuen Asset.
+> *Setup:* Neues `DA_Empty` Asset anlegen und öffnen. Nur der Entry-Node im Graph sichtbar. Tabs in der Sidebar zeigen Details, Speakers, Variables als Reiter.
 
-## Empfohlene Arbeits-Reihenfolge
+## Empfohlene Arbeitsreihenfolge
 
-Für Neueinsteiger:
+Für einen neuen Dialog von Null:
 
-1. Ein [neues Asset anlegen](asset-editor.md#ein-asset-anlegen).
-2. **Sprecher** im [Speakers-Panel](speakers-panel.md) definieren.
-3. **Variablen** im [Variables-Panel](variables-panel.md) deklarieren.
-4. Den [Graph](graph-panel.md) bauen.
-5. **Compile** drücken; Compiler-Results prüfen.
-6. Mit dem [Preview-Runner](preview-runner.md) testen.
-7. In PIE mit dem [Debugger](debugger.md) validieren.
+1. **Asset anlegen** – Rechtsklick im Content Browser → Miscellaneous → MayDialogue Asset.
+2. **Sprecher definieren** – Speakers-Panel öffnen, Sprecher hinzufügen, Farbe und DisplayName setzen.
+3. **Variablen deklarieren** – Variables-Panel, falls der Dialog Zustände speichern muss.
+4. **Graph bauen** – Nodes platzieren, verbinden, Texte inline eingeben.
+5. **Compile** – `F7` drücken, Compiler-Results auf Fehler prüfen.
+6. **Preview-Runner testen** – Play-Button klicken, Dialog ohne PIE durchspielen.
+7. **PIE-Debugger** – Für finale Validierung mit echtem GAS-State im laufenden Spiel.
+
+> 📸 **Bild-Platzhalter:** `editor-workflow-steps.png` — Toolbar-Bereich mit nummerierten roten Pfeilen auf Compile-Button (Schritt 5) und Play-Button (Schritt 6).
+> *Setup:* Beliebiges Asset mit zwei SayLine-Nodes offen. Toolbar fokussiert.
 
 ## Wann welches Werkzeug
 
-| Aufgabe | Werkzeug |
+| Frage / Aufgabe | Werkzeug |
 | --- | --- |
-| Dialog-Struktur bauen | Graph-Panel |
-| Sprecher-Design | Speakers-Panel |
-| Schnell-Test ohne PIE | Preview-Runner |
-| Bug-Hunting im echten Spiel | PIE-Debugger |
-| „Wo steht Text X?" | Find-in-Dialogue |
-| „Welche Nodes hat dieses Asset?" | Outline |
-| Lesbarkeit verbessern | Auto-Layout / Comments / Knots |
+| Dialog-Ablauf bauen | Graph-Panel |
+| Sprecher-Farben und Portraits pflegen | Speakers-Panel |
+| Schnelltest einer neuen Zeile | Preview-Runner |
+| „Wo steht Satz X?" | Find-in-Dialogue |
+| „Wie viele Choices hat der Dialog?" | Outline (Filter: Player Choice) |
+| Bug mit echtem Quest-State suchen | PIE-Debugger |
+| Unordentlichen Graphen aufräumen | Auto-Layout + Comment-Boxes |
 
-Los geht's: [Asset-Editor →](asset-editor.md).
+> 📸 **Bild-Platzhalter:** `editor-panel-closeup-speakers.png` — Speakers-Panel ausgeklappt mit zwei Einträgen (Guard, Player), Farb-Chips sichtbar.
+> *Setup:* Speakers-Tab aktiv, zwei Sprecher `Dialogue.Speaker.Guard` (dunkelrot) und `Dialogue.Speaker.Player` (grau) eingetragen, DisplayNames und Portrait-Slots sichtbar.
+
+> 📸 **Bild-Platzhalter:** `editor-panel-closeup-outline.png` — Outline-Tab mit vier Einträgen: Entry, SayLine Guard, PlayerChoice, Exit.
+> *Setup:* Kleines Asset mit Entry → SayLine → PlayerChoice → Exit. Outline zeigt Farb-Chips, Text-Previews und Typ-Badges.
+
+Los geht's: [Asset-Editor →](asset-editor.md)

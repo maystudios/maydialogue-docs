@@ -1,110 +1,104 @@
+---
+description: Der Typewriter-Effekt — wie du Geschwindigkeit konfigurierst, Control-Tags einsetzt und Skip-to-End auslöst.
+---
+
 # Typewriter-Engine
 
-Der Typewriter-Effekt läuft in `UMayDialogueWidget_Text::NativeTick`. Dieses Kapitel erklärt die Parser-Grammatik und das Event-Modell.
+Der Typewriter-Effekt enthüllt Dialog-Text Zeichen für Zeichen. Er unterstützt Inline-Tags für Pausen und Geschwindigkeitswechsel, und lässt sich jederzeit per Skip auf den vollen Text springen.
 
-## Aktivierung
+> 📸 **Bild-Platzhalter:** `typewriter-ingame-midreveal.png` — PIE-Viewport, Dialog aktiv, Typewriter läuft. Text ca. zur Hälfte enthüllt, sichtbarer Cursor am Ende des enthüllten Teils. Visueller Rich-Text-Effekt (z.B. rotes Wort) bereits sichtbar obwohl Zeichen danach noch nicht enthüllt sind.
+> *Setup:* PIE starten, langsamen Dialog triggern (CPS ca. 10), Screenshot genau während des Typewriters machen.
 
-Globaler Schalter in den [Project Settings](../getting-started/project-settings.md):
+## Grundkonfiguration
 
+In den Project Settings → MayDialogue:
+
+```ini
+bEnableTypewriterEffect   = true   ; Typewriter an/aus. false = Text sofort komplett.
+TypewriterCharsPerSecond  = 30.0   ; Zeichen pro Sekunde (globaler Default)
 ```
-bEnableTypewriterEffect = true
-TypewriterCharsPerSecond = 30.0
-```
 
-Wenn `false`: Text erscheint sofort komplett.
+Wenn `bEnableTypewriterEffect = false` erscheint der gesamte Text sofort — nützlich für Accessibility-Optionen.
 
-## Parser-Grammatik
+> 📸 **Bild-Platzhalter:** `typewriter-project-settings.png` — Project Settings → MayDialogue. Felder `bEnableTypewriterEffect` (Checkbox) und `TypewriterCharsPerSecond` (Zahl 30.0) mit roten Pfeilen markiert.
+> *Setup:* Edit → Project Settings → MayDialogue, Screenshot nur diesen Abschnitt.
 
-Der `FMayDialogueTypewriterParser::Parse()` macht **einen Pass** durch den Eingabe-Text und erkennt zwei **Control-Tags**:
+## Geschwindigkeit pro Dialog überschreiben
 
-| Tag | Wirkung |
-| --- | --- |
-| `<pause=X>` | Pausiert den Typewriter für X Sekunden. |
-| `<speed=X>` | Multipliziert die Geschwindigkeit ab dieser Position. `<speed=1.0>` resettet. |
-
-**Beide Tags werden im Parser konsumiert** – sie erscheinen nicht im angezeigten Text.
-
-Visuelle Tags (`<shake>`, `<wave>`, `<color>`, `<b>`) bleiben **unangetastet** – sie werden später vom Rich-Text-Decorator-System verarbeitet.
-
-## Parser-Ausgabe
+Du kannst die Geschwindigkeit pro Dialog-Zeile überschreiben — entweder über den SayLine-Node im Editor oder direkt beim Aufruf:
 
 ```cpp
-struct FTypewriterParseResult
-{
-    FText StrippedText;              // Text ohne Control-Tags, aber mit visuellen Tags
-    TArray<FTypewriterEvent> Events; // Sortiert nach Char-Index
-};
-
-struct FTypewriterEvent
-{
-    int32 CharIndex;     // im StrippedText
-    float PauseDuration; // wenn > 0
-    float SpeedMultiplier; // wenn > 0
-};
+// Im Text-Widget — CPS <= 0 nutzt den Settings-Default
+TextWidget->StartTypewriter(Text, CharactersPerSecond);
 ```
 
-Der Tick konsumiert Events in Reihenfolge.
+## Control-Tags: Pausen und Geschwindigkeit im Text
 
-## Event-Flow
+Zwei Tags steuern den Typewriter-Ablauf direkt im Dialog-Text. **Sie erscheinen nicht im angezeigten Text** — der Parser konsumiert sie vor der Darstellung.
 
-```mermaid
-sequenceDiagram
-    TextWidget->>Parser: Parse(InputText)
-    Parser-->>TextWidget: StrippedText + Events[]
-    loop NativeTick
-        TextWidget->>TextWidget: Accumulator += DeltaTime * Speed
-        TextWidget->>TextWidget: Reveal next char(s)
-        TextWidget->>Blueprint: OnCharacterRevealed(Char, Index)
-        alt Event at this index
-            TextWidget->>TextWidget: Handle pause or speed change
-        end
-    end
-    TextWidget->>Blueprint: OnTypewriterComplete
+| Tag | Wirkung |
+|---|---|
+| `<pause=X>` | Pausiert den Typewriter für X Sekunden |
+| `<speed=X>` | Multipliziert die Geschwindigkeit ab dieser Stelle. `<speed=1.0>` setzt zurück |
+
+### Beispiele
+
+```text
+Er flüsterte: "Sie... sie ist tot."<pause=1.5> Stille.
 ```
+→ Nach "tot." pausiert der Typewriter 1,5 Sekunden, bevor " Stille." erscheint.
 
-## CharactersPerSecond vs. SpeedMultiplier
+```text
+Schnell: <speed=3.0>Er rannte. Sie rannte. Alle rannten.<speed=1.0> Und dann: Stille.
+```
+→ Der mittlere Teil läuft dreimal so schnell, danach normale Geschwindigkeit.
 
-* `CharactersPerSecond` ist die **Grundgeschwindigkeit** pro Widget-Call.
-* `<speed=X>` multipliziert die **Grundgeschwindigkeit** temporär.
-* `CurrentSpeedMultiplier` wird beim Zeilen-Ende automatisch zurückgesetzt.
+```text
+Du bist tot. <pause=1.0><color=red><shake>Tot.</shake></color>
+```
+→ Pause, dann roter, zitternder Text.
 
-Beispiel: `CPS = 30`, aktives `<speed=2.0>` → 60 Zeichen/Sekunde.
+> 📸 **Bild-Platzhalter:** `typewriter-pause-example.png` — Zwei PIE-Screenshots nebeneinander: links Typewriter direkt nach "tot." (Pause aktiv, kein neues Zeichen enthüllt), rechts nach der Pause mit " Stille." sichtbar. Zeitstempel unten rechts.
+> *Setup:* Dialog mit `<pause=1.5>` triggern, Screenshots vor und nach der Pause machen.
 
-## Pause-Event
+## Skip-to-End
 
-Beim Erreichen eines Pause-Events:
+Wenn `SkipTypewriter()` aufgerufen wird (z.B. durch Klick auf Skip-Button):
 
-1. Tick-Akkumulator wird gestoppt.
-2. Parallel-Timer läuft für die Pause-Dauer.
-3. Nach Ablauf: Akkumulator läuft wieder.
+- Der Text springt sofort auf die vollständige Fassung.
+- Alle verbleibenden `OnCharacterRevealed`-Events werden **nicht** nachgefeuert.
+- `OnTypewriterComplete` feuert einmal.
 
-## Bekannte Einschränkungen
+Das Top-Level-Widget interpretiert den ersten Advance-Klick als Typewriter-Skip, den zweiten als Dialog-Advance:
 
-* **Keine Verschachtelung**. `<pause=<speed=2>1>` ist undefiniert.
-* **Kein Escape**. Literal-`<pause=` im Text wird als Tag interpretiert.
-* **Keine Validierung**. `<pause=abc>` wird zu 0 Sekunden.
-
-## Debug-Tipps
-
-* **Text läuft zu schnell / zu langsam**: Global `TypewriterCharsPerSecond` prüfen.
-* **Tag wird angezeigt statt konsumiert**: Tag-Schreibweise falsch – kein Leerzeichen in `<pause=0.5>`, kein fehlendes `=`.
-* **Pause wirkt nicht**: Char-Index-Zählung basiert auf *strippedText*, nicht dem Original. Das ist gewollt und transparent, solange der Parser funktioniert.
-
-## Integration mit Babel
-
-Das Text-Widget feuert `OnCharacterRevealed`. Binde es im Blueprint an `BabelSynth->OnCharacterRevealed`, damit jedes Zeichen akustisch begleitet wird.
-
-Siehe [Audio → Babel-System](../audio/babel-system.md).
+```text
+RequestAdvance()
+  → IsTypewriterActive() = true  → SkipTypewriter()
+  → IsTypewriterActive() = false → AdvanceDialogue()
+```
 
 ## Verhältnis zu Rich-Text-Tags
 
-| Tag-Typ | Verarbeitet von | Erscheint im Text? |
-| --- | --- | --- |
-| `<pause=X>` | Typewriter-Parser | Nein (konsumiert) |
-| `<speed=X>` | Typewriter-Parser | Nein (konsumiert) |
-| `<shake>...</shake>` | RichText-Decorator | Ja (visuell) |
-| `<wave>...</wave>` | RichText-Decorator | Ja (visuell) |
-| `<color=...>...</color>` | RichText-Decorator | Ja (visuell) |
-| `<b>...</b>` | RichText-Decorator | Ja (visuell) |
+Control-Tags und visuelle Tags können frei gemischt werden:
 
-Weiter: [Rich-Text-Tags](rich-text-tags.md).
+| Tag | Verarbeitet von | Sichtbar im Text? |
+|---|---|---|
+| `<pause=X>` | Typewriter-Parser | Nein |
+| `<speed=X>` | Typewriter-Parser | Nein |
+| `<shake>...</shake>` | RichText-Decorator | Ja |
+| `<wave>...</wave>` | RichText-Decorator | Ja |
+| `<color=...>...</color>` | RichText-Decorator | Ja |
+| `<b>...</b>` | RichText-Decorator | Ja |
+
+Visuelle Tags sind bereits ab dem ersten enthüllten Zeichen aktiv — der Shake-Effekt beginnt, sobald das erste Zeichen des `<shake>`-Abschnitts erscheint.
+
+## Debug-Tipps
+
+| Problem | Lösung |
+|---|---|
+| Text läuft zu schnell | `TypewriterCharsPerSecond` in Project Settings prüfen |
+| Tag erscheint als Text | Leerzeichen im Tag? → `<pause= 0.5>` ist falsch, richtig: `<pause=0.5>` |
+| Pause wirkt nicht | Char-Index zählt im geparsten Text (ohne Control-Tags). Das ist korrekt — prüfe Schreibweise |
+| `<speed>` setzt sich nicht zurück | `<speed=1.0>` explizit am Ende des Abschnitts setzen |
+
+Siehe [Rich-Text-Tags](rich-text-tags.md) für alle visuellen Tag-Optionen. Für die Babel-Anbindung an `OnCharacterRevealed`: [Audio → Babel-System](../audio/babel-system.md).

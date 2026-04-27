@@ -1,124 +1,165 @@
+---
+description: HasTag, CheckAttribute, HasAbility — drei vordefinierte GAS-Requirements für Dialog-Bedingungen.
+---
+
 # GAS-Requirements
 
-Drei vordefinierte Requirement-Klassen decken die häufigsten Dialog-GAS-Fragen ab. Alle liefern `EMayDialogueRequirementResult` (Passed / FailedButVisible / FailedAndHidden).
+Requirements entscheiden, ob ein Choice, Branch oder SayLine-Node aktiv ist. Diese drei Klassen decken die häufigsten GAS-Prüfungen ab — ohne eine Zeile Code.
 
-## UMayDlgRequirement_HasTag
+Alle Requirements liefern einen von drei Zuständen:
 
-Prüft, ob das Ziel einen bestimmten GameplayTag trägt.
-
-### Properties
-
-| Property | Typ | Zweck |
-| --- | --- | --- |
-| `RequiredTag` | `FGameplayTag` | Der zu prüfende Tag. |
-| `bCheckOnInstigator` | bool | `true` → Spieler-ASC; `false` → NPC-ASC. |
-| `bHideOnFail` | bool (Base) | FailedAndHidden vs. FailedButVisible bei Failure. |
-
-### Runtime-Logik
-
-1. Wenn Tag invalide → Passed.
-2. Target-Actor auflösen (Instigator oder Target).
-3. **Preferred**: ASC finden → `HasMatchingGameplayTag()`.
-4. **Fallback**: Actor implementiert `IGameplayTagAssetInterface` → `GetOwnedGameplayTags()` → `HasTag()`.
-5. Wenn gefunden: Passed. Sonst: FailureResult (`FailedAndHidden` oder `FailedButVisible`).
-
-### Beispiel
-
-```
-Choice "Ich war dabei, als es passierte"
-  Requirement: HasTag
-    RequiredTag: Story.Witness.Murder
-    bCheckOnInstigator: true
-    bHideOnFail: true
-```
-
-Die Choice erscheint nur, wenn der Spieler den `Story.Witness.Murder`-Tag trägt.
-
-## UMayDlgRequirement_CheckAttribute
-
-Vergleicht ein GAS-Attribut gegen einen Schwellwert.
-
-### Properties
-
-| Property | Typ | Zweck |
-| --- | --- | --- |
-| `Attribute` | `FGameplayAttribute` | Welches Attribut (z.B. `UHealthAttributeSet::Health`). |
-| `ComparisonValue` | float | Der Vergleichswert. |
-| `ComparisonOp` | `EMayDlgComparisonOp` | `>` / `<` / `==` / `>=` / `<=` / `!=`. |
-| `bCheckOnInstigator` | bool | Wer wird geprüft. |
-| `FailureResult` | `EMayDialogueRequirementResult` | Default: `FailedButVisible`. |
-
-### Runtime-Logik
-
-1. Wenn Attribute invalide → Passed.
-2. Target-ASC auflösen.
-3. Prüfen, ob ASC ein AttributeSet mit diesem Attribut hat.
-4. Aktuellen Numeric-Value lesen.
-5. Vergleich: `CurrentValue ComparisonOp ComparisonValue`?
-6. Passed oder `FailureResult`.
-
-### Beispiel
-
-```
-Choice "Ich kann noch kämpfen"
-  Requirement: CheckAttribute
-    Attribute: Stamina (aus UVHSAttributeSet)
-    ComparisonOp: >
-    ComparisonValue: 30.0
-    bCheckOnInstigator: true
-    FailureResult: FailedButVisible
-    UnavailableReason: "Du bist zu erschöpft."
-```
-
-Die Choice ist sichtbar, aber nicht wählbar, wenn Stamina ≤ 30. Tooltip erklärt warum.
-
-## UMayDlgRequirement_HasAbility
-
-Prüft, ob eine GameplayAbility-Klasse im ASC gegranted ist.
-
-### Properties
-
-| Property | Typ | Zweck |
-| --- | --- | --- |
-| `RequiredAbility` | `TSubclassOf<UGameplayAbility>` | Die Ability-Klasse. |
-| `bCheckOnInstigator` | bool | Wer wird geprüft. |
-
-### Runtime-Logik
-
-1. Wenn Klasse leer → Passed.
-2. Target-ASC auflösen.
-3. `FindAbilitySpecFromClass(RequiredAbility)` auf dem ASC.
-4. Gefunden → Passed. Sonst: FailureResult.
-
-### Beispiel
-
-```
-Choice "Ich wirke einen Feuerball"
-  Requirement: HasAbility
-    RequiredAbility: GA_Fireball
-    bCheckOnInstigator: true
-    bHideOnFail: true
-```
-
-## Fail-Modi – Design-Muster
-
-| Modus | Einsatz |
+| Ergebnis | Bedeutung |
 | --- | --- |
-| **FailedAndHidden** | *„Du siehst die Option erst, wenn du sie hast."* Klassisch RPG. |
-| **FailedButVisible** | *„Du siehst sie immer, aber erst mit genug Charisma wählbar."* Macht Progression sichtbar. |
+| `Passed` | Bedingung erfüllt — Node ist aktiv. |
+| `FailedButVisible` | Nicht erfüllt, aber sichtbar (z.B. ausgegraut mit Tooltip). |
+| `FailedAndHidden` | Nicht erfüllt und komplett unsichtbar. |
 
-Designer wählt pro Requirement. Beide sind legitim.
+---
 
-## Kombination mehrerer Requirements
+## Has Gameplay Tag
 
-Sub-Nodes werden als Array gehalten. `UMayDialogueRequirement::EvaluateAll()` merged:
+**Klasse:** `UMayDlgRequirement_HasTag`
+
+Prüft, ob ein Actor einen bestimmten GameplayTag trägt. Zuerst über den AbilitySystemComponent, als Fallback über `IGameplayTagAssetInterface`.
+
+### Wofür
+
+Klassischer Use-Case: eine Choice erscheint nur, wenn der Spieler einen Story-Tag erworben hat — z.B. weil er ein Codex-Fragment gefunden oder zuvor mit einem Informanten gesprochen hat.
+
+### Properties
+
+| Property | Typ | Beschreibung |
+| --- | --- | --- |
+| `RequiredTag` | `FGameplayTag` | Der Tag, der geprüft wird. |
+| `bCheckOnInstigator` | bool | `true` = Spieler-ASC; `false` = NPC-ASC. |
+| `bHideOnFail` | bool | `true` = FailedAndHidden; `false` = FailedButVisible. |
+
+> 📸 **Bild-Platzhalter:** `req-hastag-details.png` — Details-Panel des HasTag-Requirements.
+> *Setup:* Auf einer Choice den HasTag-Sub-Node auswählen. Details-Panel rechts zeigt: `RequiredTag = Story.Witness.Murder`, `bCheckOnInstigator = true` (Häkchen gesetzt), `bHideOnFail = true` (Häkchen gesetzt). Felder klar beschriftet, kein anderer Sub-Node sichtbar.
+
+### Beispiel: Zeugen-Choice
+
+```text
+Choice "Ich war dabei, als es passierte"
+  Requirement: Has Gameplay Tag
+    RequiredTag:        Story.Witness.Murder
+    bCheckOnInstigator: true
+    bHideOnFail:        true
+```
+
+Die Choice erscheint nur, wenn der Spieler-ASC den Tag `Story.Witness.Murder` trägt.
+
+### Fail-Modi im Vergleich
+
+| Modus | Wann nutzen |
+| --- | --- |
+| `bHideOnFail = true` | Klassisches RPG: Option existiert erst, wenn Voraussetzung erfüllt. |
+| `bHideOnFail = false` | Skill-System: Option ist immer sichtbar, macht Progression greifbar. |
+
+---
+
+## Check GAS Attribute
+
+**Klasse:** `UMayDlgRequirement_CheckAttribute`
+
+Vergleicht ein GAS-Attribut gegen einen Schwellwert. Unterstützt alle gängigen Vergleichsoperatoren und kann BaseValue oder CurrentValue lesen.
+
+### Wofür
+
+Checks wie "Spieler hat genug Stamina zum Kämpfen" oder "NPC hat weniger als 30% Health". Besonders nützlich für Choices, die sichtbar, aber deaktiviert sein sollen, um Progression anzuzeigen.
+
+### Properties
+
+| Property | Typ | Beschreibung |
+| --- | --- | --- |
+| `Attribute` | `FGameplayAttribute` | Das zu prüfende Attribut (z.B. `UVHSAttributeSet::GetStaminaAttribute()`). |
+| `ComparisonValue` | float | Schwellwert. |
+| `ComparisonOp` | `EMayDlgComparisonOp` | `>` / `<` / `==` / `>=` / `<=` / `!=` |
+| `bCheckOnInstigator` | bool | `true` = Spieler; `false` = NPC. |
+| `bUseBaseValue` | bool | `true` = BaseValue (vor Modifier); `false` = CurrentValue (nach Modifier). |
+| `Tolerance` | float | Toleranz für `==` / `!=`-Vergleiche (verhindert Floating-Point-Fallen). |
+| `FailResult` | `EMayDialogueRequirementResult` | Was bei Failure zurückgegeben wird. |
+
+> 📸 **Bild-Platzhalter:** `req-checkattribute-details.png` — Details-Panel des CheckAttribute-Requirements mit gefüllten Werten.
+> *Setup:* CheckAttribute-Sub-Node auf einer Choice auswählen. Details-Panel zeigt: `Attribute = Stamina (UVHSAttributeSet)`, `ComparisonOp = GreaterOrEqual (>=)`, `ComparisonValue = 30.0`, `bCheckOnInstigator = true`, `bUseBaseValue = false`, `Tolerance = 0.0001`, `FailResult = FailedButVisible`.
+
+### Beispiel: Stamina-Check
+
+```text
+Choice "Ich kann noch kämpfen"
+  Requirement: Check GAS Attribute
+    Attribute:          Stamina (aus deinem AttributeSet)
+    ComparisonOp:       >= (GreaterOrEqual)
+    ComparisonValue:    30.0
+    bCheckOnInstigator: true
+    FailResult:         FailedButVisible
+```
+
+Die Choice ist sichtbar, aber nicht wählbar, wenn Stamina ≤ 30. Ein optionaler Tooltip erklärt dem Spieler, warum.
+
+{% hint style="info" %}
+**BaseValue vs. CurrentValue:** Nutze `bUseBaseValue = true`, wenn du auf den "permanenten" Wert prüfen willst — unabhängig davon, ob gerade ein Buff oder Debuff aktiv ist. Für "wie es sich gerade anfühlt" nutze `bUseBaseValue = false` (Standard).
+{% endhint %}
+
+---
+
+## Has Gameplay Ability
+
+**Klasse:** `UMayDlgRequirement_HasAbility`
+
+Prüft, ob eine GameplayAbility auf dem ASC gegranted ist. Kann per Klasse oder per Tag-Container matchen.
+
+### Wofür
+
+Zeige Choices nur an, wenn der Spieler eine bestimmte Ability hat ("Ich wirke einen Feuerball" → nur wenn `GA_Fireball` gegranted ist). Oder prüfe, ob eine Ability gerade aktiv läuft.
+
+### Properties
+
+| Property | Typ | Beschreibung |
+| --- | --- | --- |
+| `RequiredAbility` | `TSubclassOf<UGameplayAbility>` | Klassen-basierter Match (Fallback wenn Tag-Container leer). |
+| `AbilityTagsAny` | `FGameplayTagContainer` | Passt, wenn eine Ability **mindestens einen** dieser Tags hat. |
+| `AbilityTagsAll` | `FGameplayTagContainer` | Passt, wenn eine Ability **alle** dieser Tags hat. |
+| `bRequireActive` | bool | `true` = nur Abilities zählen, die gerade aktiv laufen (`IsActive()`). |
+| `bCheckOnInstigator` | bool | `true` = Spieler; `false` = NPC. |
+| `bHideOnFail` | bool | Sichtbarkeitsmodus bei Failure. |
+
+**Match-Priorität:** `AbilityTagsAny` → `AbilityTagsAll` → `RequiredAbility`. Die Klassen-Prüfung ist nur aktiv, wenn beide Tag-Container leer sind.
+
+> 📸 **Bild-Platzhalter:** `req-hasability-details.png` — Details-Panel des HasAbility-Requirements mit Tag-Container-Eintrag.
+> *Setup:* HasAbility-Sub-Node auf einer Choice auswählen. Details-Panel zeigt: `RequiredAbility = leer`, `AbilityTagsAny = (Ability.Magic.Fire)`, `AbilityTagsAll = leer`, `bRequireActive = false`, `bCheckOnInstigator = true`, `bHideOnFail = true`.
+
+### Beispiel: Magie-Choice
+
+```text
+Choice "Ich wirke einen Feuerball"
+  Requirement: Has Gameplay Ability
+    AbilityTagsAny:     Ability.Magic.Fire
+    bCheckOnInstigator: true
+    bHideOnFail:        true
+```
+
+Erscheint nur, wenn der Spieler-ASC eine Ability mit dem Tag `Ability.Magic.Fire` hat.
+
+---
+
+## Mehrere Requirements kombinieren
+
+Auf einer Choice, einem Branch oder einer SayLine kannst du beliebig viele Requirements stapeln. Das System merged sie automatisch:
 
 * Alle Passed → Passed.
-* Eine FailedAndHidden → FailedAndHidden (gewinnt).
-* Sonst eine FailedButVisible → FailedButVisible.
+* Mindestens einer `FailedAndHidden` → FailedAndHidden (dominiert).
+* Sonst mindestens einer `FailedButVisible` → FailedButVisible.
 
-Beispiel: Choice braucht beide Tags „Story.Friend" **und** Attribut Reputation ≥ 50. Falls einer fehlt, Choice ist FailedAndHidden (wenn HasTag-Requirement `bHideOnFail=true` hat).
+```text
+Choice "Ich bin der Auserwählte"
+  Requirements:
+    1. Has Gameplay Tag:     Story.Chosen.Marked        bHideOnFail: true
+    2. Check GAS Attribute:  Reputation >= 80           FailResult: FailedAndHidden
+```
 
-## Eigene Requirements
+Fehlt einer der beiden: Choice ist unsichtbar. Sind beide erfüllt: Choice erscheint.
 
-Siehe [Eigene GAS-Nodes erstellen](extending.md).
+{% hint style="info" %}
+**Eigene Requirements bauen?** Lege eine Blueprint-Klasse mit Parent `UMayDialogueRequirement` an und überschreibe `Is Requirement Satisfied`. Mehr dazu in [Eigene GAS-Nodes erstellen](extending.md).
+{% endhint %}

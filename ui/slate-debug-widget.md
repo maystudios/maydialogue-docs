@@ -1,59 +1,75 @@
+---
+description: Was das Slate-Debug-Widget zeigt, wann du es an- oder abschaltest, und wie du es durch dein UMG-Widget ersetzt.
+---
+
 # Slate-Debug-Widget
 
-`SMayDialogueWidget` ist die **Slate-only**-UI-Implementierung. Sie läuft ohne jede UMG-Konfiguration, sobald ein Dialog startet.
+`SMayDialogueWidget` ist die eingebaute Slate-UI. Sie startet automatisch, wenn kein UMG-Widget konfiguriert ist — ohne jede zusätzliche Einrichtung.
 
-## Wann nutzen?
+> 📸 **Bild-Platzhalter:** `slate-widget-ingame.png` — PIE-Viewport: das Slate-Widget im laufenden Dialog. Sichtbar: dunkles Panel unten, Speaker-Name farbig hervorgehoben (Sprecher-Farbe aus dem Graph), Dialog-Text mit laufendem Typewriter, zwei Choice-Buttons nummeriert, blinkender "Weiter"-Hinweis unten rechts.
+> *Setup:* Project Settings → MayDialogue → `bUseSlateDialogueWidget = true`, `DefaultDialogueWidgetClass = None`. PIE starten, Dialog triggern.
 
-* **Prototyping**. Du schreibst Dialoge, bevor das UMG-Design steht.
-* **Debug-Builds**. UI-Polish ist nicht priorisiert, aber Dialoge müssen spielbar sein.
-* **Fallback**. Wenn dein UMG-Widget nicht gesetzt oder gebrochen ist.
+## Was zeigt das Widget?
 
-## Wie aktivieren?
+Das Layout von unten nach oben:
 
-In den [Project Settings](../getting-started/project-settings.md):
+```
+[Viewport]
+└── [Panel: dunkel, unten ausgerichtet, Slide-In-Animation]
+    ├── [Portrait-Bild] | [Speaker-Name mit farbigem Akzent-Balken]
+    │                   | [Trennlinie]
+    │                   | [Dialog-Text — Typewriter]
+    │                   | [Choice-Buttons mit Nummerierung]
+    └──────────────────── [Weiter-Indikator: blinkend]
+```
 
-* `bUseSlateDialogueWidget = true` (Default).
-* `DefaultDialogueWidgetClass = None` (kein UMG zugewiesen).
+Kein Background-Art, keine Custom-Fonts, keine Animations-Extras — bewusst funktional.
 
-Sobald ein Dialog startet, taucht das Slate-Widget am Viewport auf.
+## Wann aktivieren?
 
-## Aussehen
+Das Widget ist **standardmäßig aktiv**, wenn `DefaultDialogueWidgetClass` leer bleibt.
 
-Minimalistisch:
+Typische Szenarien:
 
-* **Sprecher-Name-Leiste** oben (in Sprecher-Farbe).
-* **Text-Bereich** mittig mit Typewriter.
-* **Choice-Liste** darunter (vertikal angeordnete Buttons).
-* **Skip-Hinweis** am unteren Rand.
+- **Prototyping** — du schreibst Dialoge und testest Inhalte, bevor das UMG-Design steht.
+- **Debug-Builds** — UI-Polish ist nicht priorisiert, Dialoge müssen aber spielbar sein.
+- **Automatischer Fallback** — dein UMG-Widget ist nicht gesetzt oder hat einen Fehler.
 
-Kein Portrait, keine Animationen, kein Background-Art – bewusst funktional.
+## Einschalten / Ausschalten
+
+In den Project Settings → MayDialogue:
+
+```ini
+bUseSlateDialogueWidget = true    ; Widget aktiv
+DefaultDialogueWidgetClass = None ; kein UMG zugewiesen
+```
+
+> 📸 **Bild-Platzhalter:** `slate-project-settings.png` — Project Settings → MayDialogue-Abschnitt. Felder `bUseSlateDialogueWidget` (Checkbox, aktiviert) und `DefaultDialogueWidgetClass` (leer) sind mit roten Pfeilen markiert.
+> *Setup:* Edit → Project Settings → Plugins → MayDialogue. Nur diesen Abschnitt screenshotten.
 
 ## Rich-Text-Support
 
-Das Slate-Widget nutzt direkt `SRichTextBlock` und registriert Slate-native Decorator-Factories:
+Das Slate-Widget unterstützt alle vier visuellen Tags vollständig:
 
-* `<shake>`, `<wave>`, `<color>`, `<b>` werden korrekt gerendert.
-* `<pause>` und `<speed>` werden vom Typewriter-Parser konsumiert (nicht angezeigt).
+| Tag | Unterstützt |
+|---|---|
+| `<shake>` | Ja |
+| `<wave>` | Ja |
+| `<color>` | Ja |
+| `<b>` | Ja |
+| `<pause>` | Ja (Typewriter-Parser konsumiert ihn) |
+| `<speed>` | Ja (Typewriter-Parser konsumiert ihn) |
 
-## Unterschiede zum UMG-Widget
+## Auf UMG wechseln
 
-| | Slate | UMG |
-| --- | --- | --- |
-| Portraits | Nein | Ja |
-| Animationen | Nein | Ja |
-| Theming | Hardcoded | Frei |
-| Emotion-Tag-Visualisierung | Nein | Optional |
-| Blueprint-Erweiterbar | Nein | Ja |
+Wenn dein UMG-Widget fertig ist:
 
-## Abschalten
+1. Baue dein Blueprint-Widget auf Basis von `UMayDialogueWidget` (siehe [UMG-Architektur](umg-architecture.md)).
+2. Setze `DefaultDialogueWidgetClass` in den Project Settings auf dein Widget.
+3. `bUseSlateDialogueWidget = false` (optional — das UMG-Widget hat automatisch Vorrang).
 
-Sobald dein UMG-Widget fertig ist:
+Das Slate-Widget ist damit aus dem Workflow.
 
-1. `bUseSlateDialogueWidget = false` in Project Settings.
-2. `DefaultDialogueWidgetClass` auf dein UMG-Widget setzen.
-
-Das Slate-Widget ist aus dem Workflow.
-
-## Anmerkungen
-
-* Das Slate-Widget wird **nach Level-Travel nicht sauber neu gebunden** (Backlog-Item 1). Workaround: beim Level-Wechsel `Subsystem->StopAllDialogues()` aufrufen oder das Widget manuell aus dem Viewport entfernen.
+{% hint style="warning" %}
+**Level-Travel:** Das Slate-Widget bindet sich nach einem Level-Wechsel nicht automatisch neu. Rufe vor dem Travel `Subsystem->StopAllDialogues()` auf oder entferne das Widget manuell vom Viewport.
+{% endhint %}

@@ -1,112 +1,162 @@
+---
+description: Dialog-State von außen lesen und schreiben — Variablen, Choices, ForceAdvance.
+---
+
 # Read/Write-API
 
-Externe Systeme können Dialog-State **lesen und schreiben**. Nützlich für Cheat-Menüs, Tutorial-Skripte, Analytics, Debug-Tools.
+Externe Systeme können in einen laufenden Dialog eingreifen: Variablen lesen und setzen, Choices programmatisch auswählen, den Advance-Timer überspringen. Nützlich für Cheat-Menüs, Tutorial-Skripte, Auto-Play-Tests und Analytics.
 
-## Read-API
+Alle Methoden sind direkt am Subsystem als Blueprint-Callable verfügbar. Du brauchst keine Instance-Referenz zu halten.
 
-| Methode | Rückgabe |
-| --- | --- |
-| `GetActiveDialogueAsset()` | Aktives Asset oder nullptr |
-| `GetCurrentNodeGUID()` | GUID des ausführenden Nodes |
-| `GetActiveParticipants()` | Array aller teilnehmenden Actors |
-| `GetDialogueVariable(Name, Type, Out)` | Dialogue-Scope-Variable als String |
-| `GetParticipantVariable(ParticipantTag, Name, Type, Out)` | Participant-Scope-Variable |
-| `GetPendingChoices()` | Aktueller `FMayDialogueChoiceEntry`-Array oder leer |
+---
 
-Alle Methoden sind am `IMayDialogueBridge`-Interface definiert und vom Subsystem implementiert.
+## Lesen
 
-### C++-Beispiel
+| Funktion (Blueprint-Name) | Beschreibung |
+|---|---|
+| `Get Active Dialogue Asset` | Das Asset der laufenden Instance. `nullptr` wenn nichts läuft. |
+| `Get Current Node GUID` | GUID des aktuell ausgeführten Nodes. Nützlich für Telemetrie. |
+| `Get Active Participants` | Array aller teilnehmenden Actors. |
+| `Get Dialogue Variable (As String)` | Liest eine Dialog-Scope-Variable nach Name und Typ. |
+| `Get Participant Variable (As String)` | Liest eine Participant-Scope-Variable (persistentes Memory). |
+| `Get Pending Choices` | Aktueller Choice-Array (leer wenn kein PlayerChoice aktiv). |
+
+### Blueprint: Variable lesen
+
+> 📸 **Bild-Platzhalter:** `read-variable-bp.png` — BP-Graph: Get Dialogue Variable am Subsystem.
+> *Setup:* Debug-Widget-Blueprint. `Get MayDialogue Subsystem` → `Get Dialogue Variable (As String)` (DisplayName aus dem Header). Pins: `Name` = "AngerLevel" (String-Literal), `Type` = Int. Out-Parameter `Out Value As String` geht in `String To Int` → `Set Text` auf einem Text-Widget. Darunter `Return Value` (bool) → Branch für "Variable existiert".
+
+```text
+[Get MayDialogue Subsystem]
+    │
+    ▼
+[Get Dialogue Variable (As String)]
+  ├─ Name: "AngerLevel"
+  ├─ Type: Int
+  └─ Out Value As String → (String weiterverarbeiten)
+       │ Return Value (bool: gefunden?)
+       ▼
+  [Branch]
+    ├─ True  → Wert anzeigen
+    └─ False → Default-Wert nutzen
+```
+
+### C++
 
 ```cpp
-UMayDialogueSubsystem* Sub = UMayDialogueSubsystem::Get(World);
-if (!Sub->IsDialogueActive()) return;
+UMayDialogueSubsystem* Sub = GetWorld()->GetSubsystem<UMayDialogueSubsystem>();
+if (!Sub->IsAnyDialogueActive()) return;
 
-FString AngerValue;
-bool bFound = Sub->GetDialogueVariable(
-    "AngerLevel",
-    EMayDialogueVariableType::Int,
-    AngerValue
-);
-
-if (bFound)
+FString AngerStr;
+if (Sub->GetDialogueVariable("AngerLevel", EMayDialogueVariableType::Int, AngerStr))
 {
-    int32 Anger = FCString::Atoi(*AngerValue);
-    UE_LOG(LogMyGame, Log, TEXT("Current anger: %d"), Anger);
+    int32 Anger = FCString::Atoi(*AngerStr);
+    UE_LOG(LogMyGame, Log, TEXT("Anger: %d"), Anger);
 }
 ```
 
-## Write-API
+---
 
-| Methode | Wirkung |
-| --- | --- |
-| `SetDialogueVariable(Name, Type, Value)` | Dialog-Scope-Variable setzen |
-| `SetParticipantVariable(ParticipantTag, Name, Type, Value)` | Participant-Scope-Variable setzen |
-| `SelectChoice(Index)` | Aktive Choice programmatisch auswählen |
-| `ForceAdvance()` | Aktuellen Advance-Wait überspringen |
-| `AbortDialogue()` | Dialog abbrechen |
+## Schreiben
 
-### C++-Beispiel: Cheat „alle Requirements Passed"
+| Funktion (Blueprint-Name) | Beschreibung |
+|---|---|
+| `Set Dialogue Variable (From String)` | Setzt eine Dialog-Scope-Variable. Triggert sofort `OnVariableChanged`. |
+| `Set Participant Variable (From String)` | Setzt eine Participant-Scope-Variable (persistentes Memory). |
+| `Select Choice` | Wählt eine Choice per Index programmatisch aus. |
+| `Force Advance` | Überspringt den aktuellen Advance-Wait (Timer, Voice-Ende). |
 
-```cpp
-void UCheatManager::UnblockAllChoices()
-{
-    auto* Sub = UMayDialogueSubsystem::Get(GetWorld());
-    if (!Sub->IsDialogueActive()) return;
+### Blueprint: Variable setzen
 
-    // Setze beliebige Projekt-Tags / Variablen, die Requirements prüfen
-    Sub->SetDialogueVariable("CheatMode", EMayDialogueVariableType::Bool, "true");
-}
+> 📸 **Bild-Platzhalter:** `set-variable-bp.png` — BP-Graph: Cheat-Menü setzt eine Dialog-Variable.
+> *Setup:* Cheat-Panel-Widget-Blueprint. `Button On Clicked` → `Get MayDialogue Subsystem` → `Set Dialogue Variable (From String)`. Pins: `Name` = "CheatMode" (Literal), `Type` = Bool, `Value As String` = "true". `Return Value` (bool: erfolgreich?) → Print String.
+
+```text
+[Button On Clicked: Cheat All Choices]
+    │
+    ▼
+[Get MayDialogue Subsystem] → [Set Dialogue Variable (From String)]
+  ├─ Name:           "CheatMode"
+  ├─ Type:           Bool
+  └─ Value As String: "true"
 ```
 
-### C++-Beispiel: Auto-Play für Tests
+### C++: Auto-Player für Tests
 
 ```cpp
+// Automatisch alle Dialoge durchklicken (z.B. in Automation-Tests)
 void UAutoPlayer::Tick(float DeltaSeconds)
 {
-    auto* Sub = UMayDialogueSubsystem::Get(GetWorld());
-    if (!Sub->IsDialogueActive()) return;
+    auto* Sub = GetWorld()->GetSubsystem<UMayDialogueSubsystem>();
+    if (!Sub || !Sub->IsAnyDialogueActive()) return;
 
+    // Wenn Choices vorhanden: erste auswählen
     TArray<FMayDialogueChoiceEntry> Choices = Sub->GetPendingChoices();
     if (Choices.Num() > 0)
     {
-        Sub->SelectChoice(0);  // wähle immer die erste Option
+        Sub->SelectChoice(0);
         return;
     }
 
+    // Sonst: Advance überspringen
     Sub->ForceAdvance();
 }
 ```
 
-## Blueprint-Zugriff
+---
 
-Alle Bridge-Methoden sind `BlueprintCallable`. Du findest sie unter dem Subsystem-Node oder als Library-Wrapper.
+## SelectChoice und ForceAdvance
 
-## Typen-String-Serialisierung
+| Funktion | Wann | Besonderheiten |
+|---|---|---|
+| `Select Choice` | Wenn `Status == WaitingForChoice` | Führt die normale Choice-Kaskade aus (SideEffects, Requirements). Kein Shortcut. |
+| `Force Advance` | Wenn `Status == WaitingForAdvance` | Überspringt Timer und Voice-Ende, geht sofort zum nächsten Node. |
 
-Die Variable-API arbeitet mit **String-Repräsentationen**:
+{% hint style="warning" %}
+`Force Advance` ignoriert den konfigurierten Advance-Mode. Nutze ihn nur für Tests, Cheats oder Tutorial-Scripting — nicht als normalen Spieler-Input.
+{% endhint %}
 
-| Typ | String-Format |
-| --- | --- |
-| Bool | `"true"` / `"false"` |
-| Int | `"42"` |
-| Float | `"3.14"` |
-| String | beliebig |
-| Tag | voller Tag-Pfad, z.B. `"Dialogue.Mood.Friendly"` |
+---
 
-Parsing / Conversion passiert im Subsystem; du musst nur den richtigen Typ angeben.
+## String-Serialisierung der Variablen-Typen
+
+Die Variable-API arbeitet mit String-Repräsentationen:
+
+| Typ | String-Format | Beispiel |
+|---|---|---|
+| `Bool` | `"true"` / `"false"` | `"true"` |
+| `Int` | Ganzzahl als Text | `"42"` |
+| `Float` | Dezimalzahl als Text | `"3.14"` |
+| `String` | Beliebiger Text | `"Hallo"` |
+| `Tag` | Voller Tag-Pfad | `"Dialogue.Mood.Friendly"` |
+
+Das Parsing übernimmt das Subsystem — du gibst nur den Typ-Enum mit an.
+
+---
 
 ## Einsatzfälle
 
 | Szenario | Lösung |
-| --- | --- |
-| Cheat-Menü setzt Dialog-Variable | `SetDialogueVariable` |
-| Tutorial schaltet durch einen Dialog durch | `ForceAdvance` + `SelectChoice` |
-| Analytics loggt Dialog-State | `GetActiveDialogueAsset`, `GetCurrentNodeGUID`, `GetDialogueVariable` |
-| Savegame serialisiert Participant-State | über `UMayDialogueSaveHelper` (bequemer) |
-| Debug-UI zeigt alle Dialog-Variablen | `GetDialogueVariable` in Schleife |
+|---|---|
+| Cheat-Menü entsperrt alle Choices | `Set Dialogue Variable` → Requirement-Variable auf Passed-Wert setzen |
+| Tutorial-Skript klickt automatisch durch | `Force Advance` + `Select Choice(0)` im Tick |
+| Analytics loggt Dialog-Zustand | `Get Active Dialogue Asset`, `Get Current Node GUID`, `Get Dialogue Variable` |
+| Debug-Overlay zeigt alle Variablen | `Get Dialogue Variable` in Schleife über bekannte Variablennamen |
+| Spieler-Variable soll Gespräch steuern | `Set Participant Variable` → wird von Requirements der nächsten Choices gelesen |
 
-## Anmerkungen
+---
 
-* `SelectChoice` triggert die normale Choice-SideEffect-Kaskade – keine Short-Cuts.
-* `ForceAdvance` respektiert den aktuellen Advance-Mode nicht, überspringt Timer / AfterVoice und geht sofort zum Output.
-* Die **string-basierte API** ist absichtlich – sie macht Cross-System-Kopplung trivial, ohne dass externe Systeme wissen müssen, welche konkreten Typen die Variable hat.
+## Auf der Instance direkt (typisiert)
+
+Wenn du bereits eine Instance-Referenz hast, kannst du typisierte Getter/Setter direkt nutzen — ohne String-Konvertierung:
+
+```cpp
+Inst->SetDialogueVariableInt("AngerLevel", 5);
+Inst->SetDialogueVariableBool("HasMetBefore", true);
+
+int32 Anger;
+Inst->GetDialogueVariableInt("AngerLevel", Anger);
+```
+
+> 📸 **Bild-Platzhalter:** `instance-variable-bp.png` — BP-Graph: Typisierte Variable direkt an der Instance setzen.
+> *Setup:* Blueprint das eine Instance-Referenz gespeichert hat. `Set Dialogue Variable Bool` (direkt am Instance-Object): `Var Name` = "HasMetBefore", `Value` = True. Darunter `Set Dialogue Variable Int`: `Var Name` = "MeetingCount", `Value` = 1.

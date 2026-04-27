@@ -1,71 +1,119 @@
+---
+description: UMayDialogueLibrary — statische Blueprint-Helfer für den schnellen Einstieg.
+---
+
 # Blueprint-Library
 
-`UMayDialogueLibrary` ist eine `UBlueprintFunctionLibrary` mit statischen Bequemlichkeits-Methoden. Sie wrappt das Subsystem.
+`UMayDialogueLibrary` ist eine Blueprint Function Library mit statischen Methoden. Sie ist der einfachste Weg, MayDialogue aus jedem beliebigen Blueprint anzusteuern — ohne vorher eine Subsystem-Referenz zu cachen.
 
-## Alle Methoden
+{% hint style="info" %}
+Die Library ist ein reiner Convenience-Layer. Sie hat keinen eigenen State und delegiert alles ans Subsystem. Wenn du Delegates binden willst, musst du das Subsystem direkt ansprechen — die Library hat keine eigenen Events.
+{% endhint %}
 
-```cpp
-UFUNCTION(BlueprintCallable, meta=(WorldContext="WorldContext"))
-static UMayDialogueInstance* StartDialogue(
-    UObject*            WorldContext,
-    UMayDialogueAsset*  Asset,
-    AActor*             Instigator,
-    AActor*             Target);
+---
 
-UFUNCTION(BlueprintCallable)
-static void StopDialogue(UMayDialogueInstance* Instance);
+## Methoden im Überblick
 
-UFUNCTION(BlueprintCallable, meta=(WorldContext="WorldContext"))
-static void StopAllDialogues(UObject* WorldContext);
+| Funktion | Art | Wann nutzen |
+|---|---|---|
+| `Start Dialogue` | Callable | Dialog mit bestimmtem Asset starten. Liefert Instance oder `nullptr`. |
+| `Stop Dialogue` | Callable | Eine bestimmte Instance abbrechen. |
+| `Stop All Dialogues` | Callable | Alle aktiven Dialoge abbrechen (Spielertod, Pause, Level-Wechsel). |
+| `Get Active Dialogue` | Pure | Aktive Instance lesen (z.B. um Variablen abzufragen). |
+| `Is Any Dialogue Active` | Pure | Prüfen ob gerade ein Dialog läuft. |
+| `Get Dialogue Subsystem` | Callable | Subsystem-Referenz holen (z.B. für Delegate-Binding). |
 
-UFUNCTION(BlueprintPure, meta=(WorldContext="WorldContext"))
-static UMayDialogueInstance* GetActiveDialogue(UObject* WorldContext);
-
-UFUNCTION(BlueprintPure, meta=(WorldContext="WorldContext"))
-static bool IsAnyDialogueActive(UObject* WorldContext);
-
-UFUNCTION(BlueprintPure, meta=(WorldContext="WorldContext"))
-static UMayDialogueSubsystem* GetDialogueSubsystem(UObject* WorldContext);
-```
+---
 
 ## Wann Library, wann Subsystem direkt?
 
 | Szenario | Empfehlung |
-| --- | --- |
-| Blueprint-Quick-Start | Library (weniger Boilerplate) |
-| Wiederholte Subsystem-Calls im selben Scope | Subsystem-Referenz cachen |
-| Multi-Event-Binding | Subsystem direkt (Delegates sind auf dem Subsystem) |
-| System-Code, der sowieso das Subsystem braucht | Subsystem direkt |
+|---|---|
+| Schneller Start-Aufruf aus einem Widget oder LevelScript | Library |
+| Du brauchst sowieso das Subsystem (Event-Binding) | Subsystem direkt und Referenz cachen |
+| Wiederholte Calls im selben Scope | Subsystem-Referenz einmal holen und cachen |
 
-## Blueprint-Beispiele
+---
+
+## Rezepte
 
 ### Dialog starten
 
-```
-[MayDialogueLibrary :: Start Dialogue]
-  ├ World Context: Self
-  ├ Asset:         (Dialog-Asset)
-  ├ Instigator:    Player Pawn
-  └ Target:        NPC Actor
+> 📸 **Bild-Platzhalter:** `library-start-dialogue-bp.png` — BP-Graph: Start Dialogue Library-Call mit Fehler-Branch.
+> *Setup:* Interaction-Component-Blueprint oder LevelScript. `Event On Interact` → `Start Dialogue` (Library, Kategorie MayDialogue). Pins: `Asset` = Dialog-Asset-Referenz, `Instigator` = Player-Pawn-Referenz, `Target` = Self. Return-Value-Pin → `Is Valid` → Branch: True = (weiter), False = `Print String "Dialog failed"`.
+
+```text
+[Start Dialogue]  (Kategorie: MayDialogue)
+  ├─ Asset:      DA_VillagerIntro
+  ├─ Instigator: Player Pawn
+  └─ Target:     Self (NPC)
+       │ Return Value
+       ▼
+[Is Valid]
+  ├─ True  → Dialog läuft
+  └─ False → Fehler-Fallback
 ```
 
-### Aktiven Dialog abfragen
+---
 
-```
-[MayDialogueLibrary :: Get Active Dialogue] → (Instance-Referenz)
+### Laufenden Dialog lesen
+
+> 📸 **Bild-Platzhalter:** `library-get-active-bp.png` — BP-Graph: Is Any Dialogue Active → Branch → Get Active Dialogue.
+> *Setup:* HUD-Blueprint, `Event Tick` oder Button-Press-Event. `Is Any Dialogue Active` → Branch. True-Zweig: `Get Active Dialogue` → (UMayDialogueInstance-Referenz weiterverarbeiten, z.B. `Get Status`).
+
+```text
+[Is Any Dialogue Active]
+    │ (bool)
+    ▼
+[Branch]
+  └─ True → [Get Active Dialogue] → Instance benutzen
 ```
 
-### Alle Dialoge stoppen bei Tod des Spielers
+---
 
-```
+### Alle Dialoge beim Spielertod abbrechen
+
+> 📸 **Bild-Platzhalter:** `library-stop-all-bp.png` — BP-Graph: On Player Died → Stop All Dialogues.
+> *Setup:* Character-Blueprint oder GameMode. `Event On Player Died` (Custom Event) → `Stop All Dialogues` (Library-Node). Keine weiteren Verbindungen nötig.
+
+```text
 [Event On Player Died]
-  │
-  ▼
-[MayDialogueLibrary :: Stop All Dialogues]
-  └ World Context: Self
+    │
+    ▼
+[Stop All Dialogues]
 ```
 
-## Anmerkungen
+---
 
-* Die Library ist ein **reiner Convenience-Layer**. Keine eigene Logik, kein eigener State – sie delegiert alles an das Subsystem.
-* Wenn du Subsystem-Delegates brauchst (z.B. `OnAnyDialogueStarted`), musst du das Subsystem direkt referenzieren – die Library hat keine Delegate-Properties.
+### Subsystem holen für Delegate-Binding
+
+```text
+[Get Dialogue Subsystem]
+    │ (Subsystem-Referenz in Variable speichern)
+    ▼
+[Bind Event to On Any Dialogue Started]  ──► Custom Event: Handle Dialogue Started
+[Bind Event to On Any Dialogue Ended]    ──► Custom Event: Handle Dialogue Ended
+```
+
+---
+
+## C++-Nutzung
+
+```cpp
+// Dialog starten
+UMayDialogueInstance* Inst = UMayDialogueLibrary::StartDialogue(
+    this, DA_VillagerIntro, Player, NPC);
+
+// Prüfen ob Dialog läuft
+if (UMayDialogueLibrary::IsAnyDialogueActive(this))
+{
+    UMayDialogueLibrary::StopAllDialogues(this);
+}
+
+// Subsystem holen
+UMayDialogueSubsystem* Sub = UMayDialogueLibrary::GetDialogueSubsystem(this);
+```
+
+{% hint style="info" %}
+In C++ ist der direkte Subsystem-Zugriff idiomatischer als die Library. Die Library ist primär für Blueprint-Nutzer gedacht.
+{% endhint %}

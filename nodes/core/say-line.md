@@ -1,65 +1,80 @@
 # Say Line
 
-Der **SayLine-Node** ist der Arbeitstier-Node. Er repräsentiert eine Zeile, die ein Sprecher sagt.
+Der SayLine-Node lässt einen Sprecher eine Zeile sagen. Er ist der am häufigsten verwendete Node — jede gesprochene oder geschriebene Dialogzeile ist eine SayLine.
 
-## Runtime-Verhalten
+## Wann setze ich ihn ein?
 
-`ExecuteNode`:
-
-1. Baut eine `FMayDialogueMessage` (Sprecher-Daten, Text, Voice-Asset, EmotionTags, AdvanceMode).
-2. Startet Voice-Wiedergabe (falls Voice-Asset vorhanden) oder Babel-Synthese.
-3. Ruft `Instance::ReceiveMessage(Message, NextNodeGuid)`.
-4. Die Instance broadcastet `OnMessageReceived` und setzt sich in `WaitingForAdvance`.
-
-Der Dialog advanced, sobald der konfigurierte Advance-Mode zuschlägt.
+- Immer, wenn ein NPC oder der Spieler-Charakter etwas sagt.
+- Für Erzähler-Texte (Sprecher-Tag auf einen dedizierten Narrator-Sprecher setzen).
+- Als Reaktion nach einer Spieler-Wahl.
+- Mit Voice-Asset für vertonten Dialog, ohne Voice-Asset für rein textuellen Dialog (mit optionalem Babel-Fallback).
+- Mit EmotionTags, wenn das UI den emotionalen Zustand des Sprechers darstellen soll.
 
 ## Properties
 
-| Property | Typ | Zweck |
-| --- | --- | --- |
-| `SpeakerTag` | `FGameplayTag` | Tag des Sprechers (matched mit Speakers-Liste + Participant-Tag). |
-| `DialogueText` | `FText` | Der Text, inklusive Rich-Text-Tags. |
-| `DialogueVoice` | `TMap<FString, USoundBase*>` | Voice-Asset pro Culture-Key. Leer für Babel/Still. |
-| `EmotionTags` | `FGameplayTagContainer` | Emotion/Intensity/Szene-Tags. |
-| `AdvanceModeOverride` | `EMayDialogueAdvanceMode` | Manual / Timer / AfterVoice / AfterAnimation / Immediate. |
-| `AutoAdvanceDelayOverride` | `float` | Bei AdvanceMode=Timer: Wartezeit in Sekunden. |
-| `NodeAudioMode` | `EMayDialogueAudioMode` | Default / Spatial3D / Force2D. |
+| Property | Typ | Standard | Bedeutung |
+| --- | --- | --- | --- |
+| `SpeakerTag` | `FGameplayTag` | leer | Welcher Sprecher sagt die Zeile. Muss mit einem Eintrag in der Speakers-Liste des Assets übereinstimmen. |
+| `DialogueText` | `FText` | leer | Der angezeigte Text. Unterstützt Rich-Text-Tags (siehe unten). |
+| `DialogueVoice` | `USoundBase*` | leer | Primäres Voice-Asset (sprachunabhängig). Leer = kein Voice. |
+| `VoicePerCulture` | `TMap<FString, USoundBase*>` | leer | Voice-Assets pro Culture-Key (z.B. `"de"`, `"en"`). Überschreibt `DialogueVoice` für die passende Kultur. |
+| `VolumeMultiplier` | `float` | `1.0` | Node-spezifischer Lautstärke-Multiplikator (0.0–4.0). |
+| `PitchMultiplier` | `float` | `1.0` | Node-spezifischer Pitch-Multiplikator (0.1–4.0). |
+| `NodeAudioMode` | `EMayDialogueAudioMode` | `Default` | `Default` = aus Plugin/Sprecher-Einstellung erben; `Force2D` = immer 2D; `Spatial3D` = immer räumlich. |
+| `EmotionTags` | `FGameplayTagContainer` | leer | Tags für Emotion/Intensität/Szene, die das UI nutzen kann (z.B. `Dialogue.Emotion.Angry`). |
+| `bUseDefaultAdvanceMode` | `bool` | `true` | Wenn aktiv, gilt der globale Advance-Modus aus den Plugin-Settings. |
+| `AdvanceModeOverride` | `EMayDialogueAdvanceMode` | `Manual` | Aktiv nur wenn `bUseDefaultAdvanceMode = false`. Optionen: `Manual`, `Timer`, `AfterVoice`, `AfterAnimation`, `Immediate`. |
 
-## Pins
+{% hint style="info" %}
+**Inline-Bearbeitung:** Doppelklick auf den SayLine-Node im Graph öffnet einen Text-Editor direkt auf dem Node — du musst nicht das Details-Panel öffnen.
+{% endhint %}
 
-* **Input**.
-* **Output** – zum nächsten Node.
+> 📸 **Bild-Platzhalter:** `sayline-node-graph.png` — SayLine-Node im Graph mit Beispielwerten.
+> *Setup:* Ein SayLine-Node ausgewählt. Auf dem Node sichtbar: Sprecher-Tag `Dialogue.Speaker.Guard`, Text `"Halt! Wer bist du?"`, EmotionTag-Pill `Dialogue.Emotion.Suspicious`. Input-Pin verbunden mit Entry-Node links, Output-Pin verbunden mit PlayerChoice-Node rechts.
 
-## Rich-Text-Tags im Text
+> 📸 **Bild-Platzhalter:** `sayline-details-panel.png` — Details-Panel einer SayLine.
+> *Setup:* SayLine auswählen. Im Details-Panel sichtbar: `SpeakerTag = Dialogue.Speaker.Guard`, `DialogueText = "Halt! Wer bist du?"`, `DialogueVoice` (leer), `VolumeMultiplier = 1.0`, `PitchMultiplier = 1.0`, `NodeAudioMode = Default`, `EmotionTags = (Dialogue.Emotion.Suspicious)`, `bUseDefaultAdvanceMode = true`.
+
+## Rich-Text-Tags
 
 Im `DialogueText` sind folgende Inline-Tags erlaubt:
 
 | Tag | Wirkung |
 | --- | --- |
-| `<pause=0.5>` | 0.5 s Pause im Typewriter. |
+| `<pause=0.5>` | 0,5 s Pause im Typewriter. |
 | `<speed=2.0>` | Verdoppelt die Typewriter-Geschwindigkeit (reset am Zeilenende). |
-| `<shake>...</shake>` | Text zittert. |
-| `<wave>...</wave>` | Text welt. |
-| `<color=#FF0000>...</color>` | Farbe. |
-| `<b>...</b>` | Fett. |
+| `<shake>…</shake>` | Text zittert. |
+| `<wave>…</wave>` | Text wellt. |
+| `<color=#FF0000>…</color>` | Farbe. |
+| `<b>…</b>` | Fett. |
 
-Details siehe [UI → Rich-Text-Tags](../../ui/rich-text-tags.md).
+Details: [UI → Rich-Text-Tags](../../ui/rich-text-tags.md).
 
-## Typisches Pattern
+## Mini-Beispiel
 
-```
+```text
 [Entry]
   │
   ▼
-[SayLine: Wächter | "Halt! <b>Wer</b> bist du?" | EmotionTag: Angry]
+[SayLine: Wächter | "Halt! <b>Wer</b> bist du?" | EmotionTag: Suspicious]
+  AdvanceModeOverride: Manual
   │
   ▼
-[PlayerChoice: ...]
+[PlayerChoice]
+  ├─ Choice 0 "Ein Freund des Königs."
+  └─ Choice 1 "Das geht dich nichts an."
 ```
 
-## Anmerkungen
+> 📸 **Bild-Platzhalter:** `sayline-example-graph.png` — Mini-Graph Entry → SayLine → PlayerChoice.
+> *Setup:* Graph mit drei Nodes: `Entry` → `SayLine "Halt! Wer bist du?"` (SpeakerTag Guard, EmotionTag Suspicious) → `PlayerChoice` mit zwei Choice-Pills. Verbindungen: Entry-Output → SayLine-Input, SayLine-Output → PlayerChoice-Input.
 
-* **Inline-Text-Edit** im Graph per Doppelklick.
-* **Preview-Button** im Graph (kleines Play-Icon) spielt das Voice-Asset direkt – ohne PIE.
-* **VolumeMultiplier / PitchMultiplier pro Node** fehlen aktuell (Backlog-Item 11). Als Workaround: am Speaker im Speakers-Panel setzen.
-* **bOverride2D pro Node** fehlt aktuell (Backlog-Item 10) – entweder globale Force2D oder Speaker-Override nutzen.
+## Häufige Fallstricke
+
+- **SpeakerTag leer oder falsch**: Die SayLine wird ohne Sprecher-Daten (kein Portrait, kein Name) angezeigt. Stelle sicher, dass der Tag mit einem Sprecher in der Speakers-Liste übereinstimmt.
+- **`bUseDefaultAdvanceMode = true` vergessen**: Wenn du für einzelne Nodes einen anderen Advance-Modus willst, deaktiviere zuerst `bUseDefaultAdvanceMode`, sonst hat `AdvanceModeOverride` keine Wirkung.
+
+## Erweitern
+
+{% hint style="info" %}
+**Eigene Variante:** Leite eine Blueprint-Subklasse von `UMayDialogueNode_SayLine` ab und überschreibe `ExecuteClientEffects`, um z.B. einen Lipsync-Controller zu starten oder eine eigene Audio-Engine anzusprechen.
+{% endhint %}

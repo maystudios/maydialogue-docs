@@ -1,36 +1,51 @@
-# Troubleshooting
+---
+description: Schnell das richtige Kapitel finden, wenn etwas nicht funktioniert.
+---
 
-Wenn etwas nicht funktioniert, findest du hier Antworten.
+# Troubleshooting — Wegweiser
 
-## Struktur
+Dieser Bereich beantwortet die häufigsten Fragen, wenn ein Dialog nicht das tut, was du erwartest. Lies zuerst die Diagnose-Fragen unten — in den meisten Fällen findest du die Antwort in unter fünf Minuten.
 
-* [Häufige Probleme](common-issues.md) – die wichtigsten *„Warum geht mein Dialog nicht?"*-Antworten.
-* [Debug-Tipps](debugging-tips.md) – Checkliste + Werkzeuge für systematisches Debugging.
-* [Bekannte Issues](known-issues.md) – Stand der offenen Bugs und Roadmap-Items.
+## Was willst du lösen?
+
+| Symptom | Seite |
+| --- | --- |
+| Dialog startet gar nicht, nichts passiert | [Häufige Probleme → Dialog startet nicht](common-issues.md#dialog-startet-nicht) |
+| Kein Widget sichtbar, obwohl der Dialog läuft | [Häufige Probleme → Widget erscheint nicht](common-issues.md#widget-erscheint-nicht) |
+| Choices fehlen oder sind nicht klickbar | [Häufige Probleme → Choices fehlen](common-issues.md#choices-fehlen) |
+| Kein Audio / keine Stimme | [Häufige Probleme → Audio fehlt](common-issues.md#audio-fehlt) |
+| Babel-Stimme ist stumm | [Häufige Probleme → Babel stumm](common-issues.md#babel-stumm) |
+| Variable wird nicht gespeichert / Requirement liest falsche Werte | [Häufige Probleme → Variable nicht persistent](common-issues.md#variable-nicht-persistent) |
+| Dialog bleibt nach einer Zeile hängen | [Häufige Probleme → Dialog bleibt hängen](common-issues.md#dialog-bleibt-hängen) |
+| Compile-Fehler ohne klaren Hinweis | [Häufige Probleme → Compile-Fehler](common-issues.md#compile-fehler) |
+| Sub-Graph kehrt nicht zum Aufrufer zurück | [Häufige Probleme → Sub-Graph-Rückkehr fehlt](common-issues.md#sub-graph-rückkehr-fehlt) |
+| Log-Fehler oder Crash | [Debug-Tipps](debugging-tips.md) |
+| Bekanntes Problem, suche Workaround | [Bekannte Issues](known-issues.md) |
 
 ## Empfohlener Debug-Flow
 
-```mermaid
-flowchart TD
-    A[Dialog läuft nicht wie erwartet]
-    A --> B{Lief er im Preview-Runner?}
-    B -->|Ja| C{Im PIE gehts nicht}
-    B -->|Nein| D[Text/Struktur-Fehler]
-    C --> E[Participant/Tag-Problem]
-    C --> F[Widget-Setup-Problem]
-    D --> G[Validator-Checks]
-    E --> H[Debugger + Watch]
-    F --> I[Widget-Bindings prüfen]
-    G --> J{Fix}
-    H --> J
-    I --> J
+```
+Dialog verhält sich falsch
+  │
+  ├─ Läuft er im Preview-Runner korrekt?
+  │     │
+  │     ├─ Nein → Strukturfehler im Asset (Nodes, Links, Requirements)
+  │     │          → common-issues.md + Validator-Meldungen prüfen
+  │     │
+  │     └─ Ja → Problem liegt außerhalb des Assets
+  │               ├─ Widget nicht sichtbar → Widget-Setup prüfen
+  │               ├─ Participant-Fehler → Participant-Komponente + Tags prüfen
+  │               └─ GAS-Abhängigkeit → ASC / Tag-State prüfen
+  │
+  └─ Debugger + Output-Log → debugging-tips.md
 ```
 
-## Schnelle Diagnose-Fragen
+{% hint style="info" %}
+**Schnellster Einstieg:** Öffne das Asset und klicke **Compile**. Viele Probleme sind Compile-Errors, die der Validator sofort benennt.
+{% endhint %}
 
-* **Startet der Dialog gar nicht?** → [common-issues.md#dialog-start](common-issues.md)
-* **Kein Widget erscheint?** → [common-issues.md#widget](common-issues.md)
-* **Choices fehlen?** → [common-issues.md#choices](common-issues.md)
-* **Audio läuft nicht?** → [common-issues.md#audio](common-issues.md)
-* **Variable wird nicht übernommen?** → [common-issues.md#variables](common-issues.md)
-* **Crash oder Log-Error?** → [debugging-tips.md](debugging-tips.md)
+## Struktur dieses Bereichs
+
+- **[Häufige Probleme](common-issues.md)** — Pro Symptom: Ursache + Lösung.
+- **[Debug-Tipps](debugging-tips.md)** — Output-Log, Debugger, Preview-Runner, Isolations-Tests.
+- **[Bekannte Issues](known-issues.md)** — Offene Einschränkungen der aktuellen Beta + Workarounds.

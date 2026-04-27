@@ -1,99 +1,138 @@
+---
+description: Die fünf Widget-Klassen im Überblick, wie sie zusammenspielen, und wie du einzelne Bausteine gegen deine eigenen tauschst.
+---
+
 # UMG-Architektur
 
-Die UMG-Schicht ist **komponenten-basiert**. Statt einem monolithischen „Dialog-Widget" liefert MayDialogue ein Set aus fünf Widget-Klassen, die sich zusammen-komposieren.
+Das UMG-UI ist **komponenten-basiert**. Jede Widget-Klasse hat eine klar abgegrenzte Aufgabe. Du subclasst genau die Teile, die du anpassen willst — den Rest lässt du unverändert.
 
-## Die fünf Widget-Klassen
+> 📸 **Bild-Platzhalter:** `umg-component-diagram.png` — Schaubild der Komponentenbeziehung. Weißer Hintergrund. Oberstes Element: Rechteck "UMayDialogueWidget (Top-Level)" mit gestrichelter Umrandung. Darunter per Pfeil verbunden: Rechteck "DialogFrame". Vom DialogFrame gehen vier Pfeile ab zu: "Speaker" (links), "Text" (mittig-links), "ChoiceList" (mittig-rechts), "SkipButton" (rechts). Von ChoiceList geht ein weiterer Pfeil ab zu "ChoiceButton (n×)". Alle Verbindungen sind beschriftet: "BindWidget". Layout horizontal, minimalistisch.
+> *Setup:* Diagramm als Vektorgrafik oder einfaches Blueprint-Widget-Hierarchie-Screenshot aus dem UMG-Designer.
 
-```mermaid
-classDiagram
-    UMayDialogueWidget_DialogFrame --> UMayDialogueWidget_Speaker
-    UMayDialogueWidget_DialogFrame --> UMayDialogueWidget_Text
-    UMayDialogueWidget_DialogFrame --> UMayDialogueWidget_ChoiceList
-    UMayDialogueWidget_DialogFrame --> UMayDialogueWidget_SkipButton
-    UMayDialogueWidget_ChoiceList --> UMayDialogueWidget_ChoiceButton
-    UMayDialogueWidget --> UMayDialogueWidget_DialogFrame : (BindWidget)
-    UMayDialogueWidget --> UMayDialogueWidget_Speaker : (BindWidget)
-    UMayDialogueWidget --> UMayDialogueWidget_Text : (BindWidget)
-    UMayDialogueWidget --> UMayDialogueWidget_ChoiceList : (BindWidget)
-    UMayDialogueWidget --> UMayDialogueWidget_SkipButton : (BindWidget)
-```
+## Die Klassen auf einen Blick
 
 | Klasse | Aufgabe |
-| --- | --- |
-| [`UMayDialogueWidget`](#top-level) | Top-Level-Container, Event-Dispatcher. |
-| [`UMayDialogueWidget_DialogFrame`](dialog-frame.md) | Container für die Unter-Widgets, Open/Close-Animationen. |
-| [`UMayDialogueWidget_Speaker`](speaker-widget.md) | Name + Portrait + Emotion-Tags. |
-| [`UMayDialogueWidget_Text`](text-widget.md) | Typewriter-Text. |
-| [`UMayDialogueWidget_ChoiceList`](choice-list.md) | Container für Choice-Buttons. |
-| [`UMayDialogueWidget_ChoiceButton`](choice-list.md#choicebutton) | Einzelner Antwort-Button. |
-| [`UMayDialogueWidget_SkipButton`](skip-button.md) | Advance-Input-UI. |
+|---|---|
+| `UMayDialogueWidget` | Top-Level. Bindet sich an Instance/Participant, verteilt Events. |
+| `UMayDialogueWidget_DialogFrame` | Container. Hält Sub-Widgets, steuert Open/Close-Animationen. |
+| `UMayDialogueWidget_Speaker` | Name + Portrait + Emotion-Tags. |
+| `UMayDialogueWidget_Text` | Typewriter-Text mit Rich-Text-Decorators. |
+| `UMayDialogueWidget_ChoiceList` | Spawnt und verwaltet ChoiceButtons. |
+| `UMayDialogueWidget_ChoiceButton` | Einzelner Antwort-Button. |
+| `UMayDialogueWidget_SkipButton` | Weiter-Prompt, Platform-aware. |
 
-## Top-Level
+Alle Klassen sind `Abstract` und `Blueprintable`. Du arbeitest immer mit Blueprint-Subklassen.
 
-`UMayDialogueWidget` hat **optionale BindWidget-Slots**:
-
-```cpp
-UPROPERTY(meta=(BindWidgetOptional))
-UMayDialogueWidget_DialogFrame* DialogFrameWidget;
-
-UPROPERTY(meta=(BindWidgetOptional))
-UMayDialogueWidget_Speaker* SpeakerWidget;
-
-UPROPERTY(meta=(BindWidgetOptional))
-UMayDialogueWidget_Text* TextWidget;
-
-UPROPERTY(meta=(BindWidgetOptional))
-UMayDialogueWidget_ChoiceList* ChoiceListWidget;
-
-UPROPERTY(meta=(BindWidgetOptional))
-UMayDialogueWidget_SkipButton* SkipButtonWidget;
-```
-
-Wenn du ein Blueprint-Widget von `UMayDialogueWidget` ableitest und diese Slots durch gleichnamige Child-Widgets füllst (einfach das Widget im Designer platzieren und benennen), binden sie sich automatisch.
-
-## Zwei Konfigurations-Pfade
-
-### Pfad A – Ein zusammengesetztes Widget
-
-Du baust ein einziges Blueprint-Widget `WBP_MayDialogue` auf Basis von `UMayDialogueWidget`:
+## Daten-Fluss
 
 ```
-WBP_MayDialogue
-├── Canvas Panel
-│   ├── SpeakerWidget        (WBP_Speaker – von UMayDialogueWidget_Speaker)
-│   ├── TextWidget           (WBP_Text – von UMayDialogueWidget_Text)
-│   ├── ChoiceListWidget     (WBP_ChoiceList – von UMayDialogueWidget_ChoiceList)
-│   └── SkipButtonWidget     (WBP_SkipButton – von UMayDialogueWidget_SkipButton)
+Instance/Participant
+    │  OnMessageReceived
+    ▼
+UMayDialogueWidget (Top-Level)
+    ├──► DialogFrame → OnDialogueStarted / OnDialogueEnded
+    ├──► Speaker     → SetSpeakerData(Name, Portrait, EmotionTags)
+    ├──► Text        → StartTypewriter(Text, CPS)
+    │         └──► OnCharacterRevealed (Hook für Babel-Synthese)
+    ├──► ChoiceList  → SetChoices(Entries)
+    │         └──► OnChoiceSelected → RequestSelectChoice(Index)
+    └──► SkipButton  → OnSkip → RequestAdvance()
 ```
 
-Setze dann:
+## Zwei Konfigurationspfade
+
+### Pfad A — Ein zusammengesetztes Blueprint-Widget (empfohlen)
+
+Du baust ein einziges Top-Level-Blueprint `WBP_MayDialogue` auf Basis von `UMayDialogueWidget`. Darin nesting du die Sub-Widgets direkt:
+
+```
+WBP_MayDialogue (Parent: UMayDialogueWidget)
+└── Canvas Panel
+    └── WBP_DialogFrame (Name: "DialogFrameWidget")
+        ├── WBP_Speaker    (Name: "SpeakerWidget")
+        ├── WBP_Text       (Name: "TextWidget")
+        ├── WBP_ChoiceList (Name: "ChoiceListWidget")
+        └── WBP_SkipButton (Name: "SkipButtonWidget")
+```
+
+Die Namen der Child-Widgets müssen exakt mit den `BindWidget`-Property-Namen übereinstimmen. UMG verdrahtet sie automatisch.
+
+Dann in den Project Settings:
 
 ```ini
-[Project Settings → MayDialogue]
+[MayDialogue]
 DefaultDialogueWidgetClass = /Game/UI/WBP_MayDialogue.WBP_MayDialogue_C
 ```
 
-### Pfad B – Defaults aus Settings
+> 📸 **Bild-Platzhalter:** `umg-designer-hierarchy.png` — UMG-Designer, Hierarchy-Panel links. Sichtbar: `WBP_MayDialogue` als Root, darunter eingerückt `WBP_DialogFrame` (Name im Feld "DialogFrameWidget"), darunter `WBP_Speaker` (Name "SpeakerWidget"), `WBP_Text` (Name "TextWidget"), `WBP_ChoiceList` (Name "ChoiceListWidget"), `WBP_SkipButton` (Name "SkipButtonWidget"). Roter Pfeil auf die Namens-Felder.
+> *Setup:* UMG-Designer mit WBP_MayDialogue öffnen, Hierarchy-Panel screenshotten.
 
-Du definierst nur `DefaultSpeakerWidgetClass`, `DefaultTextWidgetClass` etc. in den Projekt-Settings. Das System kombiniert sie zur Laufzeit.
+### Pfad B — Per-Klassen-Defaults in den Settings
 
-Pfad A ist übersichtlicher und hat weniger Indirektion. Pfad B ist flexibler, wenn du verschiedene Widget-Kombinationen pro Szenen-Typ willst.
+Du gibst in den Project Settings für jeden Slot eine Klasse an:
 
-## Delegates
+```ini
+DefaultSpeakerWidgetClass  = /Game/UI/WBP_MySpeaker.WBP_MySpeaker_C
+DefaultTextWidgetClass     = /Game/UI/WBP_MyText.WBP_MyText_C
+DefaultChoiceListWidgetClass = ...
+```
 
-Das Top-Level-Widget bindet sich automatisch an die aktive Instance oder an den lokalen Participant (wichtig für Multiplayer). Du musst im Blueprint nichts verdrahten.
+Das System kombiniert sie zur Laufzeit. Nützlich, wenn du unterschiedliche Widget-Kombinationen pro Szenen-Typ brauchst.
 
-## Subscriptions im Widget
+Pfad A ist übersichtlicher für die meisten Projekte. Pfad B ist flexibler bei mehreren Theme-Varianten.
 
-* `InstanceBound`: Wenn du nur Singleplayer hast, bind an Instance-Delegates.
-* `ParticipantBound`: Wenn Multiplayer, bind an Client-RPC-Events am lokalen Participant.
+## Wie tausche ich einen einzelnen Baustein?
 
-Beide Pfade liefern dieselben Events an die Child-Widgets.
+Am Beispiel Speaker-Widget — das Vorgehen gilt für alle Komponenten:
+
+**Schritt 1 — Blueprint-Subklasse anlegen**
+
+`Content Browser → Rechtsklick → Blueprint Class → Parent: MayDialogueWidget_Speaker`
+Nenne sie z.B. `WBP_MySpeaker`.
+
+> 📸 **Bild-Platzhalter:** `umg-new-blueprint-speaker.png` — "Pick Parent Class"-Dialog in UE5. Die Suchleiste zeigt "MayDialogueWidget_Speaker", der Treffer ist markiert. Roter Pfeil auf den Eintrag.
+> *Setup:* Content Browser → Rechtsklick → Blueprint Class → Suchfeld mit "MayDialogueWidget_Speaker" befüllen.
+
+**Schritt 2 — Layout bauen**
+
+Im UMG-Designer von `WBP_MySpeaker`:
+- Lege einen `Image`-Node an, benenne ihn **`PortraitImage`** (exakter Name für BindWidget).
+- Lege einen `Text Block` an, benenne ihn **`NameText`**.
+- Füge beliebig weitere Elemente hinzu (Emotion-Icons, Hintergrund-Frame etc.).
+
+**Schritt 3 — On Speaker Changed implementieren**
+
+Im Event-Graph: `On Speaker Changed` überschreiben.
+
+```text
+Event On Speaker Changed (DisplayName, Portrait, EmotionTags)
+  → Set Text (NameText, DisplayName)
+  → Set Brush from Texture (PortraitImage, Portrait)
+  → Branch: EmotionTags contains "Dialogue.Emotion.Scared"
+      True  → Set Portrait to P_Scared, Play Anim "Shake"
+      False → Branch: contains "Dialogue.Emotion.Angry"
+                  True  → Set Portrait to P_Angry, Set Text Color Red
+                  False → Set Portrait to P_Neutral
+```
+
+> 📸 **Bild-Platzhalter:** `umg-speaker-event-graph.png` — Blueprint-Graph von WBP_MySpeaker. Event "On Speaker Changed" (lila Event-Node) verbunden mit "Set Text"-Node (NameText-Target), dann "Set Brush From Texture"-Node (PortraitImage-Target), dann "Branch"-Node (Condition: EmotionTags Contains Tag). True/False-Pins gehen zu weiteren Set-Portrait-Nodes.
+> *Setup:* WBP_MySpeaker → Event Graph → On Speaker Changed implementieren wie beschrieben. Graph screenshotten.
+
+**Schritt 4 — Einbauen**
+
+In `WBP_MayDialogue` (oder deinem DialogFrame): das bestehende Speaker-Widget-Child gegen `WBP_MySpeaker` tauschen. Name bleibt `SpeakerWidget`.
+
+{% hint style="success" %}
+Das war's. Das System ruft automatisch `SetSpeakerData` auf deiner neuen Klasse auf — kein weiterer Verdrahtungsaufwand.
+{% endhint %}
 
 ## Typische Fehler
 
-* **SkipButton reagiert nicht** – prüfe, ob `SkipClickButton` innerhalb des SkipButton-Widgets korrekt benannt ist.
-* **Speaker-Portrait lädt nicht** – `Portrait` in `FMayDialogueSpeaker` ist `TSoftObjectPtr`, Load ist async. Im Widget warten auf `OnSpeakerChanged`.
-* **Typewriter ruft Babel nicht auf** – im Component-Pfad nicht automatisch verdrahtet; binde `TextWidget->OnCharacterRevealed` manuell in deinem Blueprint.
+| Problem | Lösung |
+|---|---|
+| SkipButton reagiert nicht | Child-Widget muss exakt `SkipButtonWidget` heißen. |
+| Portrait erscheint nicht | Portrait ist `TSoftObjectPtr` — async load. Warte auf `OnSpeakerChanged`. |
+| Typewriter ruft Babel nicht auf | Im Component-Pfad manuell binden: `TextWidget → OnCharacterRevealed → BabelSynth`. |
+| Sub-Widget-Slot ist null | Widget-Name im Designer stimmt nicht mit Property-Name überein. |
 
 Weiter: [Dialog Frame](dialog-frame.md).

@@ -1,51 +1,51 @@
 # Branch
 
-Der **Branch-Node** ist die **automatische** Verzweigung: kein Spieler-Input, nur eine Bedingung.
+Der Branch-Node ist die automatische Verzweigung: ohne Spieler-Input, rein auf Basis einer Bedingung. Er wertet ein Requirement aus und leitet den Fluss auf den True- oder False-Pfad.
 
-## Runtime-Verhalten
+## Wann setze ich ihn ein?
 
-`ExecuteNode`:
-
-1. `Condition`-Requirement evaluieren.
-2. Bei `Passed` → `Advance(TrueOutputGuid)`.
-3. Bei `Failed*` → `Advance(FalseOutputGuid)`.
-4. Wenn `bHasFallback` und das Ergebnis uneindeutig ist → `Advance(FallbackOutputGuid)`.
+- Wenn der Dialog abhängig von einem Spieler-Zustand unterschiedliche Zeilen zeigen soll (z.B. "War der Spieler schon hier?").
+- Für Bedingungs-Gates, die der Spieler nicht sieht — der Wechsel passiert unsichtbar im Hintergrund.
+- Als Weiche nach einer SayLine: je nach Attribut-Wert folgt ein anderer Ast.
+- Mit `bHasFallback`, wenn ein dritter Pfad für unklare Zustände (z.B. fehlendes ASC) gebraucht wird.
 
 ## Properties
 
-| Property | Typ | Zweck |
-| --- | --- | --- |
-| `Condition` | `UMayDialogueRequirement*` (Instanced) | Einzelne Bedingung. |
-| `bHasFallback` | `bool` | Aktiviert den dritten Output-Pin. |
+| Property | Typ | Standard | Bedeutung |
+| --- | --- | --- | --- |
+| `Condition` | `UMayDialogueRequirement*` (Instanced) | leer | Die Bedingung. `Passed` → True-Pfad; `FailedButVisible` / `FailedAndHidden` → False-Pfad. Nicht gesetzt → immer True. |
+| `bHasFallback` | `bool` | `false` | Aktiviert einen dritten Output-Pin (`Fallback`) für degenerierte Fälle. |
 
-## Pins
+> 📸 **Bild-Platzhalter:** `branch-node-graph.png` — Branch-Node mit zwei Outputs im Graph.
+> *Setup:* Branch-Node mit `Condition`-Pill `HasTag Story.Met.Guard`. Drei Pins rechts: `True` verbunden mit `SayLine "Schön, dich wiederzusehen."`, `False` verbunden mit `SayLine "Halt! Wer bist du?"`. `bHasFallback = false`, Fallback-Pin nicht sichtbar. Input-Pin verbunden mit Entry-Node links.
 
-* **Input**.
-* **True** – wenn Condition passed.
-* **False** – wenn Condition failed.
-* **Fallback** (optional) – für degenerierte Fälle.
+> 📸 **Bild-Platzhalter:** `branch-details-panel.png` — Details-Panel des Branch-Nodes.
+> *Setup:* Branch-Node auswählen. Im Details-Panel sichtbar: `Condition` (Instanced Requirement vom Typ `UMayDlgRequirement_HasTag`, `RequiredTag = Story.Met.Guard`), `bHasFallback = false`.
 
-## Typisches Pattern
+## Mini-Beispiel
 
-```
-[SayLine: "..."]
+```text
+[Entry]
   │
   ▼
 [Branch: HasTag "Story.Met.Guard"]
-  ├─ True  ──► [SayLine: "Schön, dich wiederzusehen."]
-  └─ False ──► [SayLine: "Halt! Wer bist du?"]
+  ├─ True  ──► [SayLine: Wächter | "Schön, dich wiederzusehen."] ──► [PlayerChoice]
+  └─ False ──► [SayLine: Wächter | "Halt! Wer bist du?"]         ──► [PlayerChoice]
 ```
 
-## Unterschied zu PlayerChoice
+> 📸 **Bild-Platzhalter:** `branch-example-graph.png` — Entry → Branch → zwei SayLine-Pfade.
+> *Setup:* `Entry` → `Branch` (Condition: HasTag Story.Met.Guard) → True-Pfad `SayLine "Schön, dich wiederzusehen."` und False-Pfad `SayLine "Halt!"`. Beide SayLines führen in denselben `PlayerChoice`-Node. Alle Verbindungen sichtbar.
+
+## Häufige Fallstricke
+
+- **Condition nicht gesetzt**: Der Node nimmt immer den True-Pfad. Der Validator zeigt dafür keinen Error, aber das Verhalten ist wahrscheinlich unbeabsichtigt.
+- **Branch verwechseln mit PlayerChoice**: Branch ist für automatische Entscheidungen ohne UI. Wenn der Spieler etwas wählen soll, nimm [PlayerChoice](player-choice.md).
+
+## Branch vs. PlayerChoice
 
 | | Branch | PlayerChoice |
 | --- | --- | --- |
-| Treiber | Automatisch nach Condition | Spieler-Klick |
+| Wer entscheidet? | Engine (automatisch) | Spieler |
+| UI-Darstellung | Nein | Ja |
 | Anzahl Bedingungen | 1 | 1 pro Choice |
-| UI-Auftritt | Nein | Ja |
-| Blockiert Instance | Nein (immediate) | Ja (WaitingForChoice) |
-
-## Anmerkungen
-
-* Eine Condition muss gesetzt sein – sonst Validator-Error.
-* Der Fallback-Output ist als Sicherheitsnetz gedacht: *„falls die Condition weder klar Passed noch klar Failed ist"*. In der Praxis selten nötig, aber nützlich in GAS-Konstellationen, wo ein ASC fehlen könnte.
+| Blockiert den Dialog? | Nein (immediate) | Ja (wartet auf Eingabe) |

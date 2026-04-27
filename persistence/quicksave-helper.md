@@ -1,78 +1,88 @@
+---
+description: Participant-Memory speichern und laden ohne eigenes SaveGame-System.
+---
+
 # QuickSave-Helper
 
-Für Projekte, die **kein eigenes SaveGame-System** haben, liefert MayDialogue einen minimalen Helfer: `UMayDialogueSaveHelper`.
+Für Projekte ohne eigenes SaveGame-System liefert MayDialogue `UMayDialogueSaveHelper` — eine Blueprint Function Library mit vier Funktionen. Damit speicherst und lädst du die PersistentMemory aller Participants mit einem einzigen Funktionsaufruf.
 
-{% hint style="info" %}
-**Status**: Als Backlog-Item 18 geplant. Die API ist definiert, die Implementierung wird gerade finalisiert. Die hier dokumentierten Funktionen sind der Design-Vertrag.
+## Die vier Funktionen
+
+| Funktion | Was sie tut |
+| --- | --- |
+| `QuickSaveToSlot(SlotName, UserIndex)` | Sammelt PersistentMemory aller Participants in der Welt, schreibt in Slot. |
+| `QuickLoadFromSlot(SlotName, UserIndex)` | Liest Slot, verteilt Memory an alle Participants mit passendem ParticipantTag. |
+| `DeleteSlot(SlotName, UserIndex)` | Löscht einen Slot. |
+| `DoesSlotExist(SlotName, UserIndex)` | Prüft ob ein Slot vorhanden ist (vor Load aufrufen). |
+
+Alle vier sind in Blueprint verfügbar (Kategorie `MayDialogue|Persistence`).
+
+> 📸 **Bild-Platzhalter:** `quicksave-blueprint-save.png` — Blueprint-Graph: Level-Exit-Event → QuickSaveToSlot.
+> *Setup:* BP-Graph im Level-Blueprint. `Event Level Exit` → `Does Slot Exist` (SlotName="AutoSave") → `Quick Save To Slot` (WorldContextObject=Self, SlotName="AutoSave", UserIndex=0) → `Print String "Gespeichert"`. Alle Nodes verbunden, Rückgabewert (bool) ignoriert via Dummy-Branch.
+
+## Speichern — Beispiel
+
+```text
+[Level-Exit-Event]
+  │
+  └─ [Quick Save To Slot]
+       SlotName:  "AutoSave"
+       UserIndex: 0
+       → gibt bool (Erfolg) zurück
+```
+
+## Laden — Beispiel
+
+```text
+[Begin Play]
+  │
+  ├─ [Does Slot Exist? "AutoSave"]
+  │     ├─ true  → [Quick Load From Slot "AutoSave"]
+  │     └─ false → (keine Aktion — erster Start)
+```
+
+> 📸 **Bild-Platzhalter:** `quicksave-blueprint-load.png` — Blueprint-Graph: BeginPlay → DoesSlotExist → QuickLoadFromSlot mit Branch.
+> *Setup:* BP-Graph im GameMode oder LevelBlueprint. `Event Begin Play` → `Does Slot Exist` (SlotName="AutoSave") → `Branch`. True-Pfad: `Quick Load From Slot` (SlotName="AutoSave"). False-Pfad: keine Node (leer / "first run"-Kommentar). Klarer Pfad, gut lesbar.
+
+## Wie der Match funktioniert
+
+`QuickLoadFromSlot` verteilt Memory anhand des `ParticipantTag`. Participants im gespeicherten Slot und Participants in der aktuell geladenen Welt werden per Tag-Name abgeglichen. Nur Participants, deren `ParticipantTag` im Slot vorhanden ist, erhalten ihre Daten zurück.
+
+{% hint style="warning" %}
+**ParticipantTag muss stabil sein.** Wenn du den `ParticipantTag` eines NPCs zwischen Save und Load änderst, findet der Load-Pfad keinen Match. Halte Tags konsistent.
 {% endhint %}
-
-## API
-
-```cpp
-UCLASS()
-class MAYDIALOGUE_API UMayDialogueSaveHelper : public UBlueprintFunctionLibrary
-{
-    UFUNCTION(BlueprintCallable, meta=(WorldContext="WorldContext"))
-    static bool QuickSaveToSlot(UObject* WorldContext, const FString& SlotName, int32 UserIndex = 0);
-
-    UFUNCTION(BlueprintCallable, meta=(WorldContext="WorldContext"))
-    static bool QuickLoadFromSlot(UObject* WorldContext, const FString& SlotName, int32 UserIndex = 0);
-
-    UFUNCTION(BlueprintCallable)
-    static bool DeleteSlot(const FString& SlotName, int32 UserIndex = 0);
-
-    UFUNCTION(BlueprintPure)
-    static bool DoesSlotExist(const FString& SlotName, int32 UserIndex = 0);
-};
-```
-
-## QuickSaveToSlot
-
-1. Iteriert alle `UMayDialogueParticipant`-Komponenten in der Welt.
-2. Extrahiert ihre `PersistentMemory` und den `ParticipantTag`.
-3. Erzeugt ein `UMayDialogueSaveGame`-Objekt, füllt `ParticipantMemory` (TMap<FName, FInstancedPropertyBag>).
-4. `UGameplayStatics::SaveGameToSlot(SaveObject, SlotName, UserIndex)`.
-
-Liefert `true`, wenn erfolgreich.
-
-## QuickLoadFromSlot
-
-Inverse:
-
-1. `UGameplayStatics::LoadGameFromSlot(SlotName, UserIndex)`.
-2. Cast zu `UMayDialogueSaveGame`.
-3. Iteriert `ParticipantMemory`.
-4. Sucht zur Laufzeit Participants mit passendem Tag und schreibt `PersistentMemory`.
-
-## Beispiel
-
-```
-// Beim Level-Verlassen
-MayDialogueSaveHelper::QuickSaveToSlot(Self, "AutoSave", 0);
-
-// Beim Level-Betreten
-MayDialogueSaveHelper::QuickLoadFromSlot(Self, "AutoSave", 0);
-```
 
 ## Einschränkungen
 
-* **Nur MayDialogue-Daten**. Spielwelt-State, Inventar, Position etc. sind nicht Teil des QuickSave.
-* **Keine Sicherheitsmerkmale**. Kein Versioning, keine Integrity-Checks.
-* **Keine Delta-Saves**. Jeder Save schreibt alles neu.
+| Einschränkung | Auswirkung |
+| --- | --- |
+| Nur MayDialogue-Daten | Inventar, Spielerposition etc. werden nicht gespeichert |
+| Kein Versioning | Nach einem Update der PropertyBag-Struktur können alte Slots inkompatibel sein |
+| Kein Delta-Save | Jeder Save schreibt alle Participant-Daten neu |
+| Kein Multi-Slot-Management | Du organisierst mehrere Slots selbst per SlotName |
 
-## Wann Helper, wann eigenes System?
+## Wann QuickSave-Helper, wann eigenes System?
 
 | Szenario | Empfehlung |
 | --- | --- |
-| Game-Jam-Prototyp | QuickSave-Helper. |
-| Standard-Indie-Projekt | QuickSave-Helper als Start, eigenes System wenn nötig. |
-| Produktions-Projekt mit komplexem State | Eigenes SaveGame-System, `PersistentMemory` per `ArIsSaveGame` einbetten. |
+| Game-Jam oder Prototyp | QuickSave-Helper — sofort einsatzbereit |
+| Kleines Indie-Projekt ohne komplexen State | QuickSave-Helper als Start, migrieren wenn nötig |
+| Projekt mit Inventar, Weltstate, Quests | Eigenes SaveGame-System, `PersistentMemory` per `ArIsSaveGame` einbetten (→ [SaveGame-Integration](save-integration.md)) |
 
-## Global Memory
+## GlobalMemory
 
-`UMayDialogueSaveGame` hat zusätzlich `GlobalMemory` (`FInstancedPropertyBag`), das du für Projekt-weite Flags nutzen kannst. Vom QuickSaveHelper standardmäßig **nicht** befüllt – du musst GlobalMemory-Setter/Getter selbst aufrufen, falls du das Feld nutzen willst.
+`UMayDialogueSaveGame` hat ein `GlobalMemory`-Feld (`FInstancedPropertyBag`), das du für Projekt-weite Flags nutzen kannst — z.B. *"Hat der Spieler das Intro-Gespräch gesehen?"*. Der QuickSave-Helper befüllt `GlobalMemory` standardmäßig nicht. Du kannst es aber manuell lesen und schreiben:
 
-## Anmerkungen
+```cpp
+// Per C++:
+UMayDialogueSaveGame* SaveObj = Cast<UMayDialogueSaveGame>(
+    UGameplayStatics::LoadGameFromSlot("AutoSave", 0));
+if (SaveObj)
+{
+    // GlobalMemory lesen/schreiben, dann erneut speichern
+    UGameplayStatics::SaveGameToSlot(SaveObj, "AutoSave", 0);
+}
+```
 
-* Slot-Namen sollten `[a-zA-Z0-9_-]` enthalten – sichere Dateinamen.
-* `DoesSlotExist` prüft vor Load, um Load-Fehler zu vermeiden.
+> 📸 **Bild-Platzhalter:** `quicksave-slot-naming.png` — Blueprint-Graph: dynamischer SlotName aus "Save_" + CurrentLevel.
+> *Setup:* BP-Graph. `Get Current Level Name` → `Append "Save_"` → `Quick Save To Slot` mit dem zusammengesetzten SlotName. Zeigt, wie du pro Level einen eigenen Slot nutzen kannst.

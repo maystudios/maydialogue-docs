@@ -1,82 +1,60 @@
+---
+description: Schnelles Nachschlagen — Properties, Signaturen, Enums, Structs.
+---
+
 # Referenz
 
-Die Referenz-Kapitel sind bewusst **straff und nachschlagbar** gehalten. Während die anderen Teile der Dokumentation Geschichten erzählen und Muster erklären, findest du hier die reinen Fakten: Property-Tabellen, Signaturen und Enum-Werte.
+Der Referenz-Bereich ist ein Nachschlagewerk. Keine Erklärungen, keine Geschichten — nur die nackten Fakten: Property-Tabellen, Funktions-Signaturen, Enum-Werte.
 
-## Was du in der Referenz findest
+## Was du hier findest
 
-| Seite | Inhalt | Wann öffnen |
-| --- | --- | --- |
-| [Projekt-Einstellungen](project-settings.md) | Alle Felder von `UMayDialogueSettings` in kompakter Tabelle. | Wenn du schnell wissen musst, was ein Setting tut. |
-| [Editor-Einstellungen](editor-settings.md) | Alle Felder von `UMayDialogueEditorSettings`. | Node-Farben anpassen, Debug-Colors ändern. |
-| [MayDialogueLibrary](api-library.md) | Alle BlueprintCallable-Methoden der Library. | Dialog-Start aus Blueprint / Widget-Graph. |
-| [MayDialogueSubsystem](api-subsystem.md) | Public-Methoden und Delegates des Subsystems. | C++-Integration, Multi-Event-Binding. |
-| [Delegates & Events](api-delegates.md) | Alle Delegate-Typen, ihre Parameter und Feuer-Punkte. | Game-System auf Dialog-Phasen horchen lassen. |
-| [Typen & Enums](types.md) | Alle Enums und Structs des Plugins mit je einem Satz. | Auto-Complete-Rückschläge klären, TaskResult-Flow verstehen. |
+| Seite | Inhalt | Wann aufschlagen |
+|---|---|---|
+| [Projekt-Einstellungen](project-settings.md) | Alle Felder von `UMayDialogueSettings` mit Typ, Default und Bedeutung. | Setting-Name vergessen oder Default-Wert unklar. |
+| [Editor-Einstellungen](editor-settings.md) | Alle Felder von `UMayDialogueEditorSettings` — Node-Farben, Debug-Highlights. | Node-Farben anpassen, Team-Defaults festlegen. |
+| [API: Library](api-library.md) | Alle Methoden der `UMayDialogueLibrary` als Tabelle mit Parametern und Rückgabe. | Blueprint-Schnellstart, Signatur nachschlagen. |
+| [API: Subsystem](api-subsystem.md) | Public-Methoden und Delegates des `UMayDialogueSubsystem`. | C++-Integration, Event-Binding, Lifecycle-Steuerung. |
+| [API: Delegates](api-delegates.md) | Alle Delegate-Typen mit Signatur und Feuer-Zeitpunkt. | Game-System an Dialog-Phasen andocken. |
+| [Typen & Enums](types.md) | Alle Enums und wichtigen Structs — Werte und Ein-Satz-Erklärung. | Auto-Complete-Rückschläge klären, Struct-Felder nachschlagen. |
 
-## Was **nicht** hier steht
+## Was nicht hier steht
 
-* **Konzept-Erklärungen** → [Kern-Konzepte](../concepts/README.md)
-* **Node-Details** → [Node-Referenz](../nodes/README.md)
-* **GAS-spezifische Requirements/Actions** → [GAS-Integration](../gas/README.md)
-* **UI-Widget-APIs** → [UI-System](../ui/README.md)
+- **Konzepte & Architektur** → [Kern-Konzepte](../concepts/README.md)
+- **Node-Dokumentation** → [Node-Referenz](../nodes/README.md)
+- **GAS-spezifische Requirements/Actions** → [GAS-Integration](../gas/README.md)
+- **UI-Widget-APIs** → [UI-System](../ui/README.md)
 
-## Wie die Property-Tabellen zu lesen sind
+## Wie liest man die Property-Tabellen?
 
-Die Tabellen folgen überall demselben Schema:
+Überall dasselbe Schema:
 
 | Property | Typ | Default | Bedeutung |
-| --- | --- | --- | --- |
+|---|---|---|---|
+| `PropertyName` | `TTyp` | `Wert` | Ein Satz, was das Setting steuert. |
 
-**Typ-Konventionen**:
+Typ-Konventionen:
 
-* `TSoftObjectPtr<T>` / `TSoftClassPtr<T>` → Lazy-Reference, wird erst beim Start geladen.
-* `TArray<T>` → geordnet, 0-basiert.
-* `TMap<K,V>` → string-keyed wenn nicht anders vermerkt.
-* `FGameplayTag` / `FGameplayTagContainer` → aus dem UE-GameplayTags-System.
-* Kein Default angegeben → zero-initialized bzw. `nullptr`.
+- `TSoftObjectPtr<T>` / `TSoftClassPtr<T>` — Lazy-Referenz, wird erst beim ersten Dialog-Start geladen.
+- `FGameplayTag` / `FGameplayTagContainer` — Tags aus dem UE-GameplayTags-System.
+- Kein Default angegeben — zero-initialized bzw. `nullptr`.
 
-## Wie die API-Signaturen zu lesen sind
+## Welche Klasse ist wofür zuständig?
 
-```cpp
-ReturnType  MethodName(Param1 P1, Param2 P2);   // ← die Signatur
-// Kurze Beschreibung: Was die Methode macht, wann du sie aufrufst.
+```text
+UMayDialogueLibrary          (Blueprint-Helfer, stateless)
+    │ delegiert an
+UMayDialogueSubsystem        (Orchestrator, eine Instanz pro Welt)
+    │ erzeugt und verwaltet
+UMayDialogueInstance         (laufendes Gespräch, hat alle Delegates)
+    │ liest aus
+UMayDialogueAsset            (der Dialog-Graph, unveränderliche Blaupause)
+
+UMayDialogueParticipant      (Actor-Komponente, bindet Actor an Instance)
+    │ sitzt auf
+AActor (Spieler, NPC, ...)
+
+IMayDialogueBridge           (Interface, implementiert vom Subsystem)
 ```
 
-Alle Methoden sind – falls nicht anders vermerkt – sicher bei `nullptr`-Eingaben (sie loggen einen Warn und liefern `false` / `nullptr` zurück). Das Plugin vermeidet Crashes aggressiv, damit Designer-Iteration flüssig bleibt.
-
-## Versions-Hinweis
-
-Die Referenz spiegelt den Stand der Plugin-Quelle in diesem Repository. Wenn du MayDialogue in ein anderes Projekt überträgst, vergleiche die Header-Dateien:
-
-```
-Plugins/MayDialogue/Source/MayDialogue/Runtime/
-Plugins/MayDialogue/Source/MayDialogueEditor/
-Plugins/MayDialogue/Source/MayDialogueGAS/
-```
-
-Für Breaking Changes zwischen Plugin-Versionen siehe die [Roadmap](../appendix/roadmap.md).
-
-## Quick-Look: Welche Klasse ist wofür zuständig
-
-```mermaid
-graph TD
-    Library[UMayDialogueLibrary<br/>Blueprint-Helfer] --> Subsystem
-    Subsystem[UMayDialogueSubsystem<br/>zentraler Orchestrator] --> Instance
-    Instance[UMayDialogueInstance<br/>laufendes Gespräch] --> Asset
-    Asset[UMayDialogueAsset<br/>Blaupause]
-    Subsystem --> Settings[UMayDialogueSettings]
-    Bridge[IMayDialogueBridge<br/>Interface] -.implements.-> Subsystem
-    Participant[UMayDialogueParticipant<br/>Actor-Komponente] --> Instance
-```
-
-## Feedback
-
-Fehler in einer Tabelle gefunden? Falscher Default-Wert? Erzähl es im Plugin-Repo – Referenzen altern schnell, besonders wenn Backlog-Items durch das Codebase rauschen.
-
-## Tipp für schnelles Nachschlagen
-
-Öffne im Editor *Window → Content Browser → Filter (Type)* und lass dir alle MayDialogue-Typen anzeigen. Der Hover-Tooltip pro Asset-Typ referenziert den entsprechenden Referenz-Abschnitt hier im Docs-Baum. Kein Klick ins Browser-Fenster mehr nötig, wenn dein Team die Dokumentation lokal cached.
-
-Gut, jetzt aber zur Sache:
-
-* [Weiter: Projekt-Einstellungen](project-settings.md)
+> 📸 **Bild-Platzhalter:** `reference-class-overview.png` — Klassendiagramm als Annotationsdiagramm.
+> *Setup:* Kein Editor nötig — handgezeichnetes oder Whiteboard-Foto des Diagramms oben. Klassen-Boxen beschriftet mit Klassenname + Kurzbeschreibung. Pfeile zeigen "delegiert an", "erzeugt", "sitzt auf", "implementiert". Farben: Library=Blau, Subsystem=Orange, Instance=Grün, Asset=Grau, Participant=Lila, Bridge=Gestrichelter Rahmen.

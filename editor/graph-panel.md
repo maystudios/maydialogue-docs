@@ -1,132 +1,152 @@
+---
+description: Navigation, Nodes platzieren, Verbindungen ziehen, Inline-Edit, Sub-Nodes, Knots und Comments.
+---
+
 # Das Graph-Panel
 
-Der Graph ist die Hauptarbeitsfläche. Dieses Kapitel erklärt, **wie du ihn bedienst** – Nodes platzieren, Pins verbinden, Sub-Nodes anbringen, Ansichten navigieren.
+Der Graph ist die Hauptarbeitsfläche. Hier baust du den Ablauf deines Dialogs – von links (Entry) nach rechts (Exit), Node für Node.
 
-## Bedien-Grundlagen
+> 📸 **Bild-Platzhalter:** `graph-panel-overview.png` — Übersicht eines mittelgroßen Dialogs im Graph.
+> *Setup:* Asset `DA_Guard_Greeting` öffnen. Sichtbar: Entry-Node (grün), drei SayLine-Nodes (dunkelrote Titelleisten, Sprecher „Guard"), ein PlayerChoice-Node (blau) mit zwei Choice-Sub-Nodes, zwei weitere SayLines als Reaktion, ein Exit-Node (rot). Alle Nodes verbunden. Kein Zoom – ganzer Graph passt ins Bild.
 
-### Kontext-Menü
+## Nodes hinzufügen
 
-**Rechtsklick auf leere Fläche** öffnet das Kontext-Menü. Dort sind alle Node-Typen nach Kategorie gruppiert:
+### Rechtsklick-Menü (schnellster Weg)
 
-* `Dialogue Nodes`: SayLine, PlayerChoice, RandomLine.
-* `Flow Control`: Branch, Wait, Link, SubGraph.
-* `Action Nodes`: Camera Focus, Camera Shake, Play Animation, Apply Effect, Set Variable, Fire Event, Play Sound, Add Tag, Remove Tag, Trigger Cue.
-* `Special Nodes`: Exit, Knot (Reroute).
+Rechtsklick auf eine **leere Graph-Fläche** öffnet das Kontext-Menü. Tippe direkt los – die Liste filtert live nach deiner Eingabe.
 
-Tipp: Tippe direkt los – das Kontext-Menü filtert live nach Namen.
+Node-Kategorien im Menü:
+
+| Kategorie | Node-Typen |
+| --- | --- |
+| Dialogue | SayLine, PlayerChoice, RandomLine |
+| Flow Control | Branch, Wait, Link, SubGraph |
+| Actions | Camera Focus, Camera Shake, Play Animation, Apply Effect, Set Variable, Fire Event, Play Sound, Add Tag, Remove Tag, Trigger Cue |
+| Special | Exit, Knot |
+
+> 📸 **Bild-Platzhalter:** `graph-contextmenu.png` — Rechtsklick-Menü auf leerer Graph-Fläche, „SayLine" ins Suchfeld getippt.
+> *Setup:* Rechtsklick auf leere Fläche neben Entry-Node. Suchfeld zeigt „SayLine", darunter ein Treffer hervorgehoben. Roter Pfeil auf das Suchfeld.
 
 ### Drag-and-Drop aus der Palette
 
-Alternativ zum Kontext-Menü: Ziehe einen Node-Typ aus dem **Palette-Tab** direkt in den Graph.
+Alternativ: Palette-Tab öffnen, Node-Typ per Drag-and-Drop in den Graph ziehen.
 
-### Pin-Verbindungen
+## Nodes verbinden
 
-* **Klick auf Output-Pin + Ziehen auf Input-Pin** → Draht entsteht.
-* **Ziehen auf leeren Platz** → Kontext-Menü mit kompatiblen Ziel-Nodes erscheint.
-* **Doppelklick auf bestehenden Draht** → Knot (Reroute) einfügen.
+1. **Klick auf einen Output-Pin** und Maustaste halten.
+2. Draht auf den **Input-Pin** des Ziel-Nodes ziehen.
+3. Maustaste loslassen – die Verbindung steht.
 
-Der Graph-Schema erlaubt nur Verbindungen zwischen **dialog-kompatiblen Pins** (PC_MayDialogue). Output→Input zwischen zwei Nodes, keine Input→Input oder Output→Output.
+**Drag auf leere Fläche**: Lässt du den Draht auf einer leeren Stelle los, öffnet sich das Kontext-Menü mit kompatiblen Ziel-Nodes.
 
-### Cycle-Prevention
-
-Der Schema erlaubt Zyklen (z.B. Loop zurück zu einem früheren Node ist erlaubt und für manche Patterns sinnvoll). Der Compiler erkennt Dead-Loops, die keinen Exit erreichen können, und meldet sie als Fehler.
-
-## Node-Interaktionen
-
-### Auswählen
-
-* **Einfach-Klick** wählt einen Node.
-* **Shift-Klick** fügt zur Auswahl hinzu.
-* **Rubber-Band** (Click + Drag auf leere Fläche) wählt mehrere.
-
-### Inline-Text-Editing
-
-Bei **SayLine-Nodes**: Doppelklick auf den Text im Body startet Inline-Edit. Ein `SEditableTextBox` ersetzt kurzzeitig die Preview. Enter/Escape oder Fokus-Verlust committen.
-
-### Sub-Nodes hinzufügen
-
-Per Details-Panel:
-
-1. Node selektieren.
-2. Details-Panel → Array `Requirements` / `Choices` / `SideEffects`.
-3. **Add Element** → Typ aus Dropdown wählen.
-
-Oder per Rechtsklick auf den Node direkt im Graph (Kontext-Menü: *„Add Requirement"* / *„Add SideEffect"*).
-
-### Breakpoints
-
-Rechtsklick auf einen Node → **Toggle Breakpoint**. Ein kleiner roter Punkt erscheint rechts-oben am Node. Siehe [Debugger](debugger.md) für die Stepping-Funktionen.
+{% hint style="info" %}
+Der Graph erlaubt nur Verbindungen zwischen kompatiblen Dialog-Pins. Input→Input oder Output→Output funktioniert nicht.
+{% endhint %}
 
 ## Navigation
 
-### Pan
+### Kamera bewegen (Pan)
 
-* **Rechtsklick + Drag** oder **Mittel-Klick + Drag** panned den Graph.
-* **WASD** nach dem Anklicken eines leeren Bereichs.
+| Methode | Aktion |
+| --- | --- |
+| Rechtsklick + Drag | Graph panen |
+| Mittelklick + Drag | Graph panen |
+| WASD | Graph panen (nach Klick auf leere Fläche) |
 
 ### Zoom
 
-* **Mausrad**.
-* Zoom-Level wird in der Toolbar unten-rechts angezeigt.
+- **Mausrad** zum Rein-/Rauszoomen.
+- Aktueller Zoom-Level wird unten rechts angezeigt.
 
-### Fit to Window
+### Schnell-Navigation
 
-**F** (bei markierten Nodes) zoomt auf die Auswahl.
-**Home** zentriert auf den Entry-Node.
+| Shortcut | Wirkung |
+| --- | --- |
+| `F` | Zoom auf selektierte Nodes |
+| `Home` | Kamera auf Entry-Node zentrieren |
 
-### Breadcrumbs bei SubGraphs
+### SubGraph-Navigation
 
-Wenn du auf einen SubGraph-Node doppelklickst, öffnet sich der Sub-Graph mit einem Breadcrumb-Pfad oben (`ParentAsset > SubGraphName > ...`). Klick auf ein Breadcrumb-Segment springt dorthin zurück.
+Doppelklick auf einen SubGraph-Node öffnet den Sub-Graphen. Oben erscheint ein **Breadcrumb-Pfad**:
 
-## Kommentare & Reroute
+```
+ParentAsset > MainGraph > SubGraphName
+```
 
-### Kommentare (Comment Boxes)
+Klick auf ein Segment springt dorthin zurück.
 
-* **Tastatur C** bei aktiver Auswahl erstellt eine Comment-Box um die ausgewählten Nodes.
-* **Details-Panel** ändert Farbe, Titel, Textgröße.
-* Verschieben der Comment-Box verschiebt alle enthaltenen Nodes mit.
+> 📸 **Bild-Platzhalter:** `graph-breadcrumb.png` — Breadcrumb-Leiste oben im Graph mit zwei Ebenen: „DA_Guard_Greeting > CombatResponse".
+> *Setup:* SubGraph-Node doppelklicken. Breadcrumb zeigt Eltern-Asset und Sub-Graph-Name. Roter Pfeil auf Breadcrumb.
 
-### Reroute / Knots
+## Nodes auswählen und bearbeiten
 
-* **Doppelklick auf Draht** fügt einen Knot ein.
-* Knots dienen nur der **visuellen Kabel-Führung** – sie existieren zur Laufzeit nicht (der Compiler löst Knot-Ketten auf).
-* Unterstützen mehrere Ein- und Ausgänge (nützlich für Verteiler).
+| Aktion | Wie |
+| --- | --- |
+| Node auswählen | Einfach-Klick |
+| Mehrere auswählen | Shift+Klick oder Rubber-Band (Drag auf leere Fläche) |
+| Node verschieben | Auswählen und Drag |
+| Node löschen | `Delete` |
+| Node duplizieren | `Ctrl+D` |
 
-## Copy/Cut/Paste
+### Inline-Text-Editing
 
-* `Ctrl+C` / `Ctrl+X` / `Ctrl+V` über selektierte Nodes.
-* **Cross-Asset-Paste**: Du kannst Nodes aus einem Dialog-Asset in ein anderes einfügen. Beim Paste werden neue GUIDs erzeugt, Verbindungen **innerhalb** der kopierten Auswahl bleiben erhalten.
+Bei **SayLine-Nodes**: Doppelklick direkt auf den Textkörper des Nodes öffnet ein Inline-Textfeld. Text eingeben, mit `Enter` oder Fokus-Verlust bestätigen.
 
-## Selection-Multi-Action
+Du musst nicht ins Details-Panel wechseln, um Text zu ändern.
 
-Mit mehreren selektierten Nodes:
+> 📸 **Bild-Platzhalter:** `graph-inline-edit.png` — SayLine-Node mit aktivem Inline-Textfeld, Cursor blinkt im Text.
+> *Setup:* SayLine-Node doppelklicken. Das Textfeld im Node-Körper ist aktiv, ein blinkender Cursor sichtbar. Roter Pfeil auf das Inline-Textfeld.
 
-* **Delete** entfernt alle.
-* **Duplicate** (`Ctrl+D`) kopiert alle.
-* **Auto-Layout** (Toolbar-Button) wendet Sugiyama-Layering an.
+## Sub-Nodes hinzufügen
 
-## Auto-Layout
+Manche Nodes haben **Sub-Nodes** (Requirements, Choices, SideEffects). Zwei Wege:
 
-Die Toolbar-Aktion **Auto-Layout** sortiert den kompletten Graph per Layered-Layout:
+**Weg 1 – Rechtsklick auf den Node:**
+Rechtsklick auf einen PlayerChoice- oder Branch-Node → *„Add Requirement"* / *„Add SideEffect"* / *„Add Choice"*.
 
-1. Gruppierung nach Graph-Tiefe (Entry = Layer 0, direkte Nachfolger = Layer 1, usw.).
-2. Reihenfolge innerhalb einer Schicht optimiert Draht-Kreuzungen.
-3. Knots werden berücksichtigt.
+**Weg 2 – Details-Panel:**
+1. Node selektieren.
+2. Details-Panel → Array `Requirements`, `Choices` oder `SideEffects`.
+3. **Add Element** klicken → Typ aus Dropdown wählen.
 
-Nicht perfekt – für Produktions-Assets empfiehlt sich ein manueller Feinschliff. Aber für *„mein Graph ist ein Chaos, bring Ordnung rein"* ist es Gold wert.
+> 📸 **Bild-Platzhalter:** `graph-subnodes.png` — PlayerChoice-Node mit zwei Choice-Sub-Nodes und einem Requirement-Sub-Node (als Pills am Node-Rand sichtbar).
+> *Setup:* PlayerChoice mit zwei Choices „Ein Freund des Königs." und „Das geht dich nichts an." plus einem HasTag-Requirement. Alle Sub-Nodes als kompakte Pills unterhalb des Node-Titels sichtbar.
 
-## Performance-Hinweise
+## Knots (Reroute-Punkte)
 
-* Große Graphen (> 200 Nodes) profitieren vom **Outline-Panel** (siehe [Outline](outline.md)) für schnelles Navigieren.
-* **Sub-Graphs** helfen, monolithische Graphen zu zerlegen.
-* **Comment-Boxen + Grouping** mindern visuelle Belastung.
+Doppelklick auf einen **bestehenden Draht** fügt einen Knot-Punkt ein. Damit kannst du lange Verbindungen sauber um andere Nodes herumführen.
 
-## Was du merken solltest
+- Knots existieren nur im Editor – der Compiler löst sie vollständig auf.
+- Knots unterstützen mehrere Eingänge und Ausgänge.
 
-* Kontext-Menü ist der schnellste Weg zu neuen Nodes.
-* Inline-Text-Edit via Doppelklick.
-* Breakpoints per Rechtsklick.
-* Knots sind Kabel-Hygiene, Compiler löst sie auf.
-* Cross-Asset-Copy-Paste funktioniert.
+## Comment-Boxes
 
-Weiter: [Speakers-Panel →](speakers-panel.md).
+Wähle mehrere Nodes aus und drücke `C` → Eine farbige Comment-Box rahmt die Auswahl ein.
+
+- **Titel** und **Farbe** im Details-Panel ändern.
+- Verschieben der Box verschiebt alle enthaltenen Nodes mit.
+- Nutze Comments für semantische Gruppen: *„Begrüßung"*, *„Konfrontation"*, *„Endings"*.
+
+> 📸 **Bild-Platzhalter:** `graph-comments-knots.png` — Graph mit zwei Comment-Boxen (grün: „Begrüßung", rot: „Konfrontation") und einem Knot-Punkt auf einem langen Draht.
+> *Setup:* Drei SayLines in grüner Comment-Box „Begrüßung", zwei weitere in roter Comment-Box „Konfrontation". Verbindungsdraht zwischen den Boxen mit einem Knot oben herumgeführt.
+
+## Copy / Paste (auch Cross-Asset)
+
+| Shortcut | Wirkung |
+| --- | --- |
+| `Ctrl+C` | Selektierte Nodes kopieren |
+| `Ctrl+X` | Ausschneiden |
+| `Ctrl+V` | Einfügen |
+
+**Cross-Asset-Paste funktioniert:** Nodes aus einem Dialog-Asset in ein anderes einfügen. Verbindungen innerhalb der kopierten Auswahl bleiben erhalten, alle Nodes bekommen neue GUIDs.
+
+## Breakpoints im Graph setzen
+
+Rechtsklick auf einen Node → **Toggle Breakpoint** (oder `F9` bei selektiertem Node). Ein kleiner roter Punkt erscheint oben rechts am Node.
+
+Breakpoints werden für den [PIE-Debugger](debugger.md) genutzt – die Ausführung pausiert, wenn dieser Node erreicht wird.
+
+> 📸 **Bild-Platzhalter:** `graph-breakpoint.png` — Branch-Node mit rotem Breakpoint-Punkt oben rechts.
+> *Setup:* Branch-Node selektiert, F9 gedrückt. Roter Punkt deutlich sichtbar. Roter Annotationspfeil zeigt auf den Punkt mit Beschriftung „Breakpoint".
+
+Weiter: [Speakers-Panel →](speakers-panel.md)

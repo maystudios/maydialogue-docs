@@ -1,65 +1,96 @@
+---
+description: Der Skip-Button — wann er sichtbar ist, wie er auf verschiedene Eingabegeräte reagiert, und wie du ihn tauschst.
+---
+
 # Skip Button
 
-`UMayDialogueWidget_SkipButton` zeigt dem Spieler, wie er weiter advancen oder den Typewriter skippen kann.
+`UMayDialogueWidget_SkipButton` zeigt dem Spieler, wie er weiterkommen kann — durch Typewriter-Skip oder Dialog-Advance. Das Widget ist platform-aware: es zeigt automatisch den richtigen Hinweis für Tastatur, Gamepad oder Touch.
+
+> 📸 **Bild-Platzhalter:** `skip-button-ingame.png` — PIE-Viewport, laufender Dialog. Skip-Button unten rechts sichtbar: Icon (Leertaste-Symbol bei Tastatur), Text "Weiter". Roter Rahmen um den Skip-Bereich.
+> *Setup:* PIE starten, Dialog triggern (Tastatur-Input aktiv). Skip-Button unten rechts screenshotten.
+
+## Wann ist der Skip-Button sichtbar?
+
+Der Skip-Button ist während eines aktiven Dialogs immer sichtbar. Das Top-Level-Widget steuert seine Sichtbarkeit — beim Dialog-Start `ShowFrame`, beim Ende `HideFrame`.
+
+Was beim Klick passiert, entscheidet das Top-Level-Widget:
+
+```
+Klick auf SkipButton
+  → RequestAdvance() im Top-Level-Widget
+      → IsTypewriterActive()?
+          True  → SkipTypewriter()   ← Text sofort komplett zeigen
+          False → AdvanceDialogue()  ← nächste Zeile / Dialog beenden
+```
 
 ## BindWidget-Slots
 
-| Slot | Typ |
-| --- | --- |
-| `SkipClickButton` | `UButton` |
+| Name im Designer | Typ | Zweck |
+|---|---|---|
+| `SkipClickButton` | `UButton` | Der klickbare Bereich |
+| `SkipLabel` | `UTextBlock` | Platform-Hinweis (automatisch befüllt) |
 
-## Methoden
+Beide sind optional. Ohne `SkipClickButton` kann der Spieler trotzdem per Tastatur advancen (das Top-Level-Widget capturt Keys direkt).
+
+{% hint style="warning" %}
+`SkipClickButton` muss exakt so heißen — sonst bleibt der Button-Klick stumm.
+{% endhint %}
+
+## Platform-Hinweis konfigurieren
+
+In den Blueprint-Defaults deiner SkipButton-Subklasse:
+
+```ini
+KeyboardHint = "Space drücken"   ; bei Tastatur/Maus
+GamepadHint  = "A drücken"       ; bei Gamepad
+```
+
+Ruf `SetInputDevice(bool bIsGamepad)` auf, wenn sich das aktive Eingabegerät ändert. `SkipLabel` wird automatisch aktualisiert.
+
+```text
+Event On Input Device Changed (bIsGamepad)
+  → SkipButton → SetInputDevice(bIsGamepad)
+```
+
+Für den aktuellen Text: `GetSkipHintText()` gibt den aktiven Hinweis zurück.
+
+## Blueprint Event
 
 ```cpp
-UFUNCTION(BlueprintCallable)
-void RequestSkip();
-
-UPROPERTY(BlueprintAssignable)
-FOnSkip OnSkip;
-
-UFUNCTION(BlueprintImplementableEvent)
-void OnSkipRequested();
+// Feuert wenn RequestSkip() aufgerufen wird. Für eigene Animationen/Sounds.
+void OnSkipRequested()
 ```
 
-## Verhalten
+```text
+Event On Skip Requested
+  → Play Sound (UI_Click)
+  → Play Animation "ButtonPulse"
+```
 
-1. Player klickt den Button (oder drückt Advance-Input, den das Parent-Widget selbst capturet).
-2. `RequestSkip()` feuert `OnSkip`.
-3. Parent-Widget bindet `OnSkip` → ruft `Advance` auf Instance oder Participant.
+> 📸 **Bild-Platzhalter:** `skip-button-event-graph.png` — Blueprint-Graph von WBP_MySkipButton. Event "On Skip Requested" → Play Sound + Play Animation. Daneben: Blueprint-Defaults-Panel mit KeyboardHint "Space drücken" und GamepadHint "A drücken" sichtbar.
+> *Setup:* WBP_MySkipButton → Event Graph + Blueprint-Defaults screenshotten.
 
-## Input-Mapping
-
-Der Skip-Button reagiert standardmäßig auf:
-
-* **Maus-Klick** auf den Button.
-* **Space**, **Enter**, **Gamepad-A** (falls im Parent-Widget gemapped).
-
-Das Parent-Widget capturet Key-Events und leitet sie an `RequestSkip()` weiter.
-
-## Typisches Design-Pattern
+## Typisches Layout
 
 ```
-[WBP_SkipButton]
+WBP_SkipButton
 └── Overlay
-    ├── Background (dimmed corner)
-    ├── Icon (Button-Symbol, z.B. Xbox-A / Space)
-    └── Text ("Weiter" / "Continue" / "Skip")
+    ├── Background (abgedunkelte Ecke)
+    ├── Icon-Image  (Plattform-abhängig: Space / Ⓐ / Touch-Symbol)
+    └── SkipLabel   (TextBlock, Name: "SkipLabel")
 ```
 
-Die Buttons/Icons können je nach Platform umgeschaltet werden (Input-Method-Hook).
+> 📸 **Bild-Platzhalter:** `skip-button-umg-designer.png` — UMG-Designer von WBP_MySkipButton. Hierarchy: Overlay → Image (Background) + Image (Icon) + TextBlock (Name "SkipLabel"). Viewport-Preview zeigt das fertige Layout.
+> *Setup:* WBP_MySkipButton im UMG-Designer öffnen, Hierarchy und Viewport-Preview screenshotten.
 
-## Platform-Hinweise
+## Eigenen Skip-Button bauen
 
-Ein häufiger Wunsch: die Anzeige ändert sich je nach Input-Device:
+**Schritt 1** — Blueprint-Subklasse: Parent `MayDialogueWidget_SkipButton`, Name z.B. `WBP_MySkipButton`.
 
-```
-Event OnInputDeviceChanged:
-  if Keyboard: show "Space"
-  if Gamepad:  show "Ⓐ"
-  if Touch:    show "Tippen zum Fortfahren"
-```
+**Schritt 2** — UMG-Designer: `Button` (Name: `SkipClickButton`), `TextBlock` (Name: `SkipLabel`), plus eigene Icons und Hintergrund.
 
-## Anmerkungen
+**Schritt 3** — `KeyboardHint` und `GamepadHint` in den Blueprint-Defaults setzen.
 
-* Der Skip-Button ist rein UI – er drückt `RequestAdvance` im Parent-Widget, das prüft ob Typewriter-Skip oder Dialog-Advance dran ist.
-* Wenn kein SkipButton-Widget im Parent gebunden ist, kann der Spieler trotzdem advancen (Parent capturet Keyboard direkt).
+**Schritt 4** — Optional: `On Skip Requested` für Sounds oder Animations-Feedback implementieren.
+
+**Schritt 5** — In deinem DialogFrame das `SkipWidget`-Child durch `WBP_MySkipButton` ersetzen.

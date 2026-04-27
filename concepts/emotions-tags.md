@@ -1,151 +1,178 @@
-# Emotionen & Tag-Container
+---
+description: Emotion-Tags an SayLines setzen und was UI, Audio und Animation damit machen.
+---
 
-MayDialogue nutzt **GameplayTagContainer** statt einfacher Enum-Felder, um Emotionen, Intensitäten, Szenen-Kontexte und Stil-Marker zu modellieren. Dieses Kapitel zeigt, warum – und wie du Tags optimal einsetzt.
+# Emotionen & Tags
 
-## Das Datenmodell
+MayDialogue nutzt **GameplayTag-Container** statt einfacher Enum-Felder, um Emotionen, Intensitäten und Szenen-Kontext an Sprechzeilen zu markieren. Dieses Kapitel zeigt, wie du Tags setzt und wie UI, Audio und Animation darauf reagieren.
 
-Jeder SayLine-Node trägt ein `FGameplayTagContainer EmotionTags`. Beispiele für sinnvolle Tag-Hierarchien:
+## Was sind Emotion-Tags?
 
-```
+Jeder SayLine-Node trägt ein `EmotionTags`-Feld — einen `FGameplayTagContainer`, in den du beliebig viele Tags einträgst. Diese Tags sind **kein Enum** — sie haben eine Hierarchie und können kombiniert werden.
+
+Beispiel-Tags:
+
+```text
 Dialogue.Emotion.Scared
 Dialogue.Emotion.Angry
 Dialogue.Emotion.Whisper
 Dialogue.Intensity.Low
 Dialogue.Intensity.High
-Dialogue.Scene.Kitchen
 Dialogue.Scene.CellarWithMonster
 Dialogue.Style.InnerMonologue
 ```
 
-Ein SayLine kann **mehrere** Tags gleichzeitig tragen:
+Eine SayLine kann mehrere Tags gleichzeitig tragen:
 
+```text
+Tags: { Dialogue.Emotion.Scared, Dialogue.Intensity.High, Dialogue.Scene.CellarWithMonster }
 ```
-Tags: {
-  Dialogue.Emotion.Scared,
-  Dialogue.Intensity.High,
-  Dialogue.Scene.CellarWithMonster
-}
-```
+
+> 📸 **Bild-Platzhalter:** `sayline-emotion-tags-details.png` — Details-Panel einer SayLine mit gesetzten EmotionTags.
+> *Setup:* SayLine-Node im Graph ausgewählt. Details-Panel rechts zeigt unter „Emotion Tags": drei Einträge: `Dialogue.Emotion.Scared`, `Dialogue.Intensity.High`, `Dialogue.Scene.CellarWithMonster`. Daneben im Graph-Node: die drei Tags als blaue Chips unter dem Inline-Text sichtbar.
 
 ## Warum Tag-Container statt Enum?
 
 | Aspekt | Tag-Container | Einfaches Enum |
 | --- | --- | --- |
-| Mehrere Werte gleichzeitig | ✅ | ❌ |
-| Hierarchisch (Parent-Match) | ✅ | ❌ |
-| Nachträglich erweiterbar | ✅ | ❌ (Schema-Change) |
-| Auto-Complete im Editor | ✅ | ✅ |
-| Cross-Projekt-Recycling | ✅ | ❌ |
+| Mehrere Werte gleichzeitig | Ja | Nein |
+| Hierarchisch matchbar | Ja | Nein |
+| Nachträglich erweiterbar | Ja, ohne Schema-Änderung | Nein |
+| Auto-Complete im Editor | Ja | Ja |
 
-Der wichtigste Vorteil ist **Hierarchie-Matching**. Ein UI-Widget kann einstellen: *„Zeige rote Umrandung, wenn die aktuelle SayLine irgendein `Dialogue.Emotion`-Tag trägt"* – ohne jeden einzelnen Emotion-Tag zu kennen:
+Der wichtigste Vorteil ist **Hierarchie-Matching**. Ein Widget kann prüfen: „Hat diese SayLine irgendeinen Emotion-Tag?" — ohne jeden einzelnen Tag zu kennen:
 
 ```cpp
 if (Message.EmotionTags.HasTag(FGameplayTag::RequestGameplayTag("Dialogue.Emotion")))
 {
-    // Vereinfacht: irgendeine Emotion ist gesetzt
+    // Irgendeinen Emotions-Tag gefunden — zum Beispiel für Portrait-Wechsel
 }
 ```
 
-Das ist robust gegen neue Tags – eine später hinzugefügte `Dialogue.Emotion.Guilty` matcht automatisch.
+Eine neu hinzugefügte `Dialogue.Emotion.Guilty` matcht automatisch, ohne Code-Änderung.
 
-## Wer wertet die Tags aus?
+## Tags an einer SayLine setzen
 
-**UI, Audio und Animation** sind die typischen Abnehmer:
+**Im Graph:**
 
-### UI
+> 📸 **Bild-Platzhalter:** `sayline-add-emotion-tag.png` — Emotion-Tag zu einer SayLine hinzufügen.
+> *Setup:* SayLine-Node im Graph ausgewählt. Details-Panel, Feld `EmotionTags`, `+`-Button angeklickt. Dropdown mit Tag-Picker öffnet sich. Eingetragen: `Dialogue.Emotion.Scared`. Der Tag erscheint danach als blauer Chip im Node-Body.
 
-Das Speaker-Widget erhält `Message.EmotionTags` bei jedem Speaker-Change. Du kannst im Blueprint-Event `OnSpeakerChanged` eine Portrait-Variante auswählen:
+Tags können direkt im Graph-Node als farbige Chips gelesen werden — ohne Details-Panel zu öffnen.
 
-```
-if Tags contain "Dialogue.Emotion.Scared":
-    set Portrait Image to P_Guard_Scared
-elif Tags contain "Dialogue.Emotion.Angry":
-    set Portrait Image to P_Guard_Angry
-else:
-    set Portrait Image to P_Guard_Neutral
-```
+## Wer reagiert auf Tags?
 
-### Audio
+### UI: Portrait-Varianten
 
-Das Babel-System könnte Pitch-Shifts oder SoundClass-Varianten je nach Intensity-Tag anwenden. Oder ein externes Audio-System hört auf `OnMessageReceived` und modifiziert den Mixer.
+Das Widget erhält `Message.EmotionTags` bei jeder neuen SayLine. Im Blueprint-Event `OnMessageReceived` kannst du das Portrait wechseln:
 
-### Animation
-
-Ein Face-Blend-Controller hört auf Emotion-Tags und morpht die Gesichts-Shapes entsprechend. Ohne dass der Dialog-Node eine direkte Animation triggern muss.
-
-## Tag-Kategorien im Projekt
-
-Empfehlung für deine Tag-Taxonomie (beliebig anpassbar):
-
-| Kategorie | Zweck | Beispiele |
-| --- | --- | --- |
-| `Dialogue.Emotion.*` | Grundgefühl | Calm, Scared, Angry, Sad, Happy, Whisper |
-| `Dialogue.Intensity.*` | Stärke | Low, Medium, High |
-| `Dialogue.Scene.*` | Räumlicher Kontext | Kitchen, Office, Graveyard |
-| `Dialogue.Style.*` | Erzählstil | InnerMonologue, Narrator, Shout |
-| `Dialogue.Mood.*` | Beziehungs-Ton | Friendly, Neutral, Hostile |
-
-## Tag-Definitionen registrieren
-
-Tags können auf zwei Wegen definiert werden:
-
-1. **Per INI-File** — `Config/Tags/DialogueTags.ini` mit `+GameplayTagList=(Tag="Dialogue.Emotion.Scared")`.
-2. **Nativ per C++** — in einer `FNativeGameplayTag` (siehe `VHSGameplayTags.h` als Projekt-Beispiel).
-
-Native Tags haben den Vorteil, dass sie typisierte Referenzen im Code erlauben:
+> 📸 **Bild-Platzhalter:** `bp-portrait-switch-by-tag.png` — Blueprint-Graph im Widget: Portrait anhand von Emotion-Tags wechseln.
+> *Setup:* Widget-Blueprint, Event `On Message Received`. `Message.EmotionTags` → `HasTag (Dialogue.Emotion.Scared)` → Branch. True-Zweig: `Set Brush from Texture (TX_Guard_Scared)`. False-Zweig: weiterer Branch mit `HasTag (Dialogue.Emotion.Angry)` → `TX_Guard_Angry` / `TX_Guard_Neutral`. Alle Nodes beschriftet, Pins sichtbar.
 
 ```cpp
-// Header
-UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Dialogue_Emotion_Scared);
-
-// Cpp
-UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Dialogue_Emotion_Scared, "Dialogue.Emotion.Scared", "NPC ist erschrocken.");
-```
-
-## Tags in Requirements / SideEffects
-
-Das **GAS-Modul** liefert ein `HasTag`-Requirement. Das prüft aber den **ASC-Tag-Container** des Target-Actors, **nicht** den SayLine-Emotion-Container.
-
-Wenn du Logik bauen willst, die „*reagiere, wenn die aktuelle SayLine einen Tag X trägt"* abbildet, gehst du über einen **Event-Listener** am Subsystem:
-
-```cpp
-Subsystem->OnMessageReceived.AddDynamic(this, &AMyListener::HandleMessage);
-
-void AMyListener::HandleMessage(const FMayDialogueMessage& Message)
+void UMyDialogueWidget::OnMessageReceived(const FMayDialogueMessage& Message)
 {
-    if (Message.EmotionTags.HasTag(TAG_Dialogue_Intensity_High))
-    {
-        // Spiele Jump-Scare-Audio, triggere Screen-Shake, etc.
-    }
+    if (Message.EmotionTags.HasTag(TAG_Emotion_Scared))
+        PortraitImage->SetBrushFromTexture(TX_Guard_Scared);
+    else if (Message.EmotionTags.HasTag(TAG_Emotion_Angry))
+        PortraitImage->SetBrushFromTexture(TX_Guard_Angry);
+    else
+        PortraitImage->SetBrushFromTexture(TX_Guard_Neutral);
 }
 ```
+
+### Audio: Intensität und Stimmung
+
+Ein Audio-Manager hört auf `OnMessageReceived` und passt den Mixer oder das Babel-Profil an:
+
+```cpp
+void UAudioManager::HandleMessage(const FMayDialogueMessage& Message)
+{
+    if (Message.EmotionTags.HasTag(TAG_Intensity_High))
+        SetMixerSnapshot("DialogueTense");
+    else
+        SetMixerSnapshot("DialogueCalm");
+}
+```
+
+### Animation: Gesichtsblending
+
+Ein Face-Blend-Controller kann Morph-Targets anhand der Emotion-Tags steuern — ohne dass der Dialog-Node eine direkte Animations-Abhängigkeit hat. Der Controller hört auf `OnMessageReceived` und blended unabhängig vom Dialog.
+
+> 📸 **Bild-Platzhalter:** `ingame-emotion-portrait.png` — In-Game-Dialog mit gewechseltem Portrait.
+> *Setup:* PIE-Modus, aktiver Dialog. Das Widget zeigt das ängstliche Guard-Portrait (TX_Guard_Scared) mit rotem Tinting. Darunter der Text „D-da ist... etwas im Keller." (Typewriter läuft). Keine Choices sichtbar. Hintergrund: Keller-Level.
 
 ## Tags auf Choices
 
-Zusätzlich zu SayLine-EmotionTags können **Choices** ihre eigenen Tags tragen (`ChoiceTags`):
+Choices können zusätzlich eigene `ChoiceTags` tragen:
 
-```
-Choice 1: "Ich kenne das Passwort."
+```text
+Choice 0: "Ich kenne das Passwort."
   Tags: { Dialogue.Choice.Assertive, Dialogue.Choice.Secret }
 
-Choice 2: "Hallo."
+Choice 1: "Hallo."
   Tags: { Dialogue.Choice.Friendly }
 ```
 
-Das **Achievement-System** oder ein **Analytics-Logger** kann auf `OnChoiceMade` hören und die Tags der gewählten Choice auswerten:
+`OnChoiceMade` übergibt die Tags der gewählten Choice — nützlich für Achievements oder Analytics:
 
 ```cpp
-if (Choice.ChoiceTags.HasTag(TAG_Dialogue_Choice_Assertive))
+void AMyTracker::OnChoiceMade(int32 Index, const FMayDialogueChoiceEntry& Choice)
 {
-    Achievements->Grant("AssertivePlayer");
+    if (Choice.ChoiceTags.HasTag(TAG_Choice_Assertive))
+        Achievements->Grant("AssertivePlayer");
 }
 ```
 
-## Zusammengefasst
+## Eigene Tag-Taxonomie anlegen
 
-* Tag-Container statt Enum – hierarchisch, mehrfach, erweiterbar.
-* **EmotionTags** auf SayLines, **ChoiceTags** auf Choices.
-* UI / Audio / Animation werten Tags als Hooks aus.
-* Tag-Subscription per `OnMessageReceived` / `OnChoiceMade`.
+Tags werden per INI oder nativ in C++ registriert.
 
-Weiter: das Erbe von Epic — [Verhältnis zu CommonConversation](common-conversation.md).
+**Per INI** (`Config/Tags/DialogueTags.ini`):
+
+```ini
+[/Script/GameplayTags.GameplayTagsList]
++GameplayTagList=(Tag="Dialogue.Emotion.Scared",DevComment="NPC ist verängstigt.")
++GameplayTagList=(Tag="Dialogue.Intensity.High",DevComment="Intensive Szene.")
+```
+
+**Nativ (C++):**
+
+```cpp
+// Header
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Dialogue_Emotion_Scared)
+
+// Cpp
+UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Dialogue_Emotion_Scared,
+    "Dialogue.Emotion.Scared", "NPC ist verängstigt.")
+```
+
+Native Tags haben den Vorteil typisierter Referenzen im Code — kein String-Typo möglich.
+
+## Empfohlene Tag-Kategorien
+
+| Kategorie | Zweck | Beispiele |
+| --- | --- | --- |
+| `Dialogue.Emotion.*` | Grundgefühl des Sprechers | Calm, Scared, Angry, Sad, Happy, Whisper |
+| `Dialogue.Intensity.*` | Stärke der Emotion | Low, Medium, High |
+| `Dialogue.Scene.*` | Räumlicher Kontext | Kitchen, Office, Graveyard, CellarWithMonster |
+| `Dialogue.Style.*` | Erzählstil | InnerMonologue, Narrator, Shout |
+| `Dialogue.Mood.*` | Beziehungston | Friendly, Neutral, Hostile |
+| `Dialogue.Choice.*` | Markierung gewählter Antworten | Assertive, Friendly, Aggressive |
+
+{% hint style="info" %}
+**Eigene Tag-Kategorien** lassen sich jederzeit ergänzen — einfach im INI oder per `UE_DEFINE_GAMEPLAY_TAG_COMMENT` registrieren. Vorhandener Code matcht automatisch über Hierarchie, ohne Änderungen.
+{% endhint %}
+
+> 📸 **Bild-Platzhalter:** `tag-picker-in-editor.png` — Tag-Picker im Dialog-Asset mit eigenen Dialogue-Tags.
+> *Setup:* SayLine-Node ausgewählt, Tag-Picker-Dropdown für `EmotionTags` geöffnet. Sichtbar: Baum-Struktur mit `Dialogue > Emotion` aufgeklappt: `Calm`, `Scared`, `Angry`, `Sad`, `Whisper`. Darunter `Dialogue > Intensity`: `Low`, `Medium`, `High`. Ein Tag ist gerade per Hover markiert.
+
+## Zusammenfassung
+
+- Emotion-Tags sind `GameplayTagContainer` — hierarchisch, kombinierbar, erweiterbar ohne Schema-Änderung.
+- Tags setzen: im Details-Panel der SayLine oder direkt per Doppelklick.
+- Abnehmer: UI (Portrait-Varianten), Audio (Mixer/Babel), Animation (Face-Blending).
+- Choice-Tags auf `FMayDialogueChoiceEntry` für Achievements und Analytics.
+- `OnMessageReceived` und `OnChoiceMade` sind die Hooks für externe Systeme.
+
+Ende der Kern-Konzepte. Weiter mit dem **Editor**: [Asset-Editor](../editor/README.md).

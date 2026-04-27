@@ -1,85 +1,161 @@
+---
+description: Die sechs Core-Tags für Rich-Text im Dialog — pause, speed, shake, wave, color und b — mit Beispielen und Bild-Effekten.
+---
+
 # Rich-Text-Tags
 
-MayDialogue liefert **vier Rich-Text-Decorators**, die Inline-Formatierung im Dialog-Text erlauben. Sie arbeiten mit UE's `URichTextBlock`.
+MayDialogue unterstützt sechs Inline-Tags direkt im Dialog-Text. Zwei davon steuern den Typewriter-Ablauf, vier erzeugen visuelle Effekte.
 
-## Die vier Decorators
+## Übersicht
 
-| Klasse | Tag | Wirkung |
-| --- | --- | --- |
-| `UMayDialogueShakeDecorator` | `<shake>Text</shake>` | Per-Zeichen zufälliges Offset-Jitter. |
-| `UMayDialogueWaveDecorator` | `<wave>Text</wave>` | Sinusförmiges Auf-und-Ab der Zeichen. |
-| `UMayDialogueColorDecorator` | `<color=#RRGGBB>Text</color>` oder `<color=red>Text</color>` | Farbwechsel. |
-| `UMayDialogueBoldDecorator` | `<b>Text</b>` | Fett. |
+| Tag | Typ | Wirkung |
+|---|---|---|
+| `<pause=X>` | Typewriter-Control | Pause für X Sekunden |
+| `<speed=X>` | Typewriter-Control | Geschwindigkeits-Multiplikator |
+| `<shake>...</shake>` | Visuell | Per-Zeichen-Zitter-Effekt |
+| `<wave>...</wave>` | Visuell | Sinusförmige Auf-und-Ab-Bewegung |
+| `<color=...>...</color>` | Visuell | Farb-Override |
+| `<b>...</b>` | Visuell | Fettschrift |
 
-Alle Decorators sind **funktional und einsatzbereit**.
+Control-Tags (`pause`, `speed`) werden vom Parser konsumiert und erscheinen nicht im Text. Visuelle Tags bleiben im Text und werden vom `URichTextBlock` gerendert.
 
-## Registrierung
+---
 
-Im Designer deines Text-Widgets: auf den `URichTextBlock` → **DecoratorClasses** → **Add Element** → die Decorator-Klassen hinzufügen.
+## `<pause=X>`
 
-Für das **Slate-Debug-Widget** sind sie bereits registriert – das nutzt die Factory-Funktionen (`MakeBoldDecorator()`, `MakeColorDecorator()`, etc.) direkt.
+Pausiert den Typewriter für X Sekunden. Nützlich für dramatische Pausen.
 
-## Beispiel
-
+```text
+Er öffnete die Tür.<pause=1.5> Dahinter: nichts.
 ```
+
+> 📸 **Bild-Platzhalter:** `tag-pause-effect.png` — Zwei PIE-Viewport-Screenshots nebeneinander. Links: Text endet nach "Tür." — Typewriter pausiert, kein weiteres Zeichen. Rechts: nach 1,5 s erscheint " Dahinter: nichts." vollständig. Zeitstempel in der Ecke.
+> *Setup:* Dialog mit diesem Beispiel-Text starten, Screenshots direkt vor und nach der Pause machen.
+
+---
+
+## `<speed=X>`
+
+Multipliziert die aktuelle Typewriter-Geschwindigkeit ab dieser Stelle. `<speed=1.0>` setzt auf den Default zurück.
+
+```text
+Normal.<speed=0.3> Gaaaaaanz laaangsaaaam...<speed=1.0> Und wieder normal.
+```
+
+> 📸 **Bild-Platzhalter:** `tag-speed-effect.png` — PIE-Viewport während des langsamen Abschnitts. Text "Gaaaaaanz laaangsaaaam..." teilweise enthüllt, sichtbar dass der Typewriter sehr langsam läuft. Vergleichs-Screenshot daneben mit normalem Tempo.
+> *Setup:* Dialog mit `<speed=0.3>` triggern, Screenshot während des langsamen Abschnitts.
+
+---
+
+## `<shake>...</shake>`
+
+Per-Zeichen-Zitter-Effekt. Jedes Zeichen bewegt sich zufällig um wenige Pixel. Effekt läuft kontinuierlich.
+
+```text
+Die Hand<pause=0.5> <shake>zitterte.</shake>
+```
+
+> 📸 **Bild-Platzhalter:** `tag-shake-effect.png` — PIE-Viewport, Dialog aktiv. Text "zitterte." ist sichtbar mit per-Zeichen-Shake (Zeichen leicht versetzt, unregelmäßig). Daneben normaler Text zum Vergleich.
+> *Setup:* Dialog mit `<shake>zitterte.</shake>` starten, Screenshot im PIE.
+
+### Konfiguration im Designer
+
+Der `UMayDialogueShakeDecorator` hat einstellbare Properties:
+
+```cpp
+float ShakeIntensity  = 2.0f;  // Max. Pixel-Offset
+float ShakeFrequency  = 15.0f; // Zitter-Geschwindigkeit (Mal/Sekunde)
+```
+
+Im UMG-Designer → `DialogueRichText` → Decorator Classes → `UMayDialogueShakeDecorator` auswählen → Details-Panel.
+
+---
+
+## `<wave>...</wave>`
+
+Sinusförmige Auf-und-Ab-Bewegung der Zeichen. Wirkt weich und fließend.
+
+```text
+<wave>Das Wasser rauschte.</wave>
+```
+
+> 📸 **Bild-Platzhalter:** `tag-wave-effect.png` — PIE-Viewport, Dialog aktiv. Text "Das Wasser rauschte." mit Wave-Effekt: Zeichen auf leicht unterschiedlichen Y-Positionen, Sinus-Form sichtbar. Screenshot muss während der Animation gemacht werden.
+> *Setup:* Dialog mit `<wave>Das Wasser rauschte.</wave>` starten, Screenshot im PIE (nicht pausiert).
+
+### Konfiguration im Designer
+
+```cpp
+float WaveAmplitude  = 3.0f;   // Max. vertikales Pixel-Offset
+float WaveSpeed      = 3.0f;   // Zyklen pro Sekunde
+float WaveCharOffset = 0.5f;   // Phasen-Versatz pro Zeichen (in Radiant)
+```
+
+---
+
+## `<color=...>...</color>`
+
+Färbt den eingeschlossenen Text in einer anderen Farbe.
+
+```text
 Hallo <color=#FF4444>Welt</color>!
-Dieser Text <shake>zittert</shake>,
-und dieser <wave>welt sanft</wave>.
-<b>Wichtig</b>: Das alles ist gleichzeitig möglich.
+Achtung: <color=red>Gefahr!</color>
 ```
 
-Ergebnis:
+### Unterstützte Formate
 
-* *„Hallo"* in Standard-Farbe.
-* *„Welt"* in Rot.
-* *„zittert"* mit Per-Character-Shake.
-* *„welt sanft"* mit Wellen-Animation.
-* *„Wichtig"* in Fett.
+| Format | Beispiel | Wirkung |
+|---|---|---|
+| Hex mit `#` | `<color=#FF0000>` | Rot |
+| Hex ohne `#` | `<color=FF0000>` | Ebenfalls Rot |
+| Named Color | `<color=red>` | Basis-Farbnamen |
 
-## Color-Syntax
+Unterstützte Named Colors: `red`, `green`, `blue`, `yellow`, `white`, `black`, `cyan`, `magenta`, `orange`, `gray`.
 
-| Form | Beispiel | Wirkung |
-| --- | --- | --- |
-| Hex mit `#` | `<color=#FF0000>` | Rot. |
-| Hex ohne `#` | `<color=FF0000>` | Funktioniert auch. |
-| Named Color | `<color=red>` | Basis-Farbnamen (`red`, `green`, `blue`, `yellow`, `white`, `black` etc.) |
+> 📸 **Bild-Platzhalter:** `tag-color-effect.png` — PIE-Viewport, Dialog. Text "Hallo " in weißer Default-Farbe, "Welt" in leuchtendem Rot, "!" wieder weiß. Darunter: "Gefahr!" in Rot mit named color. Beide Zeilen sichtbar.
+> *Setup:* Dialog mit diesem Beispiel-Text starten, PIE-Screenshot.
 
-## Nestable
+---
 
-Decorators **verschachteln sich**:
+## `<b>...</b>`
 
+Rendert den Text in Fettschrift. Rein typografisch, keine Animation.
+
+```text
+<b>Wichtig:</b> Niemals die rote Tür öffnen.
 ```
-<color=yellow><b>Wichtig</b></color>
-```
 
-ergibt gelben Fett-Text.
+> 📸 **Bild-Platzhalter:** `tag-bold-effect.png` — PIE-Viewport, Dialog. "Wichtig:" deutlich fetter als "Niemals die rote Tür öffnen." daneben. Kontrast zwischen Bold und Normal klar sichtbar.
+> *Setup:* Dialog mit diesem Beispiel-Text starten, PIE-Screenshot.
 
-```
+---
+
+## Tags kombinieren
+
+Tags lassen sich verschachteln:
+
+```text
+<color=yellow><b>Achtung!</b></color>
 <shake><color=red>!!!</color></shake>
+Du bist tot. <pause=1.0><color=red><shake>Tot.</shake></color>
 ```
 
-ergibt rotes, zitterndes *!!!*.
+Ergebnis des letzten Beispiels: "Du bist tot." normal → Pause 1 Sekunde → "Tot." in Rot mit Shake.
 
-## Advance-Handler
+> 📸 **Bild-Platzhalter:** `tag-combined-effect.png` — PIE-Viewport, Dialog. Zeile "Du bist tot." normal weiß, dann nach Pause "Tot." in Rot mit aktivem Shake-Effekt. Screenshot muss nach der Pause gemacht werden.
+> *Setup:* Dialog mit dem Kombinations-Beispiel starten, Screenshot nach der Pause.
 
-Die Decorators rendern kontinuierlich auch **während** der Typewriter durch den Text läuft. Das heißt: Sobald die ersten Zeichen von `<shake>X</shake>` enthüllt sind, beginnt der Shake am bereits sichtbaren Teil.
+---
 
-## Vermischen mit Control-Tags
+## Decorators registrieren
 
-Control-Tags (`<pause>`, `<speed>`) und visuelle Tags können frei gemischt werden:
+Für UMG-Widgets müssen die vier visuellen Decorators am `URichTextBlock` eingetragen sein:
 
-```
-Du bist tot. <pause=1> <color=red><shake>Tot.</shake></color>
-```
+1. `DialogueRichText` im UMG-Designer auswählen.
+2. Details-Panel → **Decorator Classes** → `+`.
+3. Eintragen: `UMayDialogueShakeDecorator`, `UMayDialogueWaveDecorator`, `UMayDialogueColorDecorator`, `UMayDialogueBoldDecorator`.
 
-Der Parser konsumiert `<pause=1>`, die visuellen Tags bleiben intakt, der RichTextBlock rendert sie während des Typewriters.
+Für das Slate-Debug-Widget sind die Decorators bereits automatisch registriert.
 
-## Performance
-
-* Shake / Wave aktualisieren ihre Position im RichTextBlock-Tick. Bei sehr langen Shake-Strings kann das leicht Performance kosten – aber in praktischen Dialogen kein Problem.
-* Color und Bold sind reine Layout-Settings und kostenlos.
-
-## Einschränkungen & Roadmap
-
-* Keine Animations-Tags (`<fade>`, `<flash>`, …). Wenn du das brauchst: eigener Decorator als Blueprint oder C++.
-* Keine Audio-Tags (`<sfx>`). Für Inline-Sounds: `Fire Event` oder `Play Sound`-Action-Node im Graph.
+{% hint style="info" %}
+**Eigene Decorators:** Erstelle eine Blueprint- oder C++-Subklasse von `URichTextBlockDecorator`. Implementiere `CreateDecorator` und trage sie in die Decorator-Liste deines RichTextBlocks ein. Eigene Tags (z.B. `<flash>`, `<fade>`) sind damit möglich.
+{% endhint %}

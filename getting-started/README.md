@@ -1,29 +1,51 @@
+---
+description: In drei Schritten vom leeren Projekt zum spielbaren Dialog.
+---
+
 # Erste Schritte
 
-Dieser Abschnitt bringt dich in der kürzest-möglichen Zeit zu einem spielbaren Dialog. Du brauchst:
+MayDialogue ist ein Dialog-Plugin für Unreal Engine 5.7. Du bekommst einen visuellen Graph-Editor, eine fertige UI-Schicht, 3D-Audio mit prozeduralem Babel-Fallback, Kamerasteuerung, Typewriter-Effekte, GAS-Integration und einen In-Editor-Preview — alles in einem einzigen Plugin, ohne fremde Abhängigkeiten.
 
-* **Unreal Engine 5.7** (Binary- oder Source-Build).
-* Ein **aktives Projekt**, in das du das Plugin kopieren kannst.
-* Grundkenntnisse in Blueprint *oder* C++. Tiefe Plugin-Interna sind **nicht** nötig.
+> 📸 **Bild-Platzhalter:** `getting-started-overview.png` — Screenshot des MayDialogue-Editors mit einem geöffneten Dialog-Asset.
+> *Setup:* Asset `DA_Gate_Guardian` im Editor offen. Sichtbar: der Graph mit mehreren farbigen Nodes (Entry grün, SayLines dunkelrot/grau, PlayerChoice breit, Exit rot), das Speakers-Panel rechts mit zwei Einträgen, das Outline-Panel links mit Node-Liste. Bildunterschrift: "Der Graph ist das Dokument."
 
-## Die drei Meilensteine
+## Was du brauchst
 
-1. **Installation** – Plugin-Ordner nach `Plugins/` kopieren, Projekt neu generieren, Editor öffnen. Schritt für Schritt in [Installation](installation.md).
-2. **Quick Start** – In fünf Minuten ein NPC-Dialog im Level. Schritt für Schritt in [Quick Start](quick-start.md).
-3. **Walkthrough** – Ein vollständiger Dialog mit Branching, Variablen, GAS und Choice-Requirements. Schritt für Schritt in [Walkthrough](first-dialogue.md).
+* **Unreal Engine 5.7** (Binary- oder Source-Build)
+* Ein bestehendes Projekt (Blueprint- oder C++-Projekt)
+* Grundkenntnisse in Blueprint oder C++ — Plugin-Interna musst du nicht kennen
+
+## Die drei Schritte
+
+### 1 — Installation
+
+Plugin-Ordner ins Projekt kopieren, Projekt neu generieren, Editor öffnen. Dauert rund fünf Minuten.
+
+[→ Installation](installation.md)
+
+### 2 — Quick Start
+
+In fünf Minuten ein spielbarer NPC-Dialog im Level — ohne UMG-Setup, ohne Audio-Konfiguration, ohne Input-Handling.
+
+[→ Quick Start](quick-start.md)
+
+### 3 — Walkthrough
+
+Ein vollständiger Dialog mit Variablen, GAS-Attribut-Checks, Choice-Requirements und SideEffect-Aktionen.
+
+[→ Walkthrough](first-dialogue.md)
 
 ## Empfohlene Reihenfolge
 
-```mermaid
-flowchart LR
-    A[Installation] --> B[Quick Start]
-    B --> C[Walkthrough]
-    C --> D[Projekt-Einstellungen]
-    D --> E[Kern-Konzepte]
+```
+Installation → Quick Start → Walkthrough → Projekt-Einstellungen → Kern-Konzepte
 ```
 
-Nachdem du den Walkthrough durch hast, stöbere in den [Kern-Konzepten](../concepts/README.md), um das mentale Modell zu festigen. Anschließend kannst du dich gezielt einzelnen Kapiteln zuwenden – [UI](../ui/README.md), [Audio](../audio/README.md), [GAS](../gas/README.md) oder [Rezepte](../recipes/README.md).
+Danach kannst du dich gezielt den Themen zuwenden, die dein Projekt braucht: [UI](../ui/README.md), [Audio](../audio/README.md), [GAS](../gas/README.md) oder [Rezepte](../recipes/README.md).
+
+> 📸 **Bild-Platzhalter:** `getting-started-flow-diagram.png` — Übersichtsfoto der empfohlenen Lernpfade.
+> *Setup:* Einfache Grafik mit fünf Feldern von links nach rechts: "Installation" → "Quick Start" → "Walkthrough" → "Projekt-Einstellungen" → "Kern-Konzepte". Jedes Feld als beschriftete Box, Pfeile dazwischen.
 
 {% hint style="warning" %}
-**Binary-Installs brauchen einen Rebuild.** Sobald du C++-Klassen hinzufügst (eigene Nodes, Requirements oder SideEffects), muss dein Projekt einen C++-Code-Modul haben und rebuilt werden. Reine Blueprint-Projekte können das Plugin als Binary-Distribution verwenden, ohne selbst zu kompilieren.
+**Nur Blueprint-Projekt?** Du kannst das Plugin als Binary-Distribution nutzen, ohne selbst zu kompilieren. Sobald du eigene Nodes, Requirements oder SideEffects in C++ schreibst, braucht dein Projekt ein C++-Modul und einen Rebuild.
 {% endhint %}

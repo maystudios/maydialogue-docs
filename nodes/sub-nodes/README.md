@@ -1,29 +1,43 @@
 # Sub-Nodes
 
-Sub-Nodes sind **kompositionelle Bausteine**, die innerhalb eines Eltern-Nodes leben – nicht als eigene Box im Graph, sondern als Pill im Body.
+Sub-Nodes sind Kompositions-Bausteine, die innerhalb eines Eltern-Nodes leben — nicht als eigene Box im Graph, sondern als Pill im Node-Body. Du siehst und bearbeitest sie direkt dort, ohne in ein separates Asset wechseln zu müssen.
 
-Drei Sub-Node-Typen:
+## Die drei Sub-Node-Typen
 
-* [Requirement](requirement.md) – Bedingungscheck mit drei Ergebnissen.
-* [Choice](choice.md) – Antwort-Option auf einem PlayerChoice-Node.
-* [SideEffect](side-effect.md) – Inline-Aktion beim Betreten eines Nodes.
+| Sub-Node | Zweck | Eltern-Nodes |
+| --- | --- | --- |
+| [Requirement](requirement.md) | Bedingungscheck mit drei Ergebnissen | Alle Nodes, Branch (Condition), Choice |
+| [Choice](choice.md) | Antwort-Option auf einem PlayerChoice-Node | PlayerChoice |
+| [SideEffect](side-effect.md) | Inline-Aktion beim Betreten des Eltern-Nodes | Alle Nodes, Choice |
 
 ## Gemeinsames Konzept
 
-Alle drei sind `EditInlineNew`, BlueprintType, Blueprintable:
+Alle drei Sub-Node-Typen sind `EditInlineNew`, `BlueprintType` und `Blueprintable`:
 
-* `EditInlineNew` → sie werden im Details-Panel direkt erstellt, nicht als eigenes Asset.
-* `Blueprintable` → eigene Subklassen in Blueprint möglich. Siehe [Extension](../../extension/custom-requirements.md).
+- **`EditInlineNew`**: Du erstellst sie direkt im Details-Panel — kein separates Asset-Erstellen.
+- **`Blueprintable`**: Du kannst eigene Subklassen in Blueprint anlegen. Sie erscheinen sofort in der Auswahl-Liste.
 
-Sub-Nodes leben **als Array auf dem Eltern-Node** und werden vom Eltern-Node in passenden Momenten abgefragt bzw. ausgeführt.
+> 📸 **Bild-Platzhalter:** `subnodes-overview-pills.png` — Node-Body mit mehreren Sub-Node-Pills.
+> *Setup:* SayLine-Node auswählen. Im Node-Body sichtbar: eine Requirement-Pill (`HasTag Story.Met.Guard`) und zwei SideEffect-Pills (`AddTag Story.Greeted`, `TriggerCue GameplayCue.UI.Flash`). Details-Panel zeigt die Arrays daneben.
 
-## Hierarchie
+## Erweiterbarkeit
 
-| Wo? | Zweck |
-| --- | --- |
-| Requirements auf **Branch** | Bestimmt, ob True / False / Fallback-Pfad genommen wird. |
-| Requirements auf **Choice** | Bestimmt Availability (Passed / FailedButVisible / FailedAndHidden). |
-| Requirements auf **Node** | Bestimmt, ob der Node überhaupt ausgeführt wird (oder übersprungen). |
-| Choices auf **PlayerChoice** | Definieren die Antwort-Optionen. |
-| SideEffects auf **jedem Node** | Inline-Aktionen beim Betreten. |
-| SideEffects auf **Choice** | Werden bei SelectChoice ausgeführt. |
+{% hint style="success" %}
+**Requirement und SideEffect sind Blueprint-subclassable.** Das ist das primäre Erweiterungs-Pattern von MayDialogue:
+
+- Eigene Bedingungslogik → Blueprint-Subklasse von `UMayDialogueRequirement`.
+- Eigene Inline-Aktionen → Blueprint-Subklasse von `UMayDialogueSideEffect`.
+
+Details: [Extension → Custom Requirements](../../extension/custom-requirements.md) und [Extension → Custom SideEffects](../../extension/custom-side-effects.md).
+{% endhint %}
+
+## Hierarchie — Wo welcher Sub-Node sitzt
+
+| Position | Sub-Node | Ausführungszeitpunkt |
+| --- | --- | --- |
+| Requirements auf **Node** | Requirement | Vor Node-Ausführung — bestimmt ob Node übersprungen wird. |
+| Requirements auf **Branch (Condition)** | Requirement | Während Branch — bestimmt True/False-Pfad. |
+| Requirements auf **Choice** | Requirement | Bei Choices-Anzeige und bei Auswahl — bestimmt Availability. |
+| Choices auf **PlayerChoice** | Choice | Bei Choices-Anzeige. |
+| SideEffects auf **Node** | SideEffect | Vor `ExecuteNode` — beim Betreten. |
+| SideEffects auf **Choice** | SideEffect | Bei `SelectChoice` — wenn die Option gewählt wird. |

@@ -1,112 +1,234 @@
+---
+description: Lifecycle-Delegates von MayDialogue — wann sie feuern und wie du dich einbindest.
+---
+
 # Bridge & Lifecycle-Events
 
-Die **Bridge** ist das generische Extension-Interface, das externe Systeme (Quest, Achievements, Analytics, Debug-Tools) nutzen, um MayDialogue zu konsumieren **ohne harte Kopplung** auf das Subsystem.
+MayDialogue broadcastet an zwei Ebenen: **Instance-Delegates** für Events eines einzelnen Gesprächs und **Subsystem-Delegates** für globale "irgendein Dialog läuft"-Events.
 
-## `IMayDialogueBridge`-Interface
+## Überblick: Wann feuert was?
 
-```cpp
-class IMayDialogueBridge
-{
-    virtual UMayDialogueInstance* StartDialogueFromBridge(UMayDialogueAsset*, AActor* Instigator, AActor* Target) = 0;
-    virtual bool CanStartDialogue(UMayDialogueAsset*, AActor*, AActor*) const = 0;
-    virtual bool IsDialogueActive() const = 0;
-    virtual void AbortDialogue() = 0;
-    virtual void SelectChoice(int32 Index) = 0;
-    virtual void ForceAdvance() = 0;
+| Delegate | Ebene | Feuert wenn... |
+|---|---|---|
+| `OnDialogueStarted` | Instance | Die Instance startet, direkt vor dem ersten Node. |
+| `OnDialogueEnded` | Instance | Dialog endet — egal ob Completed, Failed oder Aborted. |
+| `OnNodeReached` | Instance | Ein Node erfolgreich ausgeführt wurde. |
+| `OnMessageReceived` | Instance | Eine SayLine eine Message an die UI liefert. |
+| `OnChoicesPresented` | Instance | Ein PlayerChoice-Node Optionen aufbaut und filtert. |
+| `OnChoiceMade` | Instance | Der Spieler (oder Code) eine Choice auswählt. |
+| `OnVariableChanged` | Instance | Eine Dialog-Variable oder Participant-Variable sich ändert. |
+| `OnDialogueEventFired` | Instance | Ein FireEvent-Node einen GameplayTag sendet. |
+| `OnAnyDialogueStarted` | Subsystem | Jedes Mal wenn irgendein Dialog startet. |
+| `OnAnyDialogueEnded` | Subsystem | Jedes Mal wenn irgendein Dialog endet. |
 
-    // Read
-    virtual UMayDialogueAsset* GetActiveDialogueAsset() const = 0;
-    virtual FGuid GetCurrentNodeGUID() const = 0;
-    virtual TArray<AActor*> GetActiveParticipants() const = 0;
-    virtual bool GetDialogueVariable(FName, EMayDialogueVariableType, FString& OutValueAsString) const = 0;
-    virtual bool GetParticipantVariable(FGameplayTag, FName, EMayDialogueVariableType, FString& OutValueAsString) const = 0;
-    virtual TArray<FMayDialogueChoiceEntry> GetPendingChoices() const = 0;
+---
 
-    // Write
-    virtual bool SetDialogueVariable(FName, EMayDialogueVariableType, const FString& ValueAsString) = 0;
-    virtual bool SetParticipantVariable(FGameplayTag, FName, EMayDialogueVariableType, const FString& ValueAsString) = 0;
-};
+## Subsystem-Delegates (global)
+
+Nutze diese wenn du auf **alle Dialoge** reagieren willst — unabhängig davon welcher Asset oder NPC beteiligt ist.
+
+### OnAnyDialogueStarted / OnAnyDialogueEnded
+
+**Typische Use-Cases:**
+- Audio-Ducking: Musik leiser schalten wenn ein Dialog läuft
+- Input-Mode global auf GameAndUI umschalten
+- Analytics: jeden Dialogstart loggen
+
+#### Blueprint
+
+> 📸 **Bild-Platzhalter:** `subsystem-delegate-bind-bp.png` — Subsystem-Delegate-Binding im BeginPlay.
+> *Setup:* GameMode- oder GameInstance-Blueprint. `Event BeginPlay` → `Get MayDialogue Subsystem` → Verbindung zu `Bind Event to On Any Dialogue Started` (Custom Event: `On Any Dialogue Started`, Input: `Instance` UMayDialogueInstance) UND `Bind Event to On Any Dialogue Ended` (Custom Event: `On Any Dialogue Ended`, Input: `Instance`). Beide Custom Events haben einen einfachen `Print String`-Node als Platzhalter.
+
+```text
+[Event BeginPlay]
+    │
+    ▼
+[Get MayDialogue Subsystem]
+    ├─→ [Bind Event to On Any Dialogue Started] ──► Custom Event: Handle Start
+    └─→ [Bind Event to On Any Dialogue Ended]   ──► Custom Event: Handle End
 ```
 
-**Das Subsystem implementiert dieses Interface vollständig.** Externe Systeme können also entweder direkt auf das Interface casten oder auf den Subsystem-Typ zeigen – beide Wege funktionieren.
-
-### Warum ein Interface?
-
-Damit ein externes System (z.B. MayFlowGraph oder ein eigenes Quest-System) **nicht** einen Hard-Dependency auf das `MayDialogue`-Modul braucht. Es importiert nur das `MayDialogueBridge.h`-Header und holt sich zur Laufzeit ein `IMayDialogueBridge*`-Objekt.
-
-## Lifecycle-Delegates
-
-Alle Delegates sitzen auf **`UMayDialogueInstance`** (Instanz-weite Events) und teilweise auf **`UMayDialogueSubsystem`** (globale Events).
-
-### Auf der Instance
-
-| Delegate | Wann | Parameter |
-| --- | --- | --- |
-| `OnDialogueStarted` | Bei StartDialogue | Asset, Instigator, Target, StartTime |
-| `OnDialogueEnded` | Bei End/Abort | Asset, ExitStatus, Duration, Instigator, Target |
-| `OnNodeReached` | Nach Node-Execution | NodeGuid, Node* |
-| `OnMessageReceived` | Nach SayLine-Advance | `const FMayDialogueMessage&` |
-| `OnChoicesPresented` | Wenn PlayerChoice aktiv wird | Array |
-| `OnChoiceMade` | Nach SelectChoice | int32 ChoiceIndex |
-| `OnVariableChanged` | Variable-Mutation | Name, Scope, Typ, NewValueAsString |
-| `OnDialogueEventFired` | Bei FireEvent-Node | EventTag |
-
-### Auf dem Subsystem
-
-| Delegate | Wann | Parameter |
-| --- | --- | --- |
-| `OnAnyDialogueStarted` | Jedes Mal wenn irgendein Dialog startet | Instance |
-| `OnAnyDialogueEnded` | Jedes Mal wenn irgendein Dialog endet | Instance |
-
-Subsystem-Delegates sind für **globale Listener** (z.B. Audio-Ducking: *„immer wenn ein Dialog läuft, ducke die Background-Music"*).
-
-Instance-Delegates sind für **spezifische Dialog-Listener** (z.B. Quest-System: *„wenn DIESER Dialog endet, prüfe den ExitStatus"*).
-
-## Beispiel: Quest-System hört auf Dialog-Ende
+#### C++
 
 ```cpp
-void AQuestDirector::OnWorldBeginPlay(UWorld& World)
+void AQuestDirector::BeginPlay()
 {
-    Super::OnWorldBeginPlay(World);
-    if (auto* Sub = UMayDialogueSubsystem::Get(&World))
+    Super::BeginPlay();
+    if (auto* Sub = GetWorld()->GetSubsystem<UMayDialogueSubsystem>())
     {
-        Sub->OnAnyDialogueStarted.AddDynamic(this, &AQuestDirector::HandleDialogStart);
-        Sub->OnAnyDialogueEnded.AddDynamic(this, &AQuestDirector::HandleDialogEnd);
+        Sub->OnAnyDialogueStarted.AddDynamic(this, &AQuestDirector::HandleDialogueStart);
+        Sub->OnAnyDialogueEnded.AddDynamic(this, &AQuestDirector::HandleDialogueEnd);
     }
 }
 
-void AQuestDirector::HandleDialogEnd(UMayDialogueInstance* Instance)
+void AQuestDirector::HandleDialogueEnd(UMayDialogueInstance* Instance)
 {
     if (!Instance) return;
-
-    // Welcher Dialog war das, welchen Status hatte er?
     UMayDialogueAsset* Asset = Instance->GetDialogueAsset();
-    EMayDialogueExitStatus Status = Instance->GetExitStatus();
+    EMayDialogueExitStatus Status = Instance->CurrentExitStatus;
 
     if (Asset == QuestDialogRef && Status == EMayDialogueExitStatus::Completed)
     {
-        CompleteQuestStep();
+        AdvanceQuestStep();
     }
 }
 ```
 
-## Beispiel: Analytics-Logger
+---
+
+## Instance-Delegates (pro Gespräch)
+
+Binde dich an die Instance unmittelbar nach `StartDialogue`. Die Delegates leben so lange wie die Instance.
+
+### OnDialogueStarted
+
+Feuert direkt nachdem die Instance erzeugt wurde, vor dem ersten Node.
+
+**Use-Cases:** Player-Bewegung einfrieren, Quest-Log-Eintrag anlegen, Kamera-Setup.
 
 ```cpp
-void UAnalyticsLogger::Start(UMayDialogueInstance* Instance)
+UMayDialogueInstance* Inst = Sub->StartDialogue(Asset, Player, NPC);
+if (Inst)
 {
-    Instance->OnChoiceMade.AddDynamic(this, &ThisClass::HandleChoice);
-}
-
-void UAnalyticsLogger::HandleChoice(int32 ChoiceIndex)
-{
-    // Hole die Tags der gewählten Choice
-    // und schicke sie ans Analytics-Backend
+    Inst->OnDialogueStarted.AddDynamic(this, &AMyPawn::HandleStart);
 }
 ```
 
-## Anmerkungen
+---
 
-* **Alle Delegates sind Multicast** – beliebig viele Listener parallel.
-* **Instance-Delegates werden mit der Instance zerstört.** Wenn du einen Listener brauchst, der mehrere Dialoge beobachtet, nutze die Subsystem-Delegates und hole dir die Instance aus deren Parametern.
-* Die Bridge-Write-API ist **Live-Modifikation** – SetDialogueVariable während eines aktiven Dialogs triggert sofort einen `OnVariableChanged`-Event und kann Choice-Availabilities ändern.
+### OnDialogueEnded
+
+Feuert am Ende — enthält `ExitStatus` (`Completed`, `Failed`, `Aborted`) und die Laufzeit-Dauer.
+
+**Use-Cases:** Player-Bewegung freigeben, Quest-Abschluss prüfen, Follow-up starten.
+
+> 📸 **Bild-Platzhalter:** `instance-ended-delegate-bp.png` — BP-Graph: Instance von StartDialogue → Bind Event to On Dialogue Ended → Custom Event mit ExitStatus-Branch.
+> *Setup:* NPC-Blueprint oder Quest-Director. `Start Dialogue` Return Value → `Bind Event to On Dialogue Ended` (Custom Event: `On Dialogue Ended`, Params: `Asset`, `ExitStatus`, `Duration`, `Instigator`, `Target`). Custom Event hat einen `Switch on EMayDialogueExitStatus`-Node. `Completed`-Zweig triggert `Complete Quest Step`.
+
+```text
+[Start Dialogue] → Return Value
+    │
+    ▼
+[Bind Event to On Dialogue Ended]  ──► Custom Event: Handle Dialogue Ended
+                                            │ ExitStatus (Enum)
+                                            ▼
+                                       [Switch on ExitStatus]
+                                         ├─ Completed → Quest abschließen
+                                         ├─ Failed    → Retry-Logik
+                                         └─ Aborted   → Aufräumen
+```
+
+---
+
+### OnMessageReceived
+
+Feuert wenn eine SayLine eine Nachricht aufbaut. Das UI hängt sich hier ein.
+
+**Use-Cases:** Eigenes UI-Widget bauen, Logging, Untertitel-System.
+
+```cpp
+Inst->OnMessageReceived.AddDynamic(this, &UMyDialogWidget::HandleMessage);
+
+void UMyDialogWidget::HandleMessage(const FMayDialogueMessage& Message)
+{
+    SpeakerNameText->SetText(Message.DisplayName);
+    DialogueText->SetText(Message.Text);
+}
+```
+
+---
+
+### OnChoicesPresented / OnChoiceMade
+
+`OnChoicesPresented` feuert wenn ein PlayerChoice-Node seine Optionen aufgebaut hat.
+`OnChoiceMade` feuert nachdem eine Wahl getroffen wurde (vor der Transition).
+
+**Use-Cases:** Choice-Buttons rendern, Timeout-Bar starten, Analytics.
+
+```cpp
+Inst->OnChoicesPresented.AddDynamic(this, &UChoiceWidget::ShowChoices);
+Inst->OnChoiceMade.AddDynamic(this, &UAnalytics::LogChoice);
+```
+
+---
+
+### OnVariableChanged
+
+Feuert nach jeder Variablen-Mutation — egal ob durch einen SetVariable-Node oder durch externen Code.
+
+**Use-Cases:** HUD-Update (Dispositions-Anzeige), Live-Quest-Status, Debug-Overlay.
+
+```cpp
+Inst->OnVariableChanged.AddDynamic(this, &UDispositionHUD::HandleVarChange);
+
+void UDispositionHUD::HandleVarChange(
+    FName VarName,
+    EMayDialogueVariableScope Scope,
+    EMayDialogueVariableType Type,
+    const FString& NewValue)
+{
+    if (VarName == "DispositionLevel")
+    {
+        int32 Level = FCString::Atoi(*NewValue);
+        UpdateDispositionBar(Level);
+    }
+}
+```
+
+{% hint style="info" %}
+Der neue Wert kommt als String. Parse ihn je nach `Type` zurück (z.B. `FCString::Atoi` für Int).
+{% endhint %}
+
+---
+
+### OnDialogueEventFired
+
+Feuert wenn ein FireEvent-Node im Dialog-Graphen einen `FGameplayTag` sendet.
+
+**Use-Cases:** Lose Kopplung zu externen Systemen — Lichteffekte, AI-Zustandsänderungen, Sound-Trigger — ohne direkte Abhängigkeit im Graphen.
+
+```cpp
+Inst->OnDialogueEventFired.AddDynamic(this, &ALightController::HandleDialogEvent);
+
+void ALightController::HandleDialogEvent(const FGameplayTag& EventTag)
+{
+    if (EventTag == TAG_Dialogue_Event_LightsOut)
+    {
+        TurnOffAllLights();
+    }
+}
+```
+
+---
+
+## Binding-Regeln
+
+- Alle Delegates sind **Multicast** — beliebig viele Listener gleichzeitig.
+- Instance-Delegates werden mit der Instance zerstört. Wenn du mehrere Dialoge beobachten willst, nutze die Subsystem-Delegates.
+- Subsystem-Delegates leben bis zum Welt-Ende — bei Objekten mit kürzerer Lebenszeit in `EndPlay` wieder `RemoveDynamic` aufrufen.
+
+```cpp
+void AMyActor::EndPlay(const EEndPlayReason::Type Reason)
+{
+    if (auto* Sub = GetWorld()->GetSubsystem<UMayDialogueSubsystem>())
+    {
+        Sub->OnAnyDialogueStarted.RemoveDynamic(this, &AMyActor::HandleStart);
+        Sub->OnAnyDialogueEnded.RemoveDynamic(this, &AMyActor::HandleEnd);
+    }
+    Super::EndPlay(Reason);
+}
+```
+
+---
+
+## IMayDialogueBridge (für C++-Module)
+
+Externe C++-Module (z.B. eigene Plugins) können MayDialogue über das `IMayDialogueBridge`-Interface konsumieren, ohne eine harte Abhängigkeit auf das `MayDialogue`-Modul zu brauchen. Das Subsystem implementiert dieses Interface vollständig.
+
+```cpp
+// Nur MayDialogueBridge.h importieren, nicht MayDialogueSubsystem.h
+IMayDialogueBridge* Bridge = Cast<IMayDialogueBridge>(
+    World->GetSubsystem<UMayDialogueSubsystem>());
+```
+
+Details zu den Bridge-Read/Write-Methoden: [Read/Write-API](read-write-api.md).

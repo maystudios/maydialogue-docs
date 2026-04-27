@@ -1,40 +1,31 @@
+---
+description: Die mentalen Modelle, die du brauchst, bevor du Nodes baust.
+---
+
 # Kern-Konzepte
 
-Bevor du tief in einzelne Nodes tauchst, lohnt es sich, das mentale Modell zu festigen. Dieser Abschnitt erklärt, **wie MayDialogue denkt** – die Konzepte, die hinter jedem Feature stehen.
+Dieser Abschnitt legt das Fundament. Wer diese Konzepte kennt, versteht warum das Plugin so funktioniert wie es funktioniert — und spart sich Frust beim Aufbau komplexer Dialoge.
 
-## Worum es geht
+## Die vier tragenden Ideen
 
-MayDialogue hat vier tragende Ideen. Wer sie einmal verstanden hat, findet sich im Rest der Doku (und im Code) ohne Reibung zurecht:
+1. **Der Graph ist das Dokument.** Ein Dialog-Asset liest sich wie ein Drehbuch: wer spricht, was sagt er, welche Wahl hat der Spieler, was folgt daraus. Nicht eine Property-Liste.
+2. **Das laufende Gespräch ist eine eigenständige Instanz.** Das Asset ist die Blaupause; jedes gestartete Gespräch lebt als eigene Instanz mit einem klar definierten Lebenszyklus — Start, Durchlauf, Ende, Cleanup.
+3. **Participants sind die Akteure im Level.** Jeder Actor, der in einem Dialog mitspricht oder zuhört, trägt eine Participant-Komponente. Sie ist seine Identität im Gespräch.
+4. **Sub-Nodes halten Logik kompakt.** Requirements, Choices und SideEffects sind keine eigenen Graph-Boxen, sondern Pills im Body eines übergeordneten Nodes.
 
-1. **Der Graph ist das Dokument.** Nicht der Details-Panel. Ein Dialog-Asset liest sich wie ein Drehbuch, nicht wie eine Property-Liste.
-2. **Instance ist das laufende Gespräch.** Das Asset ist nur die Blaupause; jedes gestartete Gespräch lebt als eigene `UMayDialogueInstance` und hat einen vorhersagbaren Lebenszyklus.
-3. **Participants sind die Akteure.** Jeder Actor, der spricht oder zuhört, trägt eine `UMayDialogueParticipant`-Komponente. Sie ist die Identität im Gespräch.
-4. **Sub-Nodes komponieren Logik kompakt.** Requirements, Choices und SideEffects sind keine eigenen Graph-Boxen, sondern Pills im Body eines Eltern-Nodes.
+## Kapitel dieser Sektion
 
-## Reihenfolge der Kapitel
+| Seite | Frage, die sie beantwortet |
+| --- | --- |
+| [Architektur im Großen](architecture.md) | Welche Hauptbausteine hat das Plugin und wie hängen sie zusammen? |
+| [Graph & visuelle Sprache](graph-visual-language.md) | Wie lese ich den Graph? Farben, Formen, Sub-Nodes. |
+| [Instance & Lifecycle](instance-lifecycle.md) | Was passiert von Start bis Exit — und was bei Abort? |
+| [Participants & Sprecher](participants-speakers.md) | Participant-Komponente vs. Speaker-Definition im Asset. |
+| [Variablen & Scopes](variables-scopes.md) | Dialogue-Scope oder Participant-Scope — wann nehme ich was? |
+| [Emotionen & Tags](emotions-tags.md) | Tags an SayLines setzen, UI und Audio reagieren lassen. |
 
-```mermaid
-flowchart LR
-    A[Architektur im Großen] --> B[Graph & visuelle Sprache]
-    B --> C[Instance & Lifecycle]
-    C --> D[Participants & Sprecher]
-    D --> E[Variablen & Scopes]
-    E --> F[Emotionen & Tag-Container]
-    F --> G[Verhältnis zu CommonConversation]
-```
+## Einstieg für eilige Leser
 
-Die Reihenfolge ist nicht zwingend. Ein Designer, der hauptsächlich Dialoge schreibt, braucht **Graph**, **Participants** und **Variablen** am meisten. Ein Gameplay-Programmer, der die Runtime integriert, braucht **Architektur**, **Instance & Lifecycle** und **Common Conversation**.
+Wer so schnell wie möglich einen Dialog zum Laufen bringen will, liest zuerst [Architektur im Großen](architecture.md) und [Instance & Lifecycle](instance-lifecycle.md). Diese beiden Seiten geben das nötige Gesamtbild.
 
-## Wenn du in Eile bist
-
-Die beiden wichtigsten Seiten sind:
-
-{% content-ref url="architecture.md" %}
-[architecture.md](architecture.md)
-{% endcontent-ref %}
-
-{% content-ref url="instance-lifecycle.md" %}
-[instance-lifecycle.md](instance-lifecycle.md)
-{% endcontent-ref %}
-
-Wer diese beiden Seiten durchhat, versteht das System im Groben.
+Für alle anderen: Die Reihenfolge der Kapitel ist so gewählt, dass jedes auf dem vorherigen aufbaut. Von oben nach unten lesen funktioniert am besten.

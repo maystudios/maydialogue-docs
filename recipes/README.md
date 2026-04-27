@@ -1,82 +1,96 @@
+---
+description: Fertige Lösungs-Muster für wiederkehrende Dialog-Aufgaben – nachbaubar in 5–20 Minuten.
+---
+
 # Rezepte
 
-Die Rezept-Galerie sammelt **fertige Lösungs-Muster** für wiederkehrende Dialog-Aufgaben. Jedes Rezept ist so aufgebaut, dass du es in ca. 10 Minuten nachbauen und auf dein Projekt übertragen kannst.
+Die Rezept-Galerie sammelt **fertige Lösungs-Muster** für wiederkehrende Dialog-Aufgaben. Jedes Rezept ist so aufgebaut, dass du es in ca. 10–20 Minuten nachbauen und auf dein Projekt übertragen kannst.
 
-## Aufbau eines Rezepts
+## Alle Rezepte auf einen Blick
 
-Jede Seite folgt demselben Schema:
+| # | Rezept | Schwierigkeit | Tags |
+|---|--------|---------------|------|
+| 1 | [Einfaches NPC-Gespräch](simple-npc-talk.md) | Anfänger | Grundlagen |
+| 2 | [Zufällige Begrüßungen](random-greetings.md) | Anfänger | Branching |
+| 3 | [Verzweigungen mit Bedingungen](branching-conditions.md) | Anfänger | Branching, GAS |
+| 4 | [Wiederverwendbare Dialog-Fragmente](linking-dialogues.md) | Anfänger | Struktur |
+| 5 | [SubGraph-Organisation](subgraph-organization.md) | Anfänger | Struktur |
+| 6 | [Choice nur sichtbar mit Tag](choice-with-tag-requirement.md) | Anfänger | Branching, GAS |
+| 7 | [Choice mit Attribut-Bedingung](choice-with-attribute-requirement.md) | Anfänger | Branching, GAS |
+| 8 | [GAS-getriebener Dialog](gas-driven-dialogue.md) | Fortgeschritten | GAS |
+| 9 | [GameplayEffect aus Dialog anwenden](apply-gameplay-effect.md) | Fortgeschritten | GAS |
+| 10 | [Quest-Status im Dialog lesen](quest-status-in-dialogue.md) | Fortgeschritten | GAS, Branching |
+| 11 | [Dialog setzt Quest-Progress](dialogue-sets-quest-progress.md) | Fortgeschritten | GAS |
+| 12 | [Beziehungs-Score tracken](relationship-counter.md) | Fortgeschritten | Persistence |
+| 13 | [NPC erinnert sich beim 2. Treffen](npc-remembers-meeting.md) | Fortgeschritten | Persistence |
+| 14 | [Mehrsprachigkeit](multilingual-dialogue.md) | Fortgeschritten | Audio |
+| 15 | [Innerer Monolog mit 2D-Audio](inner-monologue-2d.md) | Fortgeschritten | Audio |
+| 16 | [Kamera-Schwenk auf Sprecher](camera-pan-on-speaker.md) | Fortgeschritten | Camera |
+| 17 | [Jump-Scare mit Camera-Shake](jump-scare-shake.md) | Fortgeschritten | Camera, Animation |
+| 18 | [NPC-Animation während Zeile](npc-animation-during-line.md) | Anfänger | Animation |
+| 19 | [Timed Choice (Auto-Auswahl)](timed-choice.md) | Anfänger | Branching, UI |
+| 20 | [Wait auf externes GameplayEvent](wait-for-event.md) | Fortgeschritten | GAS |
+| 21 | [Eigenes UMG-Widget anbinden](custom-umg-widget.md) | Fortgeschritten | UI, Extension |
+| 22 | [Eigenen Requirement in Blueprint bauen](custom-blueprint-requirement.md) | Fortgeschritten | Extension |
 
-1. **Szenario** – eine kurze Geschichte, in der das Pattern gebraucht wird.
-2. **Beteiligte Nodes** – welche Bausteine aus dem [Node-Katalog](../nodes/README.md) zum Einsatz kommen.
-3. **Graph-Mock-Up** – ASCII-Skizze des Dialog-Flows, damit du beim Nachbauen im Editor keine Node suchst.
-4. **Schritt-für-Schritt** – konkrete Klicks im Asset-Editor.
-5. **Snippet(s)** – C++- oder Blueprint-Pseudosyntax für Runtime-Trigger.
-6. **Troubleshooting** – die drei häufigsten Stolperfallen.
+## Empfohlene Reihenfolge für Einsteiger
+
+Wenn du MayDialogue zum ersten Mal nutzt, empfiehlt sich dieser Pfad:
+
+```text
+1. Einfaches NPC-Gespräch
+       │
+       ├─► Zufällige Begrüßungen
+       │
+       └─► Verzweigungen mit Bedingungen
+                   │
+                   ├─► Choice nur sichtbar mit Tag
+                   ├─► Choice mit Attribut-Bedingung
+                   └─► GAS-getriebener Dialog
+                               │
+                               ├─► Quest-Status im Dialog lesen
+                               ├─► Dialog setzt Quest-Progress
+                               └─► GameplayEffect anwenden
+
+Parallel dazu (Struktur):
+       Wiederverwendbare Fragmente → SubGraph-Organisation
+
+Fortgeschritten (nach Bedarf):
+       Beziehungs-Score → NPC erinnert sich
+       Kamera → Jump-Scare → NPC-Animation
+       Timed Choice → Wait auf Event
+       Eigenes Widget → Eigener Requirement
+```
 
 ## Voraussetzungen
 
-Bevor du ein Rezept nachbaust, solltest du das [Quick-Start-Tutorial](../getting-started/quick-start.md) absolviert haben. Außerdem macht es Sinn, diese drei Konzeptseiten gelesen zu haben:
+Vor dem ersten Rezept solltest du:
 
-* [Instance & Lifecycle](../concepts/instance-lifecycle.md)
-* [Participants & Sprecher](../concepts/participants-speakers.md)
-* [Variablen & Scopes](../concepts/variables-scopes.md)
+1. Das [Quick-Start-Tutorial](../getting-started/quick-start.md) absolviert haben.
+2. Die drei Konzeptseiten gelesen haben:
+   - [Instance & Lifecycle](../concepts/instance-lifecycle.md)
+   - [Participants & Sprecher](../concepts/participants-speakers.md)
+   - [Variablen & Scopes](../concepts/variables-scopes.md)
 
-Ohne die wirst du die Rezepte zwar abtippen können, aber die Begründungen hinter den Entscheidungen entgehen dir.
+{% hint style="info" %}
+Alle Rezepte gehen davon aus, dass du das Plugin laut [Installation](../getting-started/installation.md) integriert hast und in den [Projekt-Einstellungen](../getting-started/project-settings.md) ein Dialog-Widget konfiguriert ist.
+{% endhint %}
 
-## Überblick der Rezepte
-
-| Rezept | Was du lernst | Zeitaufwand |
-| --- | --- | --- |
-| [Einfaches NPC-Gespräch](simple-npc-talk.md) | Minimal-Setup: Entry → SayLines → Exit, richtige Advance-Modi. | 5 Min |
-| [Verzweigungen mit Bedingungen](branching-conditions.md) | Branch-Node + GAS-Requirement, um Spielverhalten zu belohnen. | 10 Min |
-| [Zufällige Begrüßungen](random-greetings.md) | RandomLine für variable NPC-Greetings, Weight-Tuning. | 5 Min |
-| [Wiederverwendbare Dialog-Fragmente](linking-dialogues.md) | Link-Node vs. SubGraph, wann welche Variante. | 10 Min |
-| [GAS-getriebener Dialog](gas-driven-dialogue.md) | ApplyEffect + AddTag/RemoveTag + CheckAttribute im Verbund. | 15 Min |
-| [Mehrsprachigkeit](multilingual-dialogue.md) | VoicePerCulture-Map + FText-Gather-Workflow. | 10 Min |
-
-## Empfohlene Reihenfolge
-
-Wenn du alle sechs nacheinander durchgehst, empfiehlt sich diese Reihenfolge:
-
-```mermaid
-graph LR
-    A[Simple NPC Talk] --> B[Random Greetings]
-    B --> C[Branching Conditions]
-    C --> D[GAS-Driven]
-    C --> E[Linking Dialogues]
-    E --> F[Multilingual]
-```
-
-Die Rezepte bauen thematisch aufeinander auf: Talk → Variation → Bedingungen → GAS → Wiederverwendung → Lokalisierung.
-
-## Was nicht in den Rezepten steht
-
-Diese Themen haben eigene Kapitel und werden hier nur punktuell gestreift:
-
-* **Eigene Nodes schreiben** → [Erweiterung → Custom Nodes](../extension/custom-nodes.md)
-* **Eigene Requirements** → [Erweiterung → Custom Requirements](../extension/custom-requirements.md)
-* **SaveGame-Integration** → [Persistence](../persistence/README.md)
-* **UI-Theming** → [UI → Themes & Starterkits](../ui/themes.md)
-* **Babel-Synthese-Profile** → [Audio → Babel-Profile](../audio/babel-profiles.md)
-
-## Konventionen in den Snippets
-
-In den Code-Blöcken wirst du diese Abkürzungen sehen:
+## Konventionen in den Code-Snippets
 
 | Kürzel | Bedeutung |
-| --- | --- |
+|--------|-----------|
 | `Sub` | `UMayDialogueSubsystem*` |
 | `Inst` | `UMayDialogueInstance*` |
 | `Asset` | `UMayDialogueAsset*` |
 | `PC` | `APlayerController*` |
-| `NPC` | Gegnerischer / Gesprächspartner-Actor |
+| `NPC` | Gesprächspartner-Actor |
 
-Die Rezepte sind bewusst kompakt gehalten – komplette Boilerplate findest du in [Runtime → Einen Dialog starten](../runtime/starting-dialogues.md).
+Vollständige Boilerplate findest du in [Runtime → Einen Dialog starten](../runtime/starting-dialogues.md).
 
-{% hint style="info" %}
-Alle Rezepte gehen davon aus, dass du das Plugin laut [Installation](../getting-started/installation.md) in dein Projekt integriert hast und dass in den [Projekt-Einstellungen](../getting-started/project-settings.md) ein Dialog-Widget konfiguriert ist.
-{% endhint %}
+## Weiterführende Themen außerhalb der Rezepte
 
-## Rezepte beitragen
-
-Hast du ein eigenes Muster gefunden, das in dieser Galerie fehlt? Schick einen Pull-Request auf das Plugin-Repo – ideal mit einem kleinen Demo-Asset und einer Screenshot-GIF.
+- **Eigene Nodes schreiben** → [Erweiterung → Custom Nodes](../extension/custom-nodes.md)
+- **SaveGame-Integration** → [Persistence](../persistence/README.md)
+- **UI-Theming** → [UI → Themes & Starterkits](../ui/themes.md)
+- **Audio-Fallback-Kette** → [Audio → Drei-Ebenen-Fallback](../audio/three-level-fallback.md)

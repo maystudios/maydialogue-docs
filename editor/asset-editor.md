@@ -1,137 +1,120 @@
+---
+description: Toolbar, Tabs, Compile-Button – alles, was du über das Asset-Editor-Fenster wissen musst.
+---
+
 # Der Asset-Editor
 
-`FMayDialogueAssetEditor` ist das **Asset-Editor-Toolkit** für MayDialogue-Assets. Doppelklick auf ein `UMayDialogueAsset` im Content Browser öffnet diesen Editor.
+Doppelklick auf ein MayDialogue-Asset im Content Browser öffnet den Asset-Editor. Hier passiert alles: Graph bauen, Compile anstoßen, Preview starten, Fehler lesen.
 
 ## Ein Asset anlegen
 
-Drei Wege:
+Drei Wege zum neuen Dialog-Asset:
 
-1. **Content Browser → Rechtsklick → Miscellaneous → MayDialogue Asset**.
-2. **Create-Button im Content Browser → Miscellaneous → MayDialogue Asset**.
-3. **Kopie eines bestehenden Assets** (Duplicate, dann Umbenennen).
+1. **Content Browser → Rechtsklick → Miscellaneous → MayDialogue Asset**
+2. **Add-Button oben links im Content Browser → Miscellaneous → MayDialogue Asset**
+3. **Bestehendes Asset duplizieren** (Rechtsklick → Duplicate, dann umbenennen)
 
-Ein neues Asset enthält immer einen **Entry-Node** und eine leere Speaker-/Variable-Liste.
+Jedes neue Asset startet mit einem Entry-Node und leeren Speakers/Variables-Listen.
 
-## Das Toolkit-Fenster
+> 📸 **Bild-Platzhalter:** `asset-editor-new-asset-context.png` — Rechtsklick-Menü im Content Browser, Maus auf „MayDialogue Asset" zeigend.
+> *Setup:* Content Browser in einem leeren Ordner. Rechtsklick-Menü aufgeklappt, Pfad Miscellaneous → MayDialogue Asset mit rotem Pfeil markiert.
 
-### Tabs
+## Die Toolbar
+
+Von links nach rechts:
+
+| Button | Shortcut | Was er tut |
+| --- | --- | --- |
+| **Save** | `Ctrl+S` | Asset speichern |
+| **Compile** | `F7` | Validator + Compiler laufen lassen |
+| **Auto-Layout** | – | Graph automatisch ordnen (Sugiyama) |
+| **Play Dialog** | – | Preview-Runner starten |
+| **Find** | `Ctrl+F` | Find-Results-Tab öffnen und fokussieren |
+| **Toggle Breakpoint** | `F9` | Breakpoint am selektierten Node setzen/entfernen |
+
+Zusätzlich die Standard-Undo/Redo-Buttons (`Ctrl+Z` / `Ctrl+Y`).
+
+> 📸 **Bild-Platzhalter:** `asset-editor-toolbar-annotated.png` — Toolbar mit nummerierten roten Pfeilen auf jeden Button.
+> *Setup:* Asset-Editor offen. Toolbar-Bereich eng beschnitten. Jeder Button hat eine rote Nummer (1=Save, 2=Compile, 3=Auto-Layout, 4=Play, 5=Find, 6=Breakpoint).
+
+## Die Tabs
 
 Der Editor hat **zehn Dock-Tabs**:
 
-| Tab-ID | Inhalt | Default-Position |
+| Tab | Inhalt | Standard-Position |
 | --- | --- | --- |
-| `Graph` | Hauptgraph-Canvas | Mitte |
-| `Details` | Property-Editor des aktuell selektierten Nodes | Rechts |
-| `CompilerResults` | Warnings & Errors vom Validator/Compiler | Unten |
-| `FindResults` | Ergebnisse von Find-in-Dialogue | Unten |
-| `Palette` | Gefilterte Liste aller Node-Typen | Rechts/Links |
-| `Variables` | Dialog- und Participant-Variablen des Assets | Rechts |
-| `Speakers` | Sprecher-Liste des Assets | Rechts |
-| `DebuggerWatch` | Variable-Watch (nur in PIE) | Unten |
-| `Preview` | Live-Preview des Dialogs (Play-Button) | Rechts/Ausklappbar |
-| `Outline` | Flache Liste aller Nodes | Links |
+| **Graph** | Hauptarbeitsfläche mit Nodes und Verbindungen | Mitte |
+| **Details** | Properties des selektierten Nodes | Rechts |
+| **Compiler Results** | Fehler und Warnungen nach dem Compile | Unten |
+| **Find Results** | Suchergebnisse von Find-in-Dialogue | Unten |
+| **Palette** | Alle Node-Typen nach Kategorie | Rechts |
+| **Variables** | Variablen-Deklarationen des Assets | Rechts |
+| **Speakers** | Sprecher-Liste des Assets | Rechts |
+| **Debugger Watch** | Variablen-Watch während PIE | Unten |
+| **Preview** | In-Editor Dialog-Preview | Rechts / ausklappbar |
+| **Outline** | Alle Nodes als durchsuchbare Liste | Links |
 
-Alle Tabs sind frei andockbar; das Layout bleibt pro Benutzer erhalten.
+Tabs lassen sich frei verschieben und andocken. Dein Layout bleibt über Sitzungen erhalten.
 
-### Toolbar-Buttons
+> 📸 **Bild-Platzhalter:** `asset-editor-tabs-overview.png` — Editor mit geöffnetem Dialog, alle Tab-Reiter sichtbar. Compiler-Results-Tab im Vordergrund mit zwei Warnings.
+> *Setup:* Asset `DA_Guard_Patrol` öffnen mit einem absichtlich unverbundenen Exit-Pin, damit der Compiler eine Warning zeigt. Compiler-Results-Tab aktiv zeigen.
 
-Die Toolbar zeigt von links nach rechts:
+## Der Compile-Button
 
-| Button | Wirkung | Shortcut |
-| --- | --- | --- |
-| **Save** | Asset speichern | `Ctrl+S` |
-| **Compile** | Validator → Compiler | `F7` |
-| **Auto-Layout** | Sugiyama-artige Graph-Sortierung | – |
-| **Play Dialog** | In-Editor-Preview starten | – |
-| **Find** | Find-Results-Tab öffnen & fokussieren | `Ctrl+F` |
-| **Toggle Breakpoint** | Am selektierten Node | `F9` |
+Drücke **Compile** (`F7`) nachdem du den Graph geändert hast. Der Prozess läuft in zwei Schritten:
 
-Zusätzlich die Standard-Undo/Redo-Commands (`Ctrl+Z` / `Ctrl+Y`).
+1. **Validator** prüft auf strukturelle Fehler (fehlende Nodes, unverbundene Pins, leere Texte usw.).
+2. Wenn keine Errors vorliegen: **Compiler** übersetzt den Graph in die Runtime-Datenstruktur.
 
-### Property-Auto-Compile
+Wenn Errors vorhanden sind, bleibt der letzte korrekte kompilierte Stand aktiv. Du kannst den alten Stand weiter testen, während du die Fehler behebst.
 
-Wenn `bAutoCompileOnSave` in den Editor-Settings aktiv ist (Default), triggert jede Property-Änderung, die den Graph betrifft, automatisch eine neue Compile-Pass. Der `OnFinishedChangingProperties`-Callback im Toolkit ruft intern `CompileDialogue()`.
+{% hint style="info" %}
+**Auto-Compile:** Wenn `Auto Compile on Save` in den MayDialogue Editor-Settings aktiv ist (Standard), läuft der Compiler automatisch beim Speichern. Du musst `F7` dann nur noch manuell drücken, wenn du sofortiges Feedback willst.
+{% endhint %}
 
-## Lifecycle des Editors
+### Compiler Results – was die Fehlerfarben bedeuten
 
-```mermaid
-sequenceDiagram
-    User->>AssetEditor: OpenAssetEditor()
-    AssetEditor->>AssetEditor: InitDialogueEditor()
-    AssetEditor->>TabManager: RegisterTabSpawners()
-    TabManager-->>AssetEditor: 10 tabs ready
-    AssetEditor->>Graph: Bind NotifyGraphChanged
-    Graph->>Compiler: UpdateAsset (on change)
-    Compiler->>Validator: ValidateGraph()
-    Validator-->>AssetEditor: errors[]
-    AssetEditor->>CompilerResultsTab: display errors
-    User->>AssetEditor: Close
-    AssetEditor->>TabManager: UnregisterAll()
-```
+| Farbe | Bedeutung |
+| --- | --- |
+| Rot (Error) | Graph wird **nicht** kompiliert, bis der Fehler behoben ist |
+| Gelb (Warning) | Graph wird kompiliert, aber es gibt potenzielle Probleme |
 
-## Compile-Pfad
+Klick auf eine Zeile in der Ergebnisliste springt direkt zum betroffenen Node im Graph.
 
-Die Toolbar-Aktion **Compile** (bzw. der Auto-Compile) macht:
-
-1. `FMayDialogueValidator::ValidateGraph(Graph)` → `TArray<FMayDialogueValidationError>`.
-2. Errors in den Compiler-Results-Tab pushen.
-3. Wenn **keine** Errors (nur Warnings): `FMayDialogueCompiler::CompileDialogueAsset(Asset)`.
-4. Erfolgsmeldung im Output-Log.
-
-Wenn Errors vorhanden, **wird nicht kompiliert** – das Asset behält seinen letzten kompilierten Stand, der Graph bleibt editierbar, aber du kannst den alten Stand testen, bis du die Errors behebst.
-
-## Tab: Compiler Results
-
-Fehler- und Warn-Liste mit drei Spalten:
-
-* **Severity** (Warning / Error)
-* **Message** (z.B. *„Unconnected output pin"*)
-* **Node** (klickbar – Kamera springt zum Node im Graph)
-
-Siehe [Validator-Checks](asset-editor.md#validator-checks) weiter unten.
+> 📸 **Bild-Platzhalter:** `asset-editor-compiler-results.png` — Compiler-Results-Tab mit einem Error (rot) und einer Warning (gelb).
+> *Setup:* SayLine-Node ohne Text anlegen (Error: „Empty Text") und eine SayLine ohne ausgehenden Pin (Warning: „Unconnected Output"). Compile drücken, Results-Tab zeigen. Roten Pfeil auf die klickbare Node-Referenz in der Error-Zeile.
 
 ## Tab: Palette
 
-Gruppiert Node-Typen nach Kategorie:
+Die Palette listet alle verfügbaren Node-Typen nach Kategorie:
 
-* **Dialogue**: SayLine, PlayerChoice, RandomLine.
-* **Flow Control**: Branch, Wait, Link, SubGraph.
-* **Actions**: Camera, Animation, Variable, Event, Sound.
-* **Special**: Exit, Knot.
+- **Dialogue:** SayLine, PlayerChoice, RandomLine
+- **Flow Control:** Branch, Wait, Link, SubGraph
+- **Actions:** Camera Focus, Camera Shake, Play Animation, Apply Effect, Set Variable, Fire Event, Play Sound, Add Tag, Remove Tag, Trigger Cue
+- **Special:** Exit, Knot
 
-Drag-and-Drop aus der Palette in den Graph. Alternativ: Rechtsklick im Graph → Kontext-Menü zeigt dieselben Gruppen.
+Drag-and-Drop aus der Palette in den Graph. Alternativ: Rechtsklick auf leere Graph-Fläche öffnet dasselbe Menü.
 
 ## Tab: Details
 
-Standard-UE-Property-Editor. Zeigt die UPROPERTYs des selektierten Nodes.
+Zeigt die bearbeitbaren Properties des aktuell selektierten Nodes. Bei SayLine-Nodes erscheint beim `SpeakerTag`-Feld kein generischer Tag-Picker, sondern ein **Dropdown mit allen im Asset definierten Sprechern** – inklusive Farb-Chip und DisplayName.
 
-Eine **Speaker-Dropdown**-Customization sorgt dafür, dass statt eines generischen GameplayTag-Pickers ein Dropdown mit den im Asset definierten Sprechern angezeigt wird (mit Farb-Chip + DisplayName). Siehe [Details Customization](../editor/comfort-features.md#speaker-dropdown).
+> 📸 **Bild-Platzhalter:** `asset-editor-details-sayline.png` — Details-Panel einer selektierten SayLine.
+> *Setup:* SayLine „Halt! Wer bist du?" auswählen. Details-Panel zeigt: SpeakerTag-Dropdown mit Guard-Eintrag (dunkelroter Farb-Chip), DialogueText-Feld gefüllt, AdvanceModeOverride auf Manual, EmotionTags-Array leer. Roter Pfeil auf das Speaker-Dropdown.
 
-## Validator-Checks
+## Validator-Checks (Kurzreferenz)
 
-Der Validator prüft **15+ Regeln**:
-
-| Check | Severity | Bedeutung |
+| Prüfung | Stufe | Bedeutung |
 | --- | --- | --- |
-| Empty Graph | Error | Gar keine Nodes. |
-| Missing Entry | Error | Kein Entry-Node. |
-| Missing Exit | Warning | Kein Exit (Dialog kann unendlich loopen). |
-| Multiple Entries | Error | Mehr als ein Entry. |
-| Unconnected Pins | Error | Output-Pin ohne Ziel (außer Exits). |
-| Empty Text | Error | SayLine/PlayerChoice ohne Text. |
-| Unreachable Nodes | Warning | Nicht vom Entry erreichbar. |
-| Missing Speakers | Error | SayLine/CameraFocus/PlayAnimation ohne Sprecher-Tag. |
-| Self-Loops | Warning | Node verweist auf sich selbst. |
-| Deadlocks | Error | Erreichbar, aber kein Pfad zum Exit. |
-| Sub-Graph Issues | Error | SubGraph-Asset fehlt oder unvollständig. |
-| Invalid Asset Refs | Error | Link-Node ohne Ziel-Asset. |
-| Missing Requirements | Error | Branch ohne Condition. |
-| Variable Type Mismatch | Error | SetVariable mit widersprüchlichen Typen auf derselben Variable. |
-| Async Without Continuation | Warning | Wait/PlayAnimation mit `bWaitForMontageEnd` ohne Output. |
+| Empty Graph | Error | Gar keine Nodes vorhanden |
+| Missing Entry | Error | Kein Entry-Node |
+| Multiple Entries | Error | Mehr als ein Entry |
+| Missing Exit | Warning | Kein Exit-Node (Dialog kann endlos laufen) |
+| Unconnected Pins | Error | Output-Pin ohne Verbindung |
+| Empty Text | Error | SayLine oder Choice ohne Text |
+| Unreachable Nodes | Warning | Nodes die vom Entry aus nicht erreichbar sind |
+| Missing Speaker | Error | SayLine ohne gültigen Speaker-Tag |
+| Deadlocks | Error | Erreichbarer Node ohne Pfad zum Exit |
+| Variable Type Mismatch | Error | Derselbe Variable-Name mit widersprüchlichen Typen |
 
-## Bekannte Einschränkungen
-
-* **Keine Live-Validation.** Validator läuft beim Compile, nicht bei jeder Property-Änderung – bewusst so entschieden wegen Re-Entry-Problemen (siehe [Roadmap](../appendix/roadmap.md)).
-* **Cross-Asset-Navigation bei Link-Nodes ist rudimentär.** Aktuell findet der Editor Link-Ziele nur im aktuellen Asset; Ziele in anderen Assets werden beim Step-Into nicht automatisch geöffnet.
-
-Weiter: [Graph-Panel →](graph-panel.md).
+Weiter: [Graph-Panel →](graph-panel.md)

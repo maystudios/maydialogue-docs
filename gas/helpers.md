@@ -1,41 +1,75 @@
+---
+description: ASC-Auflösung, Target-Resolution — Utilities, die alle GAS-Klassen intern nutzen.
+---
+
 # GAS-Helpers
 
-`MayDialogueGASHelpers.h` liefert drei inline-Utility-Funktionen für ASC-Resolution. Alle GAS-Klassen im Plugin nutzen diese, um Boilerplate zu vermeiden.
+Der Namespace `MayDialogueGAS` in `MayDialogueGASHelpers.h` enthält Hilfsfunktionen für die ASC-Auflösung. Alle vordefinierten GAS-Requirements und -SideEffects nutzen sie intern — damit du beim Schreiben eigener Klassen nicht dasselbe Boilerplate neu schreiben musst.
 
-## Funktionen
+## Für Blueprint-Nutzer
 
-### `GetASCFromActor(AActor* Actor)`
+Als Blueprint-Autor brauchst du diese Funktionen nicht direkt aufzurufen. Die Properties `bCheckOnInstigator` / `bAddToInstigator` etc. an jedem Node reichen — das Plugin löst den richtigen ASC intern auf. Die Helpers interessieren dich nur, wenn du eigene GAS-Klassen in C++ schreibst.
 
-```cpp
-inline UAbilitySystemComponent* GetASCFromActor(AActor* Actor)
-```
+---
 
-Dual-Path:
-
-1. `IAbilitySystemInterface::GetAbilitySystemComponent()` – der empfohlene Weg. Actor implementiert das Interface.
-2. Fallback: `FindComponentByClass<UAbilitySystemComponent>()` – für Actors ohne Interface, die aber einen ASC als Component haben.
-
-Liefert `nullptr`, wenn keiner der Wege erfolgreich ist.
-
-### `GetTargetActor(const FMayDialogueContext& Context, bool bUseInstigator)`
+## GetASCFromActor
 
 ```cpp
-inline AActor* GetTargetActor(const FMayDialogueContext& Context, bool bUseInstigator);
+UAbilitySystemComponent* MayDialogueGAS::GetASCFromActor(AActor* Actor)
 ```
 
-Liefert `Context.Instigator.Get()` oder `Context.Target.Get()` je nach Flag.
+Sucht den ASC eines Actors in zwei Schritten:
 
-### `GetASCFromContext(const FMayDialogueContext& Context, bool bUseInstigator)`
+1. **Bevorzugt:** `IAbilitySystemInterface::GetAbilitySystemComponent()` — der Standard-Weg, wenn dein Actor das Interface implementiert.
+2. **Fallback:** `FindComponentByClass<UAbilitySystemComponent>()` — für Actors, die keinen direkten Interface-Pfad haben, aber einen ASC als Komponente tragen.
+
+Gibt `nullptr` zurück, wenn keiner der Wege erfolgreich ist.
+
+---
+
+## GetTargetActor
 
 ```cpp
-inline UAbilitySystemComponent* GetASCFromContext(const FMayDialogueContext& Context, bool bUseInstigator);
+AActor* MayDialogueGAS::GetTargetActor(const FMayDialogueContext& Context, bool bUseInstigator)
 ```
 
-Convenience-Wrapper: `GetASCFromActor(GetTargetActor(Context, bUseInstigator))`.
+Liefert den Dialog-Actor, der betrachtet werden soll:
 
-## Einsatz in eigenen Klassen
+* `bUseInstigator = true` → `Context.Instigator` (normalerweise der Spieler)
+* `bUseInstigator = false` → `Context.Target` (normalerweise der NPC)
 
-Wenn du eigene GAS-Requirements oder -SideEffects in C++ schreibst, nutzt du dieselben Helfer:
+---
+
+## GetASCFromContext
+
+```cpp
+UAbilitySystemComponent* MayDialogueGAS::GetASCFromContext(const FMayDialogueContext& Context, bool bUseInstigator)
+```
+
+Convenience-Wrapper: Kombiniert `GetTargetActor` und `GetASCFromActor` in einem Aufruf. Das ist der häufigste Einstiegspunkt in eigenen Klassen.
+
+---
+
+## FMayDialogueContext — was drin steckt
+
+Bei jedem Node-Execute bekommst du einen Context:
+
+```cpp
+struct FMayDialogueContext
+{
+    TWeakObjectPtr<UMayDialogueInstance> DialogueInstance;
+    TWeakObjectPtr<AActor> Instigator;   // Meist der Spieler
+    TWeakObjectPtr<AActor> Target;       // Meist der NPC
+};
+```
+
+{% hint style="warning" %}
+Verlass dich auf `GetASCFromContext()`, nicht direkt auf gecachte Felder. Der Context enthält kein direkt gecachtes `InstigatorASC`-Feld — die Helpers sind der sichere Weg.
+{% endhint %}
+
+---
+
+## Einsatz in eigenen C++-Klassen
 
 ```cpp
 #include "MayDialogueGASHelpers.h"
@@ -46,7 +80,7 @@ EMayDialogueRequirementResult UMyRequirement_HealthRange::IsRequirementSatisfied
     UAbilitySystemComponent* ASC = MayDialogueGAS::GetASCFromContext(Context, bCheckOnInstigator);
     if (!ASC)
     {
-        return EMayDialogueRequirementResult::Passed;  // Kein ASC: default-Pass.
+        return EMayDialogueRequirementResult::Passed;  // Kein ASC: default-Pass
     }
 
     float Health = ASC->GetNumericAttribute(UHealthAttributeSet::GetHealthAttribute());
@@ -56,23 +90,38 @@ EMayDialogueRequirementResult UMyRequirement_HealthRange::IsRequirementSatisfied
 }
 ```
 
-## Wie der Context kommt
+> 📸 **Bild-Platzhalter:** `helpers-cpp-example.png` — Rider/VS-Editor mit geöffneter Beispiel-Requirement-Implementierung.
+> *Setup:* Die Datei `MyRequirement_HealthRange.cpp` in Rider öffnen. Sichtbar: `#include "MayDialogueGASHelpers.h"`, der Funktionskörper mit `GetASCFromContext`-Aufruf, `GetNumericAttribute`-Aufruf und Return-Logik. Syntax-Highlighting aktiv.
 
-Bei jedem Node-Execute wird ein `FMayDialogueContext` gebildet:
+---
+
+## IsDialogueServerAuthoritative
 
 ```cpp
-struct FMayDialogueContext
-{
-    UMayDialogueInstance* DialogueInstance;
-    AActor* Instigator;  // Meist der Spieler
-    AActor* Target;      // Meist der NPC
-    TWeakObjectPtr<UAbilitySystemComponent> InstigatorASC;  // optional, für Optimierung
-    UWorld* GetWorld() const;
-};
+bool MayDialogueGAS::IsDialogueServerAuthoritative(const FMayDialogueContext& Context)
 ```
 
-## Anmerkungen
+Bestimmt, ob GAS-SideEffects auf diesem Gerät laufen dürfen. Relevant für Multiplayer:
 
-* Die Helpers sind **`inline`** – keine DLL-Export-Kosten, direkte Inlining.
-* Das `InstigatorASC`-Feld im Context ist **nicht immer gesetzt** – verlass dich auf die Helpers, nicht auf das Feld direkt.
-* Für **Target-ASC-Cache** müsstest du selbst eine Weak-Ref halten, wenn du in einer langlebigen Struktur arbeitest.
+* Wenn die Instance einem Actor gehört → prüft `GetLocalRole() == ROLE_Authority`.
+* Wenn die Instance im Subsystem lebt → prüft die Rollen von Instigator und Target.
+* Standalone / PIE → immer `true`.
+
+Alle eingebauten SideEffects rufen diese Funktion intern auf. Du musst sie nur dann selbst aufrufen, wenn dein eigener C++-SideEffect GAS-Änderungen vornimmt, die server-exklusiv sein sollen.
+
+---
+
+## TriggerCue (Utility)
+
+```cpp
+void MayDialogueGAS::TriggerCue(UAbilitySystemComponent* ASC, const FGameplayTag& CueTag,
+    const FGameplayCueParameters& Parameters, uint8 CueMode)
+```
+
+Interner Helfer für `UMayDlgSideEffect_TriggerCue`. Leitet je nach `CueMode` (0 = Execute, 1 = Add, 2 = Remove) an die entsprechende ASC-Methode weiter. In eigenen Klassen kannst du ihn nutzen, musst es aber nicht — direkter ASC-Aufruf ist genauso gut.
+
+> 📸 **Bild-Platzhalter:** `helpers-header-overview.png` — `MayDialogueGASHelpers.h` im Editor geöffnet, alle Funktionen im Überblick.
+> *Setup:* Die Datei `MayDialogueGASHelpers.h` in Rider öffnen. Alle vier Inline-Funktionen im Namespace `MayDialogueGAS` sichtbar: `GetASCFromActor`, `GetTargetActor`, `GetASCFromContext`, `IsDialogueServerAuthoritative`, `TriggerCue`. Vollständige Signaturen sichtbar.
+
+> 📸 **Bild-Platzhalter:** `helpers-blueprint-no-code.png` — Blueprint-Graph mit `HasTag`-SideEffect, kein manueller ASC-Aufruf nötig.
+> *Setup:* BP-Graph zeigt einen `Event Execute Side Effect`-Node, der direkt in eine `Get Quest Subsystem`-Node führt. Kein `Get ASC`-Aufruf sichtbar — zeigt, dass Blueprint-Nutzer die Helpers nie direkt brauchen.

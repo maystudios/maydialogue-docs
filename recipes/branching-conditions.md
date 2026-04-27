@@ -1,128 +1,149 @@
-# Verzweigungen mit Bedingungen
+---
+description: Branch-Node und GAS-Requirement kombinieren – Dialog reagiert auf den Spieler-Zustand.
+---
 
-Dieses Rezept zeigt dir, wie du mit dem **Branch-Node** und einem **GAS-Requirement** einen Dialog-Pfad abhängig vom Spieler-Zustand aufspaltest. Das Muster ist der Standard-Weg, um Weltreaktivität in MayDialogue umzusetzen.
+# Verzweigungen mit Bedingungen
 
 ## Szenario
 
-Ein Wachmann am Stadttor reagiert anders, je nachdem, ob der Spieler bereits den Stadt-Pass-Tag `Story.Pass.CityGate` besitzt:
+Ein Wachmann am Stadttor reagiert unterschiedlich, je nachdem ob der Spieler den Tag `Story.Pass.CityGate` trägt. Mit Pass kommt er durch, ohne Pass wird er abgewiesen und bekommt eine PlayerChoice zur Lösung. Das ist das Standard-Muster für Weltreaktivität in MayDialogue.
 
-* **Mit Pass** → „Willkommen zurück." → Tor öffnet.
-* **Ohne Pass** → „Halt! Wer geht da?" → PlayerChoice mit Optionen zum Erwerb.
+## Was du lernst
 
-## Beteiligte Nodes
+- Branch-Node mit mehreren BranchPoints anlegen.
+- HasTag-Requirement an einem BranchPoint konfigurieren.
+- Den Fallback-BranchPoint als Default-Pfad nutzen.
+- Den Unterschied zwischen Branch (ganzer Pfad) und Choice-Requirement (einzelne Option).
 
-* 1 × [Entry](../nodes/core/entry.md)
-* 1 × [Branch](../nodes/core/branch.md) mit 2 Branch-Points
-* 2 × [SayLine](../nodes/core/say-line.md)
-* 1 × [PlayerChoice](../nodes/core/player-choice.md)
-* 1 × [Exit](../nodes/core/exit.md)
+## Voraussetzungen
 
-Dazu ein **Requirement**-Sub-Node vom Typ [HasTag](../gas/requirements.md#umaydlgrequirement_hastag) am ersten Branch-Point.
+- [Einfaches NPC-Gespräch](simple-npc-talk.md) abgeschlossen.
+- GAS im Projekt aktiv, PlayerController hat einen ASC.
 
-## Graph-Mock-Up
+## Mini-Graph
 
+```text
+[Entry]
+   │
+   ▼
+[Branch]
+   ├─ BP1: HasTag(Story.Pass.CityGate) → [SayLine: "Willkommen zurück."] → [Exit: Completed]
+   └─ BP2: <Fallback>                  → [SayLine: "Halt! Wer geht da?"] → [PlayerChoice]
+                                                                               ├─ "Ich habe keinen Pass." → [Exit: Failed]
+                                                                               └─ "Ich suche den Torvorsteher." → [SayLine: "Kammer links."] → [Exit: Completed]
 ```
-                         [Entry]
-                            │
-                            ▼
-                   ┌─────────────────┐
-                   │     Branch      │
-                   │ BP1: HasTag(Pass)  ──────► [SayLine: "Willkommen zurück."] ─► [Exit]
-                   │ BP2: <fallback>    ──────► [SayLine: "Halt! Wer geht da?"] ─► [PlayerChoice]
-                   └─────────────────┘
-```
+
+> 📸 **Bild-Platzhalter:** `branching-conditions-graph-overview.png` — Übersichtsgraph des Wachmann-Dialogs.
+> *Setup:* Asset `DA_Guard_Gate` geöffnet. Sichtbar: `Entry` → `Branch`-Node (Diamant-Form, zwei Ausgangs-Pins). Oberer Pin führt zu `SayLine "Willkommen zurück"` → `Exit`. Unterer Pin führt zu `SayLine "Halt!"` → `PlayerChoice` mit zwei Choice-Sub-Nodes → zwei Ausgänge zu je einem Exit. Layout horizontal, kein Comment-Block.
 
 ## Schritt-für-Schritt
 
-1. **Asset anlegen**: `DA_Guard_Gate`. Speaker: `Dialogue.Speaker.Guard`.
-2. **Branch-Node einfügen**: Vom Entry-Output ziehen → *Create Node → Branch*.
-3. **Erster Branch-Point** (`BranchPoints[0]`):
-   * *Description*: *„Mit Pass"* (nur Editor-Label).
-   * *Requirements* → *Add* → [HasTag](../gas/requirements.md#umaydlgrequirement_hastag)
-     * `RequiredTag`: `Story.Pass.CityGate`
-     * `bCheckOnInstigator`: `true`
-4. **Zweiter Branch-Point** (`BranchPoints[1]`):
-   * *Description*: *„Fallback"* – keine Requirements. Er wird der Default-Pfad.
-5. **Erfolgs-Pfad** (Output von BP1):
-   * SayLine *„Willkommen zurück. Tor ist offen."*
-   * Direkt in einen Exit-Node (Completed).
-6. **Ablehnungs-Pfad** (Output von BP2):
-   * SayLine *„Halt! Wer geht da?"*
-   * PlayerChoice mit zwei Choices (siehe unten).
-7. **PlayerChoice-Node** konfigurieren:
-   * Choice 1: *„Ich habe keinen Pass."* → Exit (Failed).
-   * Choice 2: *„Ich suche den Torvorsteher."* → SayLine *„Dann geh zur Kammer links."* → Exit.
-8. **Compile** und speichern.
+### 1. Asset und Speaker anlegen
 
-## Branch-Auswertungslogik
+Asset: `DA_Guard_Gate`. Speaker im Speakers-Panel: `DisplayName = Wachmann`, `SpeakerTag = Dialogue.Speaker.Guard`.
 
-Branch-Points werden **in Reihenfolge** ausgewertet. Der erste, dessen Requirements *Passed* sind, gewinnt.
+### 2. Branch-Node einfügen
 
-| BranchPoint-Ergebnis | Verhalten |
-| --- | --- |
-| `Passed` | Nimm diesen Pfad, Branch ist abgeschlossen. |
+Vom Entry-Output → **Create Node → Branch**. Der Branch-Node zeigt im Graph eine Diamant-Form mit einem Input und mehreren Ausgangs-Pins.
+
+### 3. Ersten BranchPoint konfigurieren
+
+Branch-Node auswählen. Im Details-Panel unter `BranchPoints`:
+- **Add** → `Description: "Mit Pass"`.
+- Unter Requirements: **Add → HasTag**.
+
+| Property | Wert |
+|----------|------|
+| `RequiredTag` | `Story.Pass.CityGate` |
+| `bCheckOnInstigator` | `true` (prüft den Spieler, nicht den NPC) |
+
+> 📸 **Bild-Platzhalter:** `branching-conditions-branch-details.png` — Details-Panel des Branch-Nodes mit HasTag-Requirement.
+> *Setup:* Branch-Node ausgewählt. Details-Panel zeigt: `BranchPoints[0].Description = "Mit Pass"`, darunter aufgeklapptes HasTag-Requirement mit `RequiredTag = Story.Pass.CityGate`, `bCheckOnInstigator = true`. BranchPoints[1] ohne Requirements (Fallback).
+
+### 4. Zweiten BranchPoint als Fallback
+
+**Add** → `Description: "Fallback"`. Keine Requirements eintragen. Dieser Point greift immer, wenn kein vorheriger passt.
+
+### 5. Erfolgs-Pfad verdrahten
+
+BranchPoint[0]-Output-Pin → SayLine *„Willkommen zurück. Tor ist offen."* → Exit (`Completed`).
+
+### 6. Ablehnungs-Pfad verdrahten
+
+BranchPoint[1]-Output-Pin → SayLine *„Halt! Wer geht da?"* → PlayerChoice mit zwei Choices:
+- Choice 1: *„Ich habe keinen Pass."* → Exit (`Failed`).
+- Choice 2: *„Ich suche den Torvorsteher."* → SayLine *„Dann geh zur Kammer links."* → Exit (`Completed`).
+
+### 7. Compile und testen
+
+Im Preview-Runner läuft der Dialog mit dem Fallback-Pfad (kein Tag gesetzt). Füge im Debugger testweise den Tag am Player-ASC hinzu und prüfe den Erfolgs-Pfad.
+
+## BranchPoint-Auswertungslogik
+
+BranchPoints werden **in Reihenfolge** ausgewertet. Der erste, dessen Requirements `Passed` liefern, gewinnt.
+
+| Ergebnis | Verhalten |
+|----------|-----------|
+| `Passed` | Dieser Pfad wird genommen, Rest wird ignoriert. |
 | `FailedButVisible` | Überspringen, weiter zum nächsten Point. |
 | `FailedAndHidden` | Überspringen, weiter zum nächsten Point. |
 
-Der letzte BranchPoint ohne Requirements wirkt automatisch als *Default* / *Fallback*. Ohne Fallback und ohne Erfolgs-Match bricht der Branch mit `AbortDialogue` ab.
+Der letzte BranchPoint ohne Requirements ist der **Default-Pfad**. Ohne Fallback und ohne Match → Dialog bricht ab.
 
-## GAS-Setup für den Tag
-
-Damit das Requirement greift, muss der Spieler den Tag tatsächlich tragen. Typischer Setup:
+## GAS-Tag für den Test setzen
 
 ```cpp
-// Irgendwo, wenn der Quest-Schritt abgeschlossen wird
-UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Player);
+// Irgendwo im Quest-System, wenn der Schritt abgeschlossen wird:
+UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(PlayerPawn);
 ASC->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("Story.Pass.CityGate")));
 ```
 
-Oder über ein GameplayEffect, das den Tag in `GrantedTags` setzt – die Persistenz regelt dann dein Quest-System.
-
 {% hint style="info" %}
-Für **persistente** Tags (die ein Save überleben sollen) nutze lieber einen [Infinite-Duration GameplayEffect](../gas/actions.md) mit `GrantedTags`. `AddLooseGameplayTag` wird nicht automatisch persistiert.
+Für **persistente** Tags (die ein Speicherstand überleben sollen) nutze einen Infinite-Duration GameplayEffect mit `GrantedTags`. `AddLooseGameplayTag` wird nicht automatisch gespeichert.
 {% endhint %}
 
-## Runtime-Trigger
+## Blueprint-Triggering
+
+```text
+[Event OnInteract]
+   │
+   ▼
+[MayDialogueLibrary → Start Dialogue]
+   ├─ Asset:      DA_Guard_Gate
+   ├─ Instigator: Get Player Pawn
+   └─ Target:     Self
+```
+
+> 📸 **Bild-Platzhalter:** `branching-conditions-bp-trigger.png` — Blueprint-Trigger am NPC.
+> *Setup:* Wachmann-Actor BP. Event-Graph: `Event OnInteract` → `Start Dialogue`. Pins: `Asset = DA_Guard_Gate`, `Instigator = Get Player Pawn (0)`, `Target = Self`.
+
+{% hint style="info" %}
+**C++-Variante**
 
 ```cpp
-void AGuardNPC::StartConversation(AActor* Player)
+void AGuardNPC::BeginConversation(AActor* Player)
 {
-    UMayDialogueSubsystem* Sub = UMayDialogueSubsystem::Get(GetWorld());
-    if (Sub && Sub->CanStartDialogue(GuardDialogueAsset, Player, this))
+    if (UMayDialogueSubsystem* Sub = UMayDialogueSubsystem::Get(GetWorld()))
     {
-        Sub->StartDialogue(GuardDialogueAsset, Player, this);
+        Sub->StartDialogue(GuardAsset, Player, this);
     }
 }
 ```
+{% endhint %}
 
-## Variante: Branch statt Requirement auf Choice
+## Variation / Weiter gehen
 
-Manchmal willst du den **kompletten Pfad** abhängig machen (so wie hier am Gateway). Manchmal willst du nur eine **einzelne Choice** verstecken oder greyen. Beides ist möglich:
-
-| Pattern | Nutze wann |
-| --- | --- |
-| `Branch + Requirement pro BranchPoint` | Ganze Gespräche oder Abschnitte davon. |
-| `PlayerChoice + Requirement pro Choice` | Nur eine einzelne Entscheidung filtern. |
-
-Details siehe [Requirement-Sub-Node](../nodes/sub-nodes/requirement.md).
+- Requirement an **PlayerChoice** statt an Branch hängen → nur eine einzelne Option verstecken. Siehe [Choice nur sichtbar mit Tag](choice-with-tag-requirement.md).
+- Attribut statt Tag prüfen (z.B. Stamina ≥ 50) → [Choice mit Attribut-Bedingung](choice-with-attribute-requirement.md).
+- Ablehnungs-Pfad als eigenes Asset auslagern und per Link referenzieren → [Wiederverwendbare Dialog-Fragmente](linking-dialogues.md).
 
 ## Troubleshooting
 
-### Der Dialog nimmt immer den Fallback-Pfad
+**Dialog nimmt immer den Fallback-Pfad.**
+Öffne den [Debugger](../editor/debugger.md) in PIE und prüfe, ob der Tag wirklich am Spieler-ASC hängt. `Story.Pass.CityGate` ≠ `Story.Pass.City.Gate` – exakte Schreibweise erforderlich. Außerdem: `bCheckOnInstigator` muss `true` sein, sonst wird der NPC-ASC geprüft.
 
-* Prüfe im [Debugger](../editor/debugger.md), ob der Tag tatsächlich am richtigen ASC hängt. Das *Instigator*-vs-*Target*-Flag ist der häufigste Fehler.
-* Der Tag muss **exakt** matchen. `Story.Pass.CityGate` ≠ `Story.Pass.City.Gate`.
+**Erfolgs-Pfad nie erreicht, obwohl Tag vorhanden.**
+`bCheckOnInstigator = false` → Requirement prüft den NPC statt den Spieler. Oder der Actor hat keinen ASC. Requirement liefert dann immer `Fail`.
 
-### Der Erfolgs-Pfad wird nie genommen, obwohl der Tag da ist
-
-* `bCheckOnInstigator` steht auf `false` – Requirement prüft den NPC statt den Spieler.
-* Der Actor hat keinen ASC und auch kein `IGameplayTagAssetInterface`. Requirement liefert dann immer Fail.
-
-### Branch bricht mit „No BranchPoint passed" ab
-
-* Letzter BranchPoint hat Requirements. Füge entweder einen leeren Default-Point hinzu oder setze auf dem Branch-Node `FailBehavior = Skip`.
-
-## Nächster Schritt
-
-* [GAS-getriebener Dialog](gas-driven-dialogue.md) – Tags nicht nur prüfen, sondern im Gespräch setzen.
-* [Wiederverwendbare Dialog-Fragmente](linking-dialogues.md) – den Ablehnungs-Pfad als Link auslagern, damit mehrere Wachen denselben Pfad nutzen.
+**Branch bricht mit "No BranchPoint passed" ab.**
+Letzter BranchPoint hat Requirements. Füge einen leeren Default-Point hinzu oder setze `FailBehavior = Skip` am Branch-Node.

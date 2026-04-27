@@ -1,143 +1,156 @@
+---
+description: Drei Methoden, einen Dialog zu starten — mit Blueprint und C++.
+---
+
 # Einen Dialog starten
 
-Drei Wege führen zum Ziel. Alle enden in `UMayDialogueSubsystem::StartDialogue(...)`.
+Alle drei Wege münden in dieselbe Instance. Such dir den aus, der am besten in deinen Code passt.
 
-## Variante 1 – Auf der Participant-Komponente
+---
 
-OOP-Stil. Praktisch in Interaction-Triggern am NPC.
+## Variante 1 — Participant-Komponente
 
-### C++
-
-```cpp
-void AGuardActor::OnInteract(AActor* Interactor)
-{
-    auto* GuardPart = FindComponentByClass<UMayDialogueParticipant>();
-    auto* PlayerPart = Interactor->FindComponentByClass<UMayDialogueParticipant>();
-    if (!GuardPart || !PlayerPart) return;
-
-    GuardPart->StartDefaultDialogue(PlayerPart);
-}
-```
+**Wann:** Der NPC hat eine `MayDialogueParticipant`-Komponente und soll seinen `DefaultDialogue` starten, sobald der Spieler interagiert.
 
 ### Blueprint
 
-```
-[Event OnInteract]
-  │
-  ▼
-[Get Component by Class: MayDialogueParticipant] (auf Self)
-  │
-  ▼
+> 📸 **Bild-Platzhalter:** `start-participant-bp.png` — BP-Graph des NPC-Interaktions-Events.
+> *Setup:* NPC-Blueprint öffnen. Graph zeigt: `Event On Interact` (Custom Event, ein `AActor`-Pin `Instigator`) → `Get Component by Class` (Class: `MayDialogueParticipant`, Target: Self) → `Start Default Dialogue` (Instigator-Pin: `Instigator`-Variable). Rückgabe-Pin (UMayDialogueInstance) bleibt unverbunden. Alle Nodes sauber beschriftet.
+
+```text
+[Event On Interact (Instigator: Actor)]
+    │
+    ▼
+[Get Component by Class: MayDialogueParticipant] (Target: Self)
+    │
+    ▼
 [Start Default Dialogue]
-  ├ Other: [Get Component by Class MayDialogueParticipant] (auf Interactor)
+    └─ Instigator: Instigator-Pin von On Interact
 ```
-
-## Variante 2 – Über die Library
-
-Funktional. Blueprint-freundlich.
 
 ### C++
 
 ```cpp
-UMayDialogueLibrary::StartDialogue(
-    this,              // WorldContext
-    DA_Greeting,       // Asset
-    PlayerPawn,        // Instigator
-    GuardActor         // Target
-);
-```
-
-### Blueprint
-
-```
-[MayDialogueLibrary :: Start Dialogue]
-  ├ World Context: Self
-  ├ Asset:         DA_Greeting
-  ├ Instigator:    Player Pawn
-  └ Target:        Guard Actor
-```
-
-## Variante 3 – Über das Subsystem
-
-Zentralistisch. Nützlich in System-Code (Quest-Script, Cutscene-Regie).
-
-### C++
-
-```cpp
-if (auto* Sub = UMayDialogueSubsystem::Get(this))
+void AGuardActor::OnInteract(AActor* Instigator)
 {
-    Sub->StartDialogue(DA_Greeting, PlayerPawn, GuardActor);
-}
-```
-
-### Blueprint
-
-```
-[Get May Dialogue Subsystem] → [Subsystem :: Start Dialogue]
-```
-
-## Pre-Flight-Check
-
-Wenn du vorab wissen willst, ob ein Dialog möglich wäre:
-
-```cpp
-bool bCanStart = Sub->CanStartDialogue(Asset, Instigator, Target);
-```
-
-Prüft:
-
-* Asset ist gültig und hat Entry.
-* Instigator & Target haben (wo nötig) Participants mit passenden Tags.
-* Kein anderer Dialog blockiert.
-
-## Nur ein Dialog gleichzeitig
-
-Das Plugin **erzwingt, dass maximal ein Dialog pro Welt läuft**. Wenn du einen neuen startest, während ein anderer aktiv ist, wird der alte **abgebrochen** (Cleanup vollständig). Kein Crash, kein Queue.
-
-## Blocking-Pattern für Interaction
-
-Wenn dein Trigger nur feuern soll, solange der Spieler wirklich am NPC steht:
-
-```cpp
-void AGuardActor::OnBeginOverlap(AActor* Other)
-{
-    if (PlayerIsValid(Other) && !Sub->IsAnyDialogueActive())
+    if (auto* Part = FindComponentByClass<UMayDialogueParticipant>())
     {
-        StartDialogue();
+        Part->StartDefaultDialogue(Instigator);
     }
 }
 ```
 
-## Auto-Dialogue beim NPC-Spawn
+{% hint style="info" %}
+`StartDefaultDialogue` startet den im `DefaultDialogue`-Feld der Komponente eingetragenen Asset. Willst du einen anderen Asset spielen, setze vorher `SetActiveDialogue(MeinAsset)`.
+{% endhint %}
 
-Manchmal soll ein NPC direkt beim Erscheinen reden (*„Hallo! Endlich bist du da!"*):
+---
+
+## Variante 2 — Library (empfohlen für Blueprints)
+
+**Wann:** Du willst einen Dialog mit einem bestimmten Asset starten, ohne vorher Referenzen auf Participant-Komponenten zu haben. Funktioniert aus jedem Blueprint: Widget, GameMode, LevelScript.
+
+### Blueprint
+
+> 📸 **Bild-Platzhalter:** `start-library-bp.png` — BP-Graph mit Library-Node.
+> *Setup:* Beliebiges Blueprint (z.B. LevelBlueprint). Graph: `Event BeginPlay` → `Start Dialogue` (Library-Node aus Kategorie MayDialogue). Pins befüllt: `Asset` = hartcodierter Dialog-Asset-Verweis, `Instigator` = `Get Player Pawn (0)`, `Target` = Referenz auf NPC-Actor aus Scene. Return-Value-Pin geht in einen `Is Valid`-Branch.
+
+```text
+[Start Dialogue]  (Kategorie: MayDialogue)
+  ├─ Asset:      DA_Greeting
+  ├─ Instigator: Get Player Pawn (0)
+  └─ Target:     Guard Actor Referenz
+       │
+       ▼
+[Is Valid: Return Value]
+  ├─ True  → Dialog läuft
+  └─ False → Print String: "Dialog konnte nicht starten"
+```
+
+### C++
 
 ```cpp
-void AGuardActor::BeginPlay()
-{
-    Super::BeginPlay();
+UMayDialogueInstance* Inst = UMayDialogueLibrary::StartDialogue(
+    this,           // WorldContext (beliebiges UObject in der Welt)
+    DA_Greeting,    // UMayDialogueAsset*
+    PlayerPawn,     // Instigator
+    GuardActor      // Target
+);
+```
 
-    // einige Frames warten, damit Spieler spawned ist
-    GetWorld()->GetTimerManager().SetTimer(
-        AutoStartTimer,
-        this,
-        &AGuardActor::TryAutoStart,
-        1.0f,
-        false
-    );
+---
+
+## Variante 3 — Subsystem direkt
+
+**Wann:** Dein System-Code (Quest-Director, Cutscene-Manager, Tutorial-Script) hat das Subsystem ohnehin referenziert und braucht auch die Delegates.
+
+### Blueprint
+
+> 📸 **Bild-Platzhalter:** `start-subsystem-bp.png` — BP-Graph mit Subsystem-Zugriff.
+> *Setup:* Blueprint mit `Get MayDialogue Subsystem` → `Start Dialogue` (am Subsystem-Node). `Instigator` = Player Pawn, `Target` = NPC-Referenz. Subsystem-Referenz in einer lokalen Variable gecacht, dann darunter direkt `Bind Event to On Any Dialogue Ended` mit einem Custom-Event verbunden.
+
+```text
+[Get MayDialogue Subsystem]
+    │
+    ├─→ [Start Dialogue]
+    │       ├─ Asset:      DA_IntroScene
+    │       ├─ Instigator: Player Pawn
+    │       └─ Target:     NPC Ref
+    │
+    └─→ [Bind Event to On Any Dialogue Ended]
+            └─ Event: Handle Dialogue Ended (Custom Event)
+```
+
+### C++
+
+```cpp
+if (auto* Sub = GetWorld()->GetSubsystem<UMayDialogueSubsystem>())
+{
+    Sub->OnAnyDialogueEnded.AddDynamic(this, &AQuestDirector::HandleDialogueEnded);
+    Sub->StartDialogue(DA_IntroScene, PlayerPawn, NPC);
 }
 ```
 
-## Abbrechen von außen
+---
 
-```cpp
-Sub->StopAllDialogues();              // harte Cleanup, alle abbrechen
-Sub->StopDialogue(ActiveInstance);    // gezielt
+## Vorher prüfen: CanStartDialogue
+
+Willst du wissen, ob ein Dialog starten kann, ohne ihn zu starten:
+
+```text
+[Get MayDialogue Subsystem] → [Can Start Dialogue]
+  ├─ Asset:      DA_Greeting
+  ├─ Instigator: Player Pawn
+  └─ Target:     Guard Actor
+       │ (bool)
+       ▼
+[Branch]
+  ├─ True  → Interaktions-Prompt anzeigen
+  └─ False → Prompt ausblenden
 ```
 
-Der `StopAllDialogues` ist praktisch beim Level-Wechsel oder Spieler-Tod.
+```cpp
+bool bOk = Sub->CanStartDialogue(DA_Greeting, Player, Guard);
+```
 
-## Weiter
+Prüft: Asset gültig, Entry vorhanden, mindestens ein Participant mit passenden Tags.
 
-* [Subsystem-API](subsystem-api.md) – alle Methoden im Detail.
-* [Bridge & Lifecycle-Events](bridge-events.md) – wie externe Systeme hinhören.
+---
+
+## Laufenden Dialog abbrechen
+
+```text
+[Get MayDialogue Subsystem] → [Stop All Dialogues]
+```
+
+```cpp
+Sub->StopAllDialogues();   // alle abbrechen (Level-Wechsel, Spielertod)
+Sub->StopDialogue(Inst);   // gezielt eine Instance abbrechen
+```
+
+> 📸 **Bild-Platzhalter:** `stop-all-dialogues-bp.png` — BP-Graph für Spielertod-Handling.
+> *Setup:* Game Mode oder Character-Blueprint. `Event On Player Died` → `Stop All Dialogues` (Library-Node). Kein weiterer Output.
+
+{% hint style="warning" %}
+Wenn du `StartDialogue` rufst, während bereits ein Dialog läuft, wird der alte **sofort abgebrochen**. Kein Queue, kein Crash.
+{% endhint %}

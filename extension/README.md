@@ -1,43 +1,58 @@
+---
+description: Was du erweitern kannst — Nodes, Requirements, SideEffects, Bridge.
+---
+
 # Erweiterung
 
-MayDialogue ist als **Baustein** gedacht, auf dem andere Systeme aufsetzen. Dieser Abschnitt zeigt, wie du das Plugin projekt-spezifisch erweiterst.
+MayDialogue ist darauf ausgelegt, dass du projekt-spezifische Logik direkt ins Plugin-Ökosystem einbringst. Alles, was du erweiterst, erscheint automatisch in den Editor-Pickern — kein Registrierungsschritt, kein Boilerplate.
 
-## Was kann man erweitern?
+## Was ist erweiterbar?
 
-| Erweiterungspunkt | Wie |
-| --- | --- |
-| Eigene Node-Typen | Blueprint-Subklasse von `UMayDialogueNode_Base`. |
-| Eigene Requirements | Blueprint-Subklasse von `UMayDialogueRequirement`. |
-| Eigene SideEffects | Blueprint-Subklasse von `UMayDialogueSideEffect`. |
-| Eigene Choices | Blueprint-Subklasse von `UMayDialogueChoice`. |
-| Eigene Bridge-Implementationen | C++-Klasse implementiert `IMayDialogueBridge`. |
-| Eigene UI-Widget-Skins | Blueprint-Subklassen der Widget-Klassen. |
-| Eigene Babel-Profile | DataAsset von `UMayDialogueBabelProfile`. |
+| Erweiterungspunkt | Wie | Wozu |
+| --- | --- | --- |
+| **Eigene Node-Typen** | Blueprint-Subklasse von `UMayDialogueNode_Base` | Projekt-spezifische Graph-Schritte (z.B. "Notify Quest System") |
+| **Eigene Requirements** | Blueprint-Subklasse von `UMayDialogueRequirement` | Projekt-spezifische Bedingungen (z.B. "Quest abgeschlossen", "Item vorhanden") |
+| **Eigene SideEffects** | Blueprint-Subklasse von `UMayDialogueSideEffect` | Projekt-spezifische Aktionen (z.B. "Achievement freischalten", "Quest-Progress +1") |
+| **Bridge-Events binden** | Delegates des Subsystems abonnieren | Externes System auf Dialog-Events reagieren lassen |
 
-## Kapitel-Überblick
+## Wie Discovery funktioniert
 
-* [Eigene Nodes per Blueprint](custom-nodes.md)
-* [Eigene Requirements](custom-requirements.md)
-* [Eigene SideEffects](custom-side-effects.md)
-* [Bridge implementieren](bridge-implementation.md)
+UE's Reflection-System scannt alle `UClass`-Subklassen zur Laufzeit. Sobald eine Blueprint- oder C++-Klasse kompiliert ist, erscheint sie automatisch:
 
-## Philosophie: Blueprint-First für Designer
+* In den **Requirement-Pickern** jeder Choice, jedes Branch, jeder SayLine.
+* In den **SideEffect-Arrays** jedes Nodes.
+* Im **Kontext-Menü** des Dialog-Graphen (für eigene Nodes).
 
-Alle Basis-Klassen sind `Blueprintable` + `EditInlineNew`. Designer müssen für 90% aller Erweiterungen **kein C++ schreiben**.
+Du registrierst nichts manuell.
 
-C++ ist nur sinnvoll, wenn:
+> 📸 **Bild-Platzhalter:** `ext-overview-picker.png` — Dropdown-Menü "Add Requirement" mit eigener BP-Klasse in der Liste.
+> *Setup:* MayDialogue-Editor offen, Choice-Node ausgewählt. Im Details-Panel: "Add Requirement"-Dropdown aufgeklappt. Liste zeigt Standard-Klassen (`Has Gameplay Tag`, `Check GAS Attribute`, …) und darunter die eigene Blueprint-Klasse `BP_Req_QuestCompleted` (unter Kategorie "Quest"). Letztere ist hervorgehoben.
 
-* Die Logik komplex ist und Performance-kritisch.
-* Die Klasse tief in andere C++-Systeme (Quest, Inventory) eingreift.
-* Du native Tags oder Interfaces zur Compile-Time-Typ-Sicherheit haben willst.
+## Blueprint-First-Prinzip
 
-## Reflection-basierte Discovery
+Alle Basisklassen sind `Blueprintable` und `EditInlineNew`. Das bedeutet:
 
-UE's Reflection-System findet **alle Subklassen** der Basis-Klassen automatisch. Sobald eine Blueprint-Klasse kompiliert ist, erscheint sie in den Node-/Sub-Node-Pickern. Kein Registrierungs-Schritt nötig.
+* **Für 90% aller Erweiterungen reicht Blueprint.** Du klickst, nicht tippst.
+* C++ ist sinnvoll, wenn du tiefe Integration in eigene C++-Systeme brauchst oder Performance-kritische Logik vorliegt.
 
-## Best Practices
+Jede Seite dieses Abschnitts zeigt zuerst den Blueprint-Weg, dann eine C++-Variante.
 
-* **Kleine, fokussierte Klassen**. Ein Requirement pro Regel, ein SideEffect pro Aktion. Lieber mehr Klassen, jede klar benannt.
-* **Display-Namen setzen**. `UCLASS(meta = (DisplayName = "..."))` oder Blueprint-Node-Title-Override.
-* **Description-Felder nutzen**. `Description` ist die Pill-Label-Quelle im Graph.
-* **Fail-Modi respektieren**. `bHideOnFail` und `FailureResult` sollten Designer-steuerbar bleiben.
+## Kapitel im Detail
+
+* [Eigene Nodes](custom-nodes.md) — Neue Graph-Schritte mit eigenem Verhalten.
+* [Eigene Requirements](custom-requirements.md) — Neue Bedingungen für Choices, Branches, SayLines.
+* [Eigene SideEffects](custom-side-effects.md) — Neue Inline-Aktionen an beliebigen Nodes.
+* [Bridge-Implementation](bridge-implementation.md) — Dialog-Events in externe Systeme leiten.
+
+> 📸 **Bild-Platzhalter:** `ext-overview-architecture.png` — Diagramm: Basisklassen-Hierarchie mit Blueprint-Subklassen als Erweiterungspunkte.
+> *Setup:* Einfaches UML-ähnliches Diagramm. Vier Basisklassen-Boxen: `UMayDialogueNode_Base`, `UMayDialogueRequirement`, `UMayDialogueSideEffect`, `IMayDialogueBridge`. Darunter jeweils Beispiel-Subklassen als gestrichelte Boxen: `BP_DN_NotifyQuest`, `BP_Req_QuestCompleted`, `BP_SE_QuestProgress`, `UMyQuestBridgeConsumer`. Pfeile von Subklassen zu Basisklassen.
+
+## Best Practices — kurz
+
+* **Eine Klasse, eine Aufgabe.** `BP_Req_QuestActive` prüft Quest-Status — und nichts anderes.
+* **Display-Namen setzen.** In Class Settings einen verständlichen Namen eintragen — er erscheint in Pickern und Pill-Labels.
+* **Null-Guards einbauen.** Prüfe, ob dein Subsystem vorhanden ist. Gib bei fehlendem Subsystem `Passed` zurück (Requirement) oder tue nichts (SideEffect) — nie crashen.
+* **Fail-Modi respektieren.** `bHideOnFail` in Requirements sollte Designer-steuerbar bleiben.
+
+> 📸 **Bild-Platzhalter:** `ext-overview-pill-labels.png` — Graph-Ansicht mit eigenen SideEffect-Pills an einer SayLine, gut lesbare Display-Namen.
+> *Setup:* MayDialogue-Editor, SayLine-Node aufgeklappt. SideEffects-Array zeigt drei Pills: "Quest Progress +1 (KillDragon)", "Grant Achievement: DragonSlayer", "Add Tag: Story.DragonDefeated". Pill-Labels kommen aus `GetDisplayDescription`-Rückgabe der jeweiligen Klassen.

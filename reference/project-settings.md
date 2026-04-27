@@ -1,27 +1,37 @@
+---
+description: Alle Felder von UMayDialogueSettings — Typen, Defaults, Bedeutung.
+---
+
 # Projekt-Einstellungen (Referenz)
 
-Kompakt-Referenz von `UMayDialogueSettings`. Für die erzählende Erklärung siehe [Getting Started → Projekt-Einstellungen](../getting-started/project-settings.md). Hier geht es nur um die **schnelle Nachschlagbarkeit**.
+Kompakt-Referenz von `UMayDialogueSettings`.
 
-* **Klasse**: `UMayDialogueSettings` (`UDeveloperSettings`)
-* **Config-Category**: `Game`
-* **Config-File**: `DefaultGame.ini`
-* **Section**: `/Script/MayDialogue.MayDialogueSettings`
-* **UI-Pfad im Editor**: *Edit → Project Settings → Plugins → MayDialogue*
+- **Klasse**: `UMayDialogueSettings` (`UDeveloperSettings`)
+- **Config-Datei**: `DefaultGame.ini`
+- **Section**: `/Script/MayDialogue.MayDialogueSettings`
+- **UI-Pfad**: *Edit → Project Settings → Plugins → MayDialogue*
+
+> 📸 **Bild-Platzhalter:** `project-settings-panel.png` — Screenshot des Project-Settings-Panels.
+> *Setup:* Editor geöffnet, Edit → Project Settings → Plugins → MayDialogue. Vollständiger Screenshot des Settings-Panels mit allen Kategorien sichtbar: Widget, UMG-Komponenten-Defaults, Dialog-Defaults, Typewriter, Input, Audio, Babel-Voice, Kamera. Roter Pfeil zeigt auf den Navigations-Pfad oben im Settings-Fenster.
+
+---
 
 ## Widget
 
 | Property | Typ | Default | Bedeutung |
-| --- | --- | --- | --- |
-| `DefaultDialogueWidgetClass` | `TSoftClassPtr<UMayDialogueWidget>` | *(keins)* | UMG-Widget für den Dialog-Overlay. Leer → Slate-Fallback. |
-| `bUseSlateDialogueWidget` | `bool` | `true` | Slate-Debug-Widget einblenden, solange `DefaultDialogueWidgetClass` leer ist. |
-| `PanelBlurStrength` | `float` | `4.0` | Blur-Stärke der Slate-Panels. Nur wirksam im Slate-Debug-Widget. |
+|---|---|---|---|
+| `DefaultDialogueWidgetClass` | `TSoftClassPtr<UMayDialogueWidget>` | *(leer)* | UMG-Widget das als Dialog-Overlay angezeigt wird. Leer → Slate-Debug-Fallback. |
+| `bUseSlateDialogueWidget` | `bool` | `true` | Slate-Debug-Widget einblenden solange `DefaultDialogueWidgetClass` leer ist. |
+| `PanelBlurStrength` | `float` | `4.0` | Blur-Stärke der Slate-Panels (nur im Slate-Debug-Widget wirksam). |
+
+---
 
 ## UMG-Komponenten-Defaults
 
-Fallbacks für den komponenten-basierten UMG-Workflow. Falls `DefaultDialogueWidgetClass` gesetzt ist und `BindWidget`-Slots anbietet, haben die Bindings Vorrang.
+Fallback-Klassen für den komponenten-basierten UMG-Workflow. Wenn `DefaultDialogueWidgetClass` `BindWidget`-Slots hat, haben diese Vorrang.
 
 | Property | Typ |
-| --- | --- |
+|---|---|
 | `DefaultDialogFrameClass` | `TSoftClassPtr<UMayDialogueWidget_DialogFrame>` |
 | `DefaultSpeakerWidgetClass` | `TSoftClassPtr<UMayDialogueWidget_Speaker>` |
 | `DefaultTextWidgetClass` | `TSoftClassPtr<UMayDialogueWidget_Text>` |
@@ -29,90 +39,100 @@ Fallbacks für den komponenten-basierten UMG-Workflow. Falls `DefaultDialogueWid
 | `DefaultChoiceListClass` | `TSoftClassPtr<UMayDialogueWidget_ChoiceList>` |
 | `DefaultSkipButtonClass` | `TSoftClassPtr<UMayDialogueWidget_SkipButton>` |
 
+---
+
 ## Dialog-Defaults
 
 | Property | Typ | Default | Bedeutung |
-| --- | --- | --- | --- |
-| `DefaultAdvanceMode` | `EMayDialogueAdvanceMode` | `Manual` | Advance-Modus für SayLines ohne Override. |
+|---|---|---|---|
+| `DefaultAdvanceMode` | `EMayDialogueAdvanceMode` | `Manual` | Advance-Modus für SayLines ohne expliziten Override. |
 | `DefaultAutoAdvanceDelay` | `float` | `3.0` | Delay in Sekunden für AdvanceMode `Timer`. |
+
+---
 
 ## Typewriter
 
 | Property | Typ | Default | Bedeutung |
-| --- | --- | --- | --- |
+|---|---|---|---|
 | `bEnableTypewriterEffect` | `bool` | `true` | Globaler Typewriter-Schalter. |
-| `TypewriterCharsPerSecond` | `float` | `30.0` | Default-Zeichen/Sekunde ohne inline `<speed>`-Tag. |
+| `TypewriterCharsPerSecond` | `float` | `30.0` | Zeichen pro Sekunde (Standard, ohne `<speed>`-Inline-Tag). |
+
+---
 
 ## Input
 
 | Property | Typ | Default | Bedeutung |
-| --- | --- | --- | --- |
-| `bAllowSkipTypewriter` | `bool` | `true` | Spieler-Input zippt den Typewriter. |
-| `bAllowSkipVoiceLine` | `bool` | `false` | Spieler-Input stoppt laufende Voice und advanced. |
+|---|---|---|---|
+| `bAllowSkipTypewriter` | `bool` | `true` | Spieler-Input zipped den Typewriter sofort auf den vollen Text. |
+| `bAllowSkipVoiceLine` | `bool` | `false` | Spieler-Input stoppt laufende Voice und advanced weiter. |
 | `bSwitchToUIInputDuringDialogue` | `bool` | `true` | Input-Mode `GameAndUI` für die Dialog-Dauer. |
-| `bShowMouseCursorDuringDialogue` | `bool` | `true` | Cursor während des Dialogs einblenden. |
+| `bShowMouseCursorDuringDialogue` | `bool` | `true` | Maus-Cursor während des Dialogs einblenden. |
+
+---
 
 ## Audio
 
 | Property | Typ | Default | Bedeutung |
-| --- | --- | --- | --- |
-| `DefaultSoundClass` | `TSoftObjectPtr<USoundClass>` | *(keins)* | Default-Sound-Class für Voice-Wiedergabe. |
-| `DefaultAttenuation` | `TSoftObjectPtr<USoundAttenuation>` | *(keins)* | Default-3D-Attenuation. |
-| `bForce2D` | `bool` | `false` | Alle Voice-Wiedergaben in 2D erzwingen. |
+|---|---|---|---|
+| `DefaultSoundClass` | `TSoftObjectPtr<USoundClass>` | *(leer)* | Default-Sound-Class für Voice-Wiedergabe. |
+| `DefaultAttenuation` | `TSoftObjectPtr<USoundAttenuation>` | *(leer)* | Default-3D-Attenuation für Voice-Audio. |
+| `bForce2D` | `bool` | `false` | Alle Voice-Wiedergaben als 2D erzwingen (ignoriert Attenuation). |
+
+---
 
 ## Babel-Voice
 
 | Property | Typ | Default | Bedeutung |
-| --- | --- | --- | --- |
-| `bEnableBabelVoice` | `bool` | `true` | Babel-Synthese aktivieren, wenn keine Voice gesetzt ist. |
-| `DefaultBabelProfile` | `TSoftObjectPtr<UMayDialogueBabelProfile>` | Plugin-Default | Fallback-Profil. |
+|---|---|---|---|
+| `bEnableBabelVoice` | `bool` | `true` | Babel-Synthese aktivieren wenn kein Voice-Asset gesetzt ist. |
+| `DefaultBabelProfile` | `TSoftObjectPtr<UMayDialogueBabelProfile>` | Plugin-Default | Fallback-Profil wenn der Sprecher kein eigenes Profil hat. |
+
+---
 
 ## Kamera
 
 | Property | Typ | Default | Bedeutung |
-| --- | --- | --- | --- |
+|---|---|---|---|
 | `bAutoFocusSpeaker` | `bool` | `false` | Automatischer CameraFocus auf den aktuellen SayLine-Speaker. |
-| `DefaultCameraBlendTime` | `float` | `0.75` | Blend-Dauer für CameraFocus ohne explizite Angabe. |
+| `DefaultCameraBlendTime` | `float` | `0.75` | Blend-Dauer in Sekunden für CameraFocus ohne explizite Angabe. |
+
+---
 
 ## Programmatischer Zugriff
 
 ```cpp
-// C++
-const UMayDialogueSettings* Settings = GetDefault<UMayDialogueSettings>();
-const float Delay = Settings->DefaultAutoAdvanceDelay;
-
-// Mutierendes Setzen (selten; nur in Tools / Migrations):
-UMayDialogueSettings* Mutable = GetMutableDefault<UMayDialogueSettings>();
-Mutable->bEnableBabelVoice = false;
-Mutable->SaveConfig();
+const UMayDialogueSettings* S = GetDefault<UMayDialogueSettings>();
+float Delay = S->DefaultAutoAdvanceDelay;
+bool bTypewriter = S->bEnableTypewriterEffect;
 ```
 
-```
-// Blueprint
-[Get Default Object] (Class: MayDialogueSettings) → Break Struct / Get Property
+Blueprint-Zugriff:
+
+```text
+[Get Class Defaults] (Class: MayDialogueSettings) → Properties lesen
 ```
 
-## Konfigurations-Persistenz
+---
 
-`UDeveloperSettings` schreibt mit `SaveConfig()` nach `DefaultGame.ini` in die Section `/Script/MayDialogue.MayDialogueSettings`. Beispiel:
+## Config-Beispiel (DefaultGame.ini)
 
 ```ini
 [/Script/MayDialogue.MayDialogueSettings]
 bEnableTypewriterEffect=True
 TypewriterCharsPerSecond=42.0
 bEnableBabelVoice=True
+DefaultAdvanceMode=Manual
+DefaultAutoAdvanceDelay=2.5
 DefaultCameraBlendTime=0.5
+bAutoFocusSpeaker=False
 ```
 
-## Shipping-Verhalten
-
-* Alle Werte sind in Shipping **eingefroren** – keine Runtime-Mutation geplant.
-* `TSoftObjectPtr` / `TSoftClassPtr` werden beim ersten Dialog-Start lazy resolved; Performance-Impact ist eine einmalige Load-Pause.
-* Wenn du trotzdem Runtime-Wechsel brauchst (z.B. Player-Preferences für Typewriter-Speed): Leg eine separate `USaveGame`-Struktur an und lies sie vor `StartDialogue`.
+{% hint style="info" %}
+`TSoftObjectPtr`- und `TSoftClassPtr`-Referenzen werden beim ersten Dialog-Start lazy geladen. Es entsteht eine einmalige kurze Lade-Pause — plant das für deinen ersten Dialogstart ein.
+{% endhint %}
 
 ## Siehe auch
 
-* [Editor-Einstellungen](editor-settings.md)
-* [Getting Started → Projekt-Einstellungen](../getting-started/project-settings.md) – narrativer Walkthrough.
-* [UI → UMG-Architektur](../ui/umg-architecture.md) – wie die UMG-Defaults das Widget-Layout steuern.
-* [Audio → Babel-System](../audio/babel-system.md) – Babel-Details.
+- [Editor-Einstellungen](editor-settings.md) — Editor-spezifische Settings (Node-Farben, Debug-Highlights).
+- [UI → UMG-Architektur](../ui/umg-architecture.md) — wie die UMG-Defaults das Widget-Layout steuern.
+- [Audio → Babel-System](../audio/babel-system.md) — Babel-Details und Profil-Konfiguration.

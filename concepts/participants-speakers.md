@@ -1,148 +1,139 @@
+---
+description: Participant-Komponente am Actor vs. Speaker-Definition im Asset — und wie sie zusammenfinden.
+---
+
 # Participants & Sprecher
 
-Jeder Actor, der an einem Dialog teilnimmt, braucht eine **`UMayDialogueParticipant`**-Komponente. Jeder Sprecher, der in einem Dialog-Asset vorkommt, hat eine **`FMayDialogueSpeaker`**-Definition. Dieses Kapitel zeigt, wie die beiden zusammenspielen.
+In MayDialogue gibt es zwei Seiten eines sprechenden Charakters: die **Participant-Komponente** am Actor im Level und den **Speaker-Eintrag** im Dialog-Asset. Beide sind über einen Tag verbunden.
 
-## Participant vs. Speaker
+## Das Konzept auf einen Blick
 
-| | Participant (Actor-Seite) | Speaker (Asset-Seite) |
-| --- | --- | --- |
-| Lebt als | `UActorComponent` auf einem Actor | `FMayDialogueSpeaker`-Struct im Dialog-Asset |
-| Zweck | *„Wer ist das im Level?"* | *„Wie wird er in **diesem** Dialog präsentiert?"* |
-| Felder | Tag, DisplayName, PersistentMemory, AudioOverrides, Kamera-Offsets | DisplayName, Portrait, NodeColor, Audio-Tuning, Babel-Profil |
-| Beziehung | 1:1 Tag-Matching | Wird pro Asset neu definiert |
+```text
+Level (Laufzeit)                 Dialog-Asset (Authoring)
+────────────────                 ─────────────────────────
+GuardActor                       Speakers-Liste
+  └─ UMayDialogueParticipant       └─ "Wächter"
+       ParticipantTag:                  SpeakerTag: Dialogue.Speaker.Guard
+       Dialogue.Speaker.Guard     ←──── DisplayName: "Wächter"
+       DisplayName: "Hans"              Portrait: TX_Guard_Neutral
+       PersistentMemory: {...}          NodeColor: #CC3333
+```
 
-Warum diese Trennung? Weil ein NPC in verschiedenen Dialogen anders präsentiert werden darf. Derselbe Wächter-Actor (Participant) kann im ersten Dialog als *„Fremder Wächter"* mit grauem Portrait erscheinen und später als *„Hans, Hauptmann"* mit persönlichem Portrait – jedes Asset definiert seine eigenen Speaker-Strukturen, die sich per Tag an die Actor-Participants binden.
+Die Komponente fragt: *„Wer ist das im Level?"*
+Der Speaker fragt: *„Wie wird er in **diesem** Dialog präsentiert?"*
+
+Warum diese Trennung? Ein NPC kann in verschiedenen Dialogen anders heißen und anders aussehen. Derselbe Guard-Actor erscheint im ersten Dialog als anonym „Fremder Wächter" (grau, kein Portrait) und nach der Enthüllung als „Hans, Hauptmann" mit eigenem Portrait — weil jedes Asset seine Sprecher-Einträge frei definiert.
+
+> 📸 **Bild-Platzhalter:** `participant-vs-speaker-diagram.png` — Schaubild: Actor-Seite links, Asset-Seite rechts, Pfeil über SpeakerTag.
+> *Setup:* Zwei Kästen nebeneinander. Links: „GuardActor im Level" mit Icons für ActorComponent und einem Tag-Symbol mit Text `Dialogue.Speaker.Guard`. Rechts: „DA_Guard_Greeting (Asset)" mit Speakers-Panel-Ausschnitt: Eintrag „Wächter", SpeakerTag-Feld zeigt `Dialogue.Speaker.Guard`. Ein dicker Pfeil verbindet beide über den Tag. Darunter: kleiner Text „Tag = Brücke zwischen Level und Asset".
 
 ## Die Participant-Komponente
 
-`UMayDialogueParticipant` (kurz: **UMDP**) ist ein `UActorComponent`, den du an jeden Dialog-relevanten Actor hängst.
+`UMayDialogueParticipant` hängst du über den Details-Panel an jeden Dialog-relevanten Actor — NPCs, Spieler-Pawn, Objekte mit Stimme.
 
 ### Wichtige Properties
 
-| Property | Typ | Zweck |
-| --- | --- | --- |
-| `ParticipantTag` | `FGameplayTag` | **Primärer Match-Key**. Dialoge identifizieren Teilnehmer hierüber. Convention: `Dialogue.Speaker.<Name>`. |
-| `DisplayName` | `FText` | Fallback-Name. Wird vom Speaker im Asset überschrieben. |
-| `Portrait` | `TSoftObjectPtr<UTexture2D>` | Fallback-Portrait. Wird vom Speaker im Asset überschrieben. |
-| `ParticipantTags` | `FGameplayTagContainer` | Zusätzliche Tags (z.B. `Dialogue.Trait.Hostile`) für Branching. |
-| `DefaultDialogue` | `UMayDialogueAsset*` | Das Asset, das bei Standard-Interaktion startet. |
-| `AttenuationOverride` | `USoundAttenuation*` | Voice-Räumlichkeit, die diesem Actor eigen ist. |
-| `bAutoFacePartner` | bool | Drehe den Actor automatisch zum Gesprächspartner. |
-| `CameraTargetOffset` | `FVector` | Offset vom Actor-Origin für CameraFocus-Nodes. |
-| `PersistentMemory` | `FInstancedPropertyBag` (SaveGame) | Variablen, die den Participant überdauern. |
+| Property | Zweck |
+| --- | --- |
+| `ParticipantTag` | Der Match-Key. Convention: `Dialogue.Speaker.<Name>`. |
+| `DisplayName` | Fallback-Name, wenn das Asset keinen eigenen definiert. |
+| `Portrait` | Fallback-Portrait. Wird vom Asset-Speaker überschrieben. |
+| `DefaultDialogue` | Das Asset, das bei Standard-Interaktion startet. |
+| `bAutoFacePartner` | Actor dreht sich automatisch zum Gesprächspartner. |
+| `CameraTargetOffset` | Offset vom Actor-Origin für CameraFocus-Nodes. |
+| `PersistentMemory` | Variablen, die Gespräche überdauern (SaveGame-markiert). |
 
-### Die drei Start-Pfade
+> 📸 **Bild-Platzhalter:** `participant-component-add.png` — Participant-Komponente zum Actor hinzufügen.
+> *Setup:* Details-Panel eines Guard-Actors. „Add Component"-Button angeklickt, Suchfeld zeigt „MayDialogue", der Eintrag `MayDialogueParticipant` ist markiert. Kein sonstiger Content.
 
-Ein Dialog kann auf drei Wegen angestoßen werden; alle enden beim Subsystem.
+> 📸 **Bild-Platzhalter:** `participant-component-filled.png` — Fertig ausgefüllte Participant-Komponente.
+> *Setup:* Details-Panel, Abschnitt `MayDialogueParticipant`. Sichtbare Felder: `ParticipantTag = Dialogue.Speaker.Guard`, `DisplayName = Wächter`, `DefaultDialogue = DA_Guard_Greeting` (Asset-Referenz), `bAutoFacePartner = true`, `CameraTargetOffset = (0, 0, 80)`. Portrait-Slot mit Texture2D `TX_Guard_Neutral` befüllt.
 
-#### 1. Auf der Komponente
+### Drei Wege, einen Dialog zu starten
 
-```cpp
-// In einem Interaction-Trigger am Guard-Actor
-UMayDialogueParticipant* Guard = GuardActor->FindComponentByClass<UMayDialogueParticipant>();
-UMayDialogueParticipant* Player = PlayerPawn->FindComponentByClass<UMayDialogueParticipant>();
+Alle drei Wege führen beim Subsystem zusammen und erzeugen dieselbe Instanz.
 
-Guard->StartDefaultDialogue(Player);
-```
+**Blueprint — am einfachsten:**
 
-Vorteil: OOP-Stil, lebt direkt am NPC.
-
-#### 2. Über die Library
+> 📸 **Bild-Platzhalter:** `bp-start-default-dialogue.png` — Blueprint-Graph: StartDefaultDialogue auf der Komponente.
+> *Setup:* BP-Graph eines Interaction-Triggers (z.B. Box-Overlap). `Event BeginOverlap` → `Get MayDialogueParticipant` (auf GuardActor) → `Start Default Dialogue`. Pin `Instigator`: `Get Player Pawn`. Alle Nodes sind verbunden und beschriftet.
 
 ```cpp
-UMayDialogueLibrary::StartDialogue(
-    this,                    // WorldContext
-    DA_Greeting_Simple,      // Asset
-    PlayerPawn,              // Instigator
-    GuardActor               // Target
-);
+// C++ Variante 1 — auf der Komponente
+Guard->FindComponentByClass<UMayDialogueParticipant>()->StartDefaultDialogue(Player);
+
+// C++ Variante 2 — über die Library (Blueprint-nah)
+UMayDialogueLibrary::StartDialogue(this, DA_Guard_Greeting, PlayerPawn, GuardActor);
+
+// C++ Variante 3 — direkt am Subsystem
+UMayDialogueSubsystem::Get(this)->StartDialogue(DA_Guard_Greeting, PlayerPawn, GuardActor);
 ```
-
-Vorteil: Blueprint-nah, funktionaler Stil.
-
-#### 3. Über das Subsystem
-
-```cpp
-UMayDialogueSubsystem* Sub = UMayDialogueSubsystem::Get(this);
-Sub->StartDialogue(DA_Greeting_Simple, PlayerPawn, GuardActor);
-```
-
-Vorteil: Zentralistisch, praktisch für System-Code (z.B. Quest-Script).
-
-Alle drei erzeugen am Ende eine `UMayDialogueInstance`.
 
 ### Dynamisches Dialog-Swapping
 
-`SetActiveDialogue(NewAsset)` auf der Komponente überschreibt den Default. `GetActiveDialogue()` liefert den effektiven Dialog (Override wenn gesetzt, sonst Default).
+Mit `SetActiveDialogue(NewAsset)` kannst du den Default-Dialog eines NPCs zur Laufzeit wechseln — z.B. wenn eine Quest einen neuen Gesprächsstand freigeschaltet hat.
 
-Typisch: Quest-System markiert „NPC hat jetzt ein anderes Gespräch", z.B. nach einem Event:
+**Blueprint:**
+
+> 📸 **Bild-Platzhalter:** `bp-set-active-dialogue.png` — Blueprint: SetActiveDialogue auf der Komponente nach einem Quest-Event.
+> *Setup:* BP-Graph eines QuestManagers. Event `OnQuestCompleted` → `Get MayDialogueParticipant` (auf GuardActor) → `Set Active Dialogue`. Pin `New Dialogue = DA_Guard_AfterRevelation`. Einfacher linearer Graph.
 
 ```cpp
-Guard->SetActiveDialogue(DA_Guard_AfterBetrayal);
+Guard->FindComponentByClass<UMayDialogueParticipant>()->SetActiveDialogue(DA_Guard_AfterRevelation);
 ```
 
-## Sprecher im Asset
+## Der Sprecher-Eintrag im Asset
 
-Die Sprecher-Liste im Asset-Editor hat für jeden Eintrag:
+Für jeden Sprecher in einem Dialog-Asset trägst du im **Speakers-Panel** einen Eintrag ein:
 
 | Property | Zweck |
 | --- | --- |
-| `SpeakerTag` | Match-Key zum Participant-Tag. |
-| `DisplayName` | Der Name, der im UI erscheint. |
-| `Portrait` | Das Portrait, das im UI erscheint. |
-| `NodeColor` | Title-Bar-Farbe der SayLine-Nodes dieses Sprechers. |
+| `SpeakerTag` | Match-Key — muss mit dem `ParticipantTag` des Actors übereinstimmen. |
+| `DisplayName` | Name im UI-Widget. Überschreibt den Fallback der Komponente. |
+| `Portrait` | Portrait im UI-Widget. Überschreibt den Fallback der Komponente. |
+| `NodeColor` | Title-Bar-Farbe aller SayLine-Nodes dieses Sprechers. |
 | `AudioModeOverride` | Default / Spatial3D / Force2D. |
-| `SoundClassOverride` | Eigene SoundClass für diesen Sprecher. |
-| `AttenuationOverride` | Eigene Attenuation. |
-| `VolumeMultiplier` / `PitchMultiplier` | Tonhöhen-/Lautstärke-Tuning. |
-| `BabelProfile` | Eigenes Babel-Profile (wenn keine echte Stimme). |
+| `VolumeMultiplier` / `PitchMultiplier` | Audio-Tuning pro Sprecher. |
 
-## Participant-Resolution zur Laufzeit
+> 📸 **Bild-Platzhalter:** `speakers-panel-filled.png` — Speakers-Panel mit zwei Einträgen.
+> *Setup:* Asset-Editor, Speakers-Panel-Tab geöffnet. Zwei Einträge: 1. „Wächter" — SpeakerTag: `Dialogue.Speaker.Guard`, NodeColor: dunkelrot, Portrait: TX_Guard_Neutral. 2. „Spieler" — SpeakerTag: `Dialogue.Speaker.Player`, NodeColor: dunkelblau, kein Portrait. Beide Einträge ausgeklappt.
 
-Wenn ein SayLine-Node den Speaker-Tag `Dialogue.Speaker.Guard` ansteuert, sucht die Instance nach einer passenden `UMayDialogueParticipant` mit identischem Tag **unter den am Dialog beteiligten Actors**:
+## Participant-Auflösung zur Laufzeit
 
-1. Zunächst Instigator-Actor.
-2. Dann Target-Actor.
-3. Danach alle dynamisch hinzugefügten Participants (z.B. zusätzliche NPCs, die mitsprechen).
-4. Wenn kein Match: Fallback auf eine reine Asset-Präsentation (Portrait + DisplayName kommen aus dem Speaker), und audio-seitig 2D-Fallback.
+Wenn ein SayLine-Node den Speaker-Tag `Dialogue.Speaker.Guard` ansteuert, sucht das Plugin in dieser Reihenfolge nach einem passenden Actor:
 
-## PersistentMemory
+1. Instigator-Actor
+2. Target-Actor
+3. Alle zusätzlich registrierten Participants (z.B. dritter NPC im Gespräch)
+4. Fallback: Kein Actor gefunden → Portrait und Name kommen aus dem Asset-Speaker-Eintrag, Audio läuft in 2D.
 
-Die **persistente Seite** des Participants:
+## PersistentMemory: Was den Dialog überdauert
+
+`PersistentMemory` ist der Ort für Variablen, die nach dem Gespräch weitergelten — z.B. ob der Spieler diesen NPC schon getroffen hat, oder wie viel Vertrauen aufgebaut wurde.
+
+**Blueprint:**
+
+> 📸 **Bild-Platzhalter:** `bp-persistent-memory.png` — Blueprint: SetPersistentBool auf der Participant-Komponente.
+> *Setup:* BP-Graph nach einem Dialog-Ende. `OnDialogueEnded` → `Get MayDialogueParticipant` → `Set Persistent Bool`. Pins: `Variable Name = "HasMet"`, `Value = true`. Einfacher Graph, alles beschriftet.
 
 ```cpp
-// Setter
-Guard->SetPersistentBool("HasMet", true);
-Guard->SetPersistentInt("FriendshipPoints", 42);
-Guard->SetPersistentTag("LastMood", FGameplayTag("Dialogue.Mood.Friendly"));
+// Schreiben
+Guard->FindComponentByClass<UMayDialogueParticipant>()->SetPersistentBool("HasMet", true);
+Guard->FindComponentByClass<UMayDialogueParticipant>()->SetPersistentInt("FriendshipPoints", 42);
 
-// Getter mit Default
-bool HasMet = Guard->GetPersistentBool("HasMet", false);
-int32 Points = Guard->GetPersistentInt("FriendshipPoints", 0);
+// Lesen mit Default-Wert
+bool HasMet     = Part->GetPersistentBool("HasMet", false);
+int32 Friendship = Part->GetPersistentInt("FriendshipPoints", 0);
 ```
 
-Gespeichert wird im `FInstancedPropertyBag`, markiert als `SaveGame`. Ein Projekt-eigenes SaveGame-System packt das automatisch ein. Für schnellen Einstieg gibt es den [QuickSave-Helper](../persistence/quicksave-helper.md).
+Die `PersistentMemory` ist als `SaveGame` markiert. Dein eigenes SaveGame-System packt sie automatisch ein, wenn du die Komponente serialisierst.
 
-## Netz-Awareness (Multiplayer-Ready)
+## Zusammenfassung
 
-Die Komponente ist **repliziert** und hat Server-/Client-RPC-Pfade:
-
-| Richtung | RPC |
-| --- | --- |
-| Client → Server | `ServerAdvanceConversation()`, `ServerSelectChoice(Index)` |
-| Server → Client | `ClientStartConversation()`, `ClientExitConversation()`, `ClientUpdateConversation(...)` |
-| Replicated | `CurrentMessage` (OnRep), `CurrentChoices` (OnRep), `ConversationsActive` (OnRep) |
-
-{% hint style="warning" %}
-**Phase 2 ist Work-in-Progress.** `ClientUpdateConversation` und die Net-Serialisierung von `FMayDialogueMessage` / `FMayDialogueChoiceEntry` sind als TODO markiert. Singleplayer funktioniert komplett; Multiplayer-Setups brauchen zusätzliche Arbeit.
-{% endhint %}
-
-## Zusammengefasst
-
-* **Participants** sind die Actor-seitige Identität (Tag, Persistent-Memory, Audio-Overrides, Kamera-Offsets).
-* **Sprecher** sind die Asset-seitige Präsentation (DisplayName, Portrait, NodeColor, Audio-Tuning).
-* Die Bindung erfolgt über **Tag-Matching**.
-* `DefaultDialogue` startet am NPC, `SetActiveDialogue` ermöglicht dynamisches Swapping.
-* PersistentMemory ist der Ort für Variablen, die einen Dialog überdauern.
+- **Participant-Komponente** = die Identität des Actors im Level. Tag, Gedächtnis, Audio-Overrides, Kamera-Offset.
+- **Speaker-Eintrag** = die Präsentation im Dialog-Asset. Name, Portrait, Farbe, Audio-Tuning.
+- **Tag-Matching** verbindet beide zur Laufzeit.
+- `DefaultDialogue` und `SetActiveDialogue` steuern, welches Gespräch ein NPC startet.
+- `PersistentMemory` speichert gesprächsübergreifende Variablen.
 
 Weiter: [Variablen & Scopes](variables-scopes.md).

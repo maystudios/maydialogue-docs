@@ -1,61 +1,108 @@
+---
+description: Einzelne Zeilen oder Sound-Events feintunen – 2D-Override für innere Monologe, Volume und Pitch pro PlaySound.
+---
+
 # Node-Overrides
 
-Node-Overrides sind die **feinste Kontroll-Ebene**. Sie gelten für eine einzige Zeile und übersteuern Plugin- und Speaker-Defaults.
+## Wann brauche ich das?
 
-## Verfügbare Properties
+Node-Overrides sind für **Ausnahmen**. Du hast bereits Speaker-Overrides gesetzt, aber eine einzelne Zeile muss anders klingen:
 
-### Auf SayLine
+- Diese eine SayLine ist innerer Monolog → 2D statt 3D
+- Dieser Ambient-Sound soll leiser als normal sein
+- Dieser Schrei soll höher klingen als der Rest
 
-| Property | Typ | Verfügbar |
-| --- | --- | --- |
-| `NodeAudioMode` | `EMayDialogueAudioMode` | Ja (`Default` / `Spatial3D` / `Force2D`). |
-| `AdvanceModeOverride` | `EMayDialogueAdvanceMode` | Ja (steuert Advance-Logik, audio-relevant bei `AfterVoice`). |
-| `VolumeMultiplier` | float | **Aktuell nicht** – Backlog-Item 11. |
-| `PitchMultiplier` | float | **Aktuell nicht** – Backlog-Item 11. |
-| `bOverride2D` | bool | **Aktuell nicht** – Backlog-Item 10. |
+Alles, das **nur für diese eine Zeile gilt**, gehört auf den Node. Alles, das für den Charakter generell gilt, gehört auf den [Speaker-Override](speaker-overrides.md).
 
-### Auf PlaySound
+## Overrides auf SayLine
 
-| Property | Typ |
-| --- | --- |
-| `Sound` | `USoundBase*` |
-| `VolumeMultiplier` | float |
-| `PitchMultiplier` | float |
-| `bForce2D` | bool |
-| `TargetTag` | `FGameplayTag` (optional) |
+> 📸 **Bild-Platzhalter:** `node-overrides-sayline-details.png` — Details-Panel einer SayLine mit NodeAudioMode = Force2D.
+> *Setup:* SayLine-Node im Graph-Editor auswählen. Details-Panel rechts zeigt: `NodeAudioMode = Force2D` (Dropdown, ausgewählt). Darüber `SpeakerTag`, `DialogueText`, darunter weitere SayLine-Properties. Roter Pfeil auf `NodeAudioMode`.
 
-## Advance-Mode & Audio
+| Property | Typ | Verfügbar | Wirkung |
+|---|---|---|---|
+| `NodeAudioMode` | Enum | Ja | `Default` / `Spatial3D` / `Force2D` für diese Zeile |
+| `VolumeMultiplier` | float | Derzeit nicht (geplant) | — |
+| `PitchMultiplier` | float | Derzeit nicht (geplant) | — |
 
-Der Advance-Mode auf einer SayLine beeinflusst, wie der Dialog-Flow mit Audio umgeht:
+{% hint style="info" %}
+Volume- und Pitch-Overrides pro SayLine sind noch in Arbeit. Workaround: Lege einen eigenen Sprecher-Eintrag an (z.B. `Dialogue.Speaker.InnerVoice`) mit den gewünschten Werten und nutze diesen Sprecher für die betreffenden Zeilen.
+{% endhint %}
+
+## Overrides auf PlaySound
+
+Der `PlaySound`-Node kann eigenständig Audio abspielen – unabhängig von SayLines. Er hat vollständige Override-Kontrolle.
+
+> 📸 **Bild-Platzhalter:** `node-overrides-playsound-details.png` — Details-Panel eines PlaySound-Nodes mit ausgefüllten Werten.
+> *Setup:* PlaySound-Node im Graph auswählen. Details-Panel rechts zeigt: `Sound = SFX_Heartbeat`, `VolumeMultiplier = 0.4`, `PitchMultiplier = 1.0`, `bForce2D = false`, `TargetTag = Dialogue.Speaker.Guard`. Alle Felder ausgefüllt, roter Pfeil auf `VolumeMultiplier`.
+
+| Property | Typ | Wirkung |
+|---|---|---|
+| `Sound` | USoundBase | Der abzuspielende Sound (SoundWave, SoundCue, MetaSound) |
+| `VolumeMultiplier` | float | Volume-Skala für diesen Sound |
+| `PitchMultiplier` | float | Pitch-Skala für diesen Sound |
+| `bForce2D` | bool | 2D-Wiedergabe (ignoriert Attenuation) |
+| `TargetTag` | FGameplayTag | Optional: Sound am Actor dieses Sprechers abspielen |
+
+## Advance-Mode und Audio-Timing
+
+Der `AdvanceModeOverride` auf einer SayLine beeinflusst, wie der Dialog-Flow mit dem Audio-Ende umgeht:
 
 | Modus | Audio-Verhalten |
-| --- | --- |
-| `Manual` | Audio läuft, Spieler advanced unabhängig (typisch: Audio bricht bei Advance ab, falls `bAllowSkipVoiceLine=true`). |
-| `Timer` | Audio läuft, Dialog advanced nach `AutoAdvanceDelay`. Audio endet ggf. davor oder danach. |
-| `AfterVoice` | Dialog advanced **genau**, wenn Voice-Playback endet. |
-| `AfterAnimation` | Dialog advanced, wenn eine parallele Montage endet. |
-| `Immediate` | Kein Warten. Audio startet trotzdem (aber kann vom nächsten Node abgelöst werden). |
+|---|---|
+| `Manual` | Audio läuft, Spieler kann unabhängig weiterklicken |
+| `Timer` | Dialog advanced nach `AutoAdvanceDelay`, unabhängig vom Audio |
+| `AfterVoice` | Dialog advanced **genau** wenn das Voice-Asset zu Ende ist |
+| `AfterAnimation` | Dialog advanced wenn die Montage endet (Audio läuft parallel) |
+| `Immediate` | Kein Warten – Audio startet, wird aber ggf. sofort vom nächsten Node abgelöst |
 
-## Typische Szenarien
+`AfterVoice` ist der richtige Modus wenn Audio und Dialog-Flow synchron bleiben sollen.
 
-### Innerer Monolog
+## Praxisbeispiele
 
-Auf einer einzelnen SayLine: `NodeAudioMode = Force2D`, um die Zeile nicht im 3D-Raum zu positionieren, sondern direkt ins Ohr des Spielers.
+### Innerer Monolog – 2D statt 3D
 
-Workaround bis Backlog-10 gefixt: am Speaker `AudioModeOverride = Force2D` setzen und den Speaker nur für innere Monologe nutzen (z.B. ein separater `Dialogue.Speaker.InnerVoice`-Sprecher).
+```text
+SayLine "Ich sollte fliehen."
+  NodeAudioMode = Force2D
+```
 
-### Ambient-Akzent
+Diese Zeile spielt direkt ins Ohr des Spielers, ohne räumliche Positionierung – korrekt für Gedanken, die nur der Spieler hört.
 
-PlaySound-Node zwischen zwei SayLines mit eigenem `VolumeMultiplier = 0.4`, weil der Sound nicht dominieren soll.
+> 📸 **Bild-Platzhalter:** `node-overrides-inner-monologue-graph.png` — Graph-Ausschnitt mit SayLine "Ich sollte fliehen." und NodeAudioMode = Force2D im Details-Panel.
+> *Setup:* Graph-Editor mit SayLine-Node ausgewählt. Node-Title zeigt Sprecher und Text. Details-Panel rechts: `NodeAudioMode = Force2D` aufgeklappt. Im Hintergrund weitere Nodes des Dialogs erkennbar. Pfeil sichtbar: vorheriger Node → `SayLine "Ich sollte fliehen."` → nächster Node.
 
-### Panischer Schrei
+### Ambient-Sound leiser
 
-PlaySound-Node mit `PitchMultiplier = 1.3`, um die Dringlichkeit zu erhöhen.
+```text
+PlaySound
+  Sound           = SFX_AmbientDrip
+  VolumeMultiplier = 0.4
+  bForce2D        = false
+```
 
-## Wann Node-Override vs. Speaker-Override?
+Der Tropfen-Sound soll im Hintergrund bleiben, nicht dominieren.
 
-Faustregel: **Wenn eine Audio-Einstellung nur für diese eine Zeile sinnvoll ist → Node-Override.** Alles andere gehört auf den Speaker.
+### Panischer Schrei – höhere Tonlage
 
-## Anmerkungen
+```text
+PlaySound
+  Sound            = SFX_Scream
+  PitchMultiplier  = 1.3
+  VolumeMultiplier = 1.1
+```
 
-* Fehlende SayLine-Audio-Overrides (VolumeMultiplier, PitchMultiplier, bOverride2D) sind bekannter Backlog. Bis dahin: Speaker-Override-Trick oder eigene Blueprint-Subklasse des SayLine-Nodes.
+Höhere Frequenz unterstreicht die Dringlichkeit des Moments.
+
+## Node-Override vs. Speaker-Override
+
+```text
+Faustregel: Gilt es nur für diese eine Zeile → Node-Override.
+            Gilt es für den Charakter generell → Speaker-Override.
+```
+
+| Situation | Richtige Ebene |
+|---|---|
+| Alle Zeilen des Geistes klingen verhallt | Speaker-Override |
+| Nur der Abschlusssatz des Geistes ist 2D | Node-Override (NodeAudioMode) |
+| Hintergrund-Sound soll leiser sein | PlaySound mit VolumeMultiplier |

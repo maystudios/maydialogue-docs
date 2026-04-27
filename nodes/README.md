@@ -1,37 +1,32 @@
 # Node-Referenz
 
-Hier findest du **jeden Node-Typ**, den MayDialogue mitliefert, als eigene Seite. Die Nodes sind in drei Kategorien gegliedert:
+Hier findest du alle Node-Typen, die MayDialogue mitliefert. Jede Node-Seite erklärt Zweck, Properties, Laufzeit-Verhalten und typische Einsatzszenarien.
 
-* [Core-Nodes](core/README.md) – Struktur und Flow-Control (Entry, Exit, SayLine, PlayerChoice, Branch, …).
-* [Action-Nodes](actions/README.md) – prominente Aktionen im Graph (CameraFocus, ApplyEffect, SetVariable, …).
-* [Sub-Nodes](sub-nodes/README.md) – Kompositions-Bausteine (Requirement, Choice, SideEffect).
+## Kategorien
 
-## Design-Prinzip
+- [Core-Nodes](core/README.md) — Struktur und Fluss-Steuerung (Entry, Exit, SayLine, PlayerChoice, Branch …).
+- [Action-Nodes](actions/README.md) — Eigenständige Aktionen im Graph (CameraFocus, ApplyEffect, SetVariable …).
+- [Sub-Nodes](sub-nodes/README.md) — Kompositions-Bausteine die als Pills in Eltern-Nodes leben (Requirement, Choice, SideEffect).
 
-Alle Nodes leiten von **`UMayDialogueNode_Base`** ab und implementieren:
+## Gemeinsame Basis
 
-```cpp
-virtual FMayDialogueTaskResult ExecuteNode_Implementation(const FMayDialogueContext& Context);
-virtual void ExecuteClientEffects(const FMayDialogueContext& Context);
-```
+Jeder Node erbt von `UMayDialogueNode_Base`. Daraus folgen drei Properties, die auf **jedem** Node verfügbar sind:
 
-* `ExecuteNode` liefert ein [TaskResult](../concepts/instance-lifecycle.md#node-ausfuhrung) zurück, das der Instance sagt, wie weiter verfahren werden soll.
-* `ExecuteClientEffects` ist nur für rein kosmetische Seiten-Effekte gedacht (Sounds, Particles), die nicht in die Gameplay-Logik eingreifen.
+| Feld | Typ | Bedeutung |
+| --- | --- | --- |
+| `Requirements` | Array | Bedingungen, die erfüllt sein müssen, damit der Node betreten wird. |
+| `SideEffects` | Array | Inline-Aktionen, die beim Betreten des Nodes ausgeführt werden. |
+| `FailBehavior` | Enum | Was passiert, wenn Requirements fehlschlagen: `Skip` (Node überspringen) oder `Abort` (Dialog abbrechen). |
+| `EditorComment` | FText | Notiz für dich im Graph — hat kein Laufzeit-Verhalten. |
 
-Zusätzlich hat jeder Node:
-
-| Feld | Bedeutung |
-| --- | --- |
-| `NodeGuid` | Stabile Identität, vom Compiler vergeben. |
-| `Requirements` | Array von `UMayDialogueRequirement`. Bei `FailedAndHidden` wird der Node gar nicht ausgeführt. |
-| `SideEffects` | Array von `UMayDialogueSideEffect`. Werden vor dem eigentlichen `ExecuteNode` ausgeführt. |
-| `FailBehavior` | `Skip` oder `Abort`, wenn Requirements fehlschlagen. |
+> 📸 **Bild-Platzhalter:** `node-base-details.png` — Details-Panel eines beliebigen Nodes.
+> *Setup:* Einen SayLine- oder Branch-Node auswählen. Im Details-Panel müssen sichtbar sein: Abschnitt `Node|Requirements` (Array leer), `Node|SideEffects` (Array leer), `FailBehavior = Skip`, `EditorComment` (leer). Zeigt damit die gemeinsame Basis aller Nodes.
 
 ## Blueprint-Erweiterbarkeit
 
-**Alle Node-Basisklassen sind Blueprintable.** Wenn dir ein vordefinierter Node nicht reicht, leite eine Blueprint-Subklasse ab, implementiere `ExecuteNode` als Event-Graph – der Node erscheint automatisch im Kontext-Menü.
+Alle Node-Basisklassen sind `Blueprintable`. Leite eine Blueprint-Subklasse ab, implementiere `ExecuteNode` als Event — der neue Node erscheint automatisch im Kontext-Menü des Editors.
 
-Details siehe [Extension → Eigene Nodes](../extension/custom-nodes.md).
+Details: [Extension → Eigene Nodes](../extension/custom-nodes.md).
 
 ## Kurz-Übersicht
 
@@ -40,14 +35,14 @@ Details siehe [Extension → Eigene Nodes](../extension/custom-nodes.md).
 | Node | Zweck |
 | --- | --- |
 | [Entry](core/entry.md) | Startpunkt. Einer pro Asset. |
-| [Exit](core/exit.md) | Endpunkt (Completed / Failed). |
-| [Say Line](core/say-line.md) | Eine Zeile, die ein Sprecher spricht. |
+| [Exit](core/exit.md) | Endpunkt mit Status (Completed / Failed). |
+| [Say Line](core/say-line.md) | Eine Zeile, die ein Sprecher sagt. |
 | [Player Choice](core/player-choice.md) | Spieler wählt aus Optionen. |
 | [Branch](core/branch.md) | Automatische Verzweigung nach Bedingung. |
-| [Random Line](core/random-line.md) | Zufällige Ausgabe-Option. |
-| [Wait](core/wait.md) | Pausiert auf Duration / Event. |
-| [Link](core/link.md) | Springt in anderes Asset. |
-| [SubGraph](core/sub-graph.md) | Wechselt in internen Sub-Graph. |
+| [Random Line](core/random-line.md) | Zufällige Ausgabe aus mehreren Varianten. |
+| [Wait](core/wait.md) | Pausiert auf Zeit, Event oder Bedingung. |
+| [Link](core/link.md) | Springt in ein anderes Dialog-Asset. |
+| [SubGraph](core/sub-graph.md) | Klappt einen internen Sub-Graphen auf. |
 
 ### Actions
 
@@ -56,10 +51,10 @@ Details siehe [Extension → Eigene Nodes](../extension/custom-nodes.md).
 | [Camera Focus](actions/camera-focus.md) | Kamera-Blend auf Sprecher. |
 | [Camera Shake](actions/camera-shake.md) | Camera-Shake auslösen. |
 | [Play Animation](actions/play-animation.md) | Montage auf Participant. |
-| [Apply Effect](actions/apply-effect.md) | GAS-GameplayEffect. |
-| [Set Variable](actions/set-variable.md) | Variable setzen. |
+| [Apply Effect](actions/apply-effect.md) | GAS-GameplayEffect anwenden. |
+| [Set Variable](actions/set-variable.md) | Dialog-Variable setzen. |
 | [Fire Event](actions/fire-event.md) | GameplayTag-Event feuern. |
-| [Play Sound](actions/play-sound.md) | Non-Voice-Sound. |
+| [Play Sound](actions/play-sound.md) | Nicht-Voice-Sound abspielen. |
 | [Add Tag](actions/add-tag.md) | Loose-Tag setzen. |
 | [Remove Tag](actions/remove-tag.md) | Loose-Tag entfernen. |
 | [Trigger Cue](actions/trigger-cue.md) | GameplayCue one-shot. |

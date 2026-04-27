@@ -1,162 +1,161 @@
-# `UMayDialogueLibrary` (Referenz)
+---
+description: Alle Methoden von UMayDialogueLibrary — Signaturen, Parameter, Rückgabe, Verwendungszweck.
+---
 
-Blueprint-Helper-Klasse (`UBlueprintFunctionLibrary`). Alle Methoden sind `static`, `BlueprintCallable` oder `BlueprintPure`. Die Library ist ein **reiner Convenience-Layer** über dem [Subsystem](api-subsystem.md) – keine eigene Logik.
+# API: UMayDialogueLibrary
 
-* **Header**: `Source/MayDialogue/Runtime/MayDialogueLibrary.h`
-* **Modul**: `MayDialogue`
-* **Blueprint-Category**: `Dialogue`
+Blueprint Function Library mit statischen Methoden. Convenience-Layer über dem Subsystem — kein eigener State, keine eigenen Delegates.
 
-## Methoden im Überblick
+- **Header**: `Source/MayDialogue/Public/MayDialogueLibrary.h`
+- **Modul**: `MayDialogue`
+- **Blueprint-Kategorie**: `MayDialogue`
 
-| Signatur | Art | Kurzbeschreibung |
-| --- | --- | --- |
-| `StartDialogue(WC, Asset, Instigator, Target)` | `BlueprintCallable` | Startet ein Gespräch, liefert die Instance oder `nullptr`. |
-| `StopDialogue(Instance)` | `BlueprintCallable` | Bricht eine bestimmte Instance ab. |
-| `StopAllDialogues(WC)` | `BlueprintCallable` | Bricht alle aktiven Instances ab. |
-| `GetActiveDialogue(WC)` | `BlueprintPure` | Liefert die aktive Instance oder `nullptr`. |
-| `IsAnyDialogueActive(WC)` | `BlueprintPure` | `true`, wenn irgendein Dialog läuft. |
-| `GetDialogueSubsystem(WC)` | `BlueprintPure` | Liefert das Subsystem-Objekt. |
+> 📸 **Bild-Platzhalter:** `library-node-palette.png` — Blueprint-Node-Palette mit allen Library-Nodes.
+> *Setup:* Beliebiges Blueprint öffnen, Rechtsklick im Graphen, Suchbegriff "MayDialogue" eingeben. Screenshot der Palette mit allen sichtbaren Nodes: Start Dialogue, Stop Dialogue, Stop All Dialogues, Get Active Dialogue, Is Any Dialogue Active, Get Dialogue Subsystem. Kategorie-Header "MayDialogue" sichtbar.
 
-`WC` steht für `UObject* WorldContext` – in Blueprint wird der Pin automatisch vom Node-Self-Kontext befüllt.
+---
 
-## Signaturen im Detail
+## Methoden-Überblick
 
-### StartDialogue
+| Funktion | Art | Parameter | Rückgabe | Wann nutzen |
+|---|---|---|---|---|
+| `Start Dialogue` | Callable | `WorldContext`, `Asset`, `Instigator`, `Target` | `UMayDialogueInstance*` | Dialog starten aus beliebigem Blueprint. |
+| `Stop Dialogue` | Callable | `Instance` | — | Eine bestimmte Instance stoppen. |
+| `Stop All Dialogues` | Callable | `WorldContext` | — | Alle Dialoge abbrechen (Tod, Level-Wechsel). |
+| `Get Active Dialogue` | Callable | `WorldContext` | `UMayDialogueInstance*` | Aktive Instance holen um State zu lesen. |
+| `Is Any Dialogue Active` | Pure | `WorldContext` | `bool` | Prüfen ob ein Dialog läuft (z.B. für Overlap-Guards). |
+| `Get Dialogue Subsystem` | Callable | `WorldContext` | `UMayDialogueSubsystem*` | Subsystem holen für Delegate-Binding. |
+
+`WorldContext` wird in Blueprint automatisch vom Node-Kontext befüllt (kein manueller Pin).
+
+---
+
+## Signaturen
+
+### Start Dialogue
 
 ```cpp
-UFUNCTION(BlueprintCallable, Category="Dialogue",
-          meta=(WorldContext="WorldContext", DisplayName="Start Dialogue"))
+UFUNCTION(BlueprintCallable, Category = "MayDialogue",
+    meta = (WorldContext = "WorldContext", DefaultToSelf = "Instigator"))
 static UMayDialogueInstance* StartDialogue(
-    UObject*            WorldContext,
-    UMayDialogueAsset*  Asset,
-    AActor*             Instigator,
-    AActor*             Target);
+    UObject*           WorldContext,
+    UMayDialogueAsset* Asset,
+    AActor*            Instigator,
+    AActor*            Target);
 ```
 
-Delegiert an `UMayDialogueSubsystem::StartDialogue`. Rückgabewert ist die erzeugte Instance oder `nullptr` bei Failure (kein Asset, kein Entry, bereits aktiver Dialog, der nicht abgebrochen werden darf).
+Liefert die erzeugte Instance oder `nullptr` bei Fehler (kein Asset, kein Entry, Instigator/Target ungültig). Startet einen laufenden Dialog neu — der alte wird abgebrochen.
 
-### StopDialogue
+---
+
+### Stop Dialogue
 
 ```cpp
-UFUNCTION(BlueprintCallable, Category="Dialogue")
+UFUNCTION(BlueprintCallable, Category = "MayDialogue")
 static void StopDialogue(UMayDialogueInstance* Instance);
 ```
 
-No-op bei `Instance == nullptr`. Sonst `Instance->AbortDialogue()`.
+No-op bei `nullptr`. Bricht die angegebene Instance sauber ab.
 
-### StopAllDialogues
+---
+
+### Stop All Dialogues
 
 ```cpp
-UFUNCTION(BlueprintCallable, Category="Dialogue",
-          meta=(WorldContext="WorldContext"))
+UFUNCTION(BlueprintCallable, Category = "MayDialogue",
+    meta = (WorldContext = "WorldContext"))
 static void StopAllDialogues(UObject* WorldContext);
 ```
 
-Typische Nutzung: Level-Travel, Player-Death, Pause-Menü.
+Bricht alle aktiven Instances ab. Typisch bei Level-Travel, Spielertod, Pause-Menü.
 
-### GetActiveDialogue
+---
+
+### Get Active Dialogue
 
 ```cpp
-UFUNCTION(BlueprintPure, Category="Dialogue",
-          meta=(WorldContext="WorldContext"))
+UFUNCTION(BlueprintCallable, Category = "MayDialogue",
+    meta = (WorldContext = "WorldContext"))
 static UMayDialogueInstance* GetActiveDialogue(UObject* WorldContext);
 ```
 
-Liefert die „neueste" aktive Instance. Da das Subsystem Single-Active erzwingt, ist das praktisch die einzige.
+Liefert die (einzige) aktive Instance oder `nullptr`. Da das Subsystem nur einen Dialog gleichzeitig erlaubt, ist das praktisch immer eindeutig.
 
-### IsAnyDialogueActive
+---
+
+### Is Any Dialogue Active
 
 ```cpp
-UFUNCTION(BlueprintPure, Category="Dialogue",
-          meta=(WorldContext="WorldContext"))
+UFUNCTION(BlueprintPure, Category = "MayDialogue",
+    meta = (WorldContext = "WorldContext"))
 static bool IsAnyDialogueActive(UObject* WorldContext);
 ```
 
-### GetDialogueSubsystem
+Schnell-Query. Kostet nichts — schlägt intern nur `Subsystem->IsAnyDialogueActive()` nach.
+
+---
+
+### Get Dialogue Subsystem
 
 ```cpp
-UFUNCTION(BlueprintPure, Category="Dialogue",
-          meta=(WorldContext="WorldContext"))
+UFUNCTION(BlueprintCallable, Category = "MayDialogue",
+    meta = (WorldContext = "WorldContext"))
 static UMayDialogueSubsystem* GetDialogueSubsystem(UObject* WorldContext);
 ```
 
-Wenn du das Subsystem öfter brauchst (Delegates binden, mehrere Calls), cache die Referenz in einer Variable.
+Gibt das Subsystem zurück. Wenn du es öfter brauchst, in einer Blueprint-Variable cachen.
+
+---
 
 ## Blueprint-Beispiele
 
-### Mini-Workflow: Start → Hat gestartet?
+### Start mit Fehler-Check
 
-```
+```text
 [Start Dialogue]
-  ├ Asset:      DA_Villager_Intro
-  ├ Instigator: Player Pawn
-  └ Target:     Self
-       │
+  ├─ Asset:      DA_Merchant
+  ├─ Instigator: Player Pawn
+  └─ Target:     Merchant Actor
+       │ Return Value
        ▼
-[Branch: Return Value != nullptr]
-  ├─ True  → Dialog läuft
-  └─ False → Log-Warn: „Dialog konnte nicht starten"
+[Is Valid]  → Branch
+  ├─ True  → Weiter (Dialog läuft)
+  └─ False → Print String "Dialog fehlgeschlagen"
 ```
 
-### Aktiven Dialog lesen
+> 📸 **Bild-Platzhalter:** `library-start-with-check-bp.png` — Vollständiger BP-Graph: Start Dialogue → Is Valid → Branch.
+> *Setup:* Interaction-Blueprint. Nodes: `Start Dialogue` (Pins befüllt), `Is Valid` (Input: Return Value der Start-Node), `Branch`, True-Zweig leer, False-Zweig → `Print String`. Alle Verbindungen sichtbar.
 
-```
-[Is Any Dialogue Active]
-   │ (bool)
-   ▼
-[Branch]
-  └─ True → [Get Active Dialogue] → (UMayDialogueInstance)
-```
+### Alle Dialoge beim Spielertod stoppen
 
-### Alle Dialoge bei Spielertod killen
-
-```
+```text
 [Event On Player Died]
-   │
-   ▼
+    │
+    ▼
 [Stop All Dialogues]
 ```
 
-## C++-Nutzung
+### Subsystem für Delegate-Binding holen
 
-Obwohl die Library für Blueprint gedacht ist, kannst du sie auch aus C++ aufrufen:
-
-```cpp
-UMayDialogueInstance* Inst = UMayDialogueLibrary::StartDialogue(
-    this, DialogueAsset, Player, NPC);
-
-if (UMayDialogueLibrary::IsAnyDialogueActive(this))
-{
-    UMayDialogueLibrary::StopAllDialogues(this);
-}
+```text
+[Get Dialogue Subsystem] → (In Variable "Subsystem" speichern)
+    │
+    ▼
+[Bind Event to On Any Dialogue Ended]  ──► Custom Event: Handle Ended
 ```
 
-Für längere Code-Pfade ist der direkte Subsystem-Weg jedoch idiomatischer:
+---
 
-```cpp
-UMayDialogueSubsystem* Sub = UMayDialogueSubsystem::Get(GetWorld());
-if (Sub)
-{
-    Sub->StartDialogue(DialogueAsset, Player, NPC);
-}
-```
+## Was die Library nicht kann
 
-## Was der Library fehlt (bewusst)
-
-Die Library stellt **bewusst** keine Delegates bereit. Wenn du auf `OnDialogueStarted` / `OnDialogueEnded` lauschen willst, musst du das [Subsystem](api-subsystem.md) direkt holen – dort hängen die Delegates. Das vermeidet versehentliche Mehrfach-Bindings auf einer stateless Library.
+Die Library hat **keine Delegate-Properties**. Für `OnAnyDialogueStarted` / `OnAnyDialogueEnded` brauchst du das Subsystem direkt (via `Get Dialogue Subsystem`).
 
 Auch nicht in der Library:
-
-* Variable-Read/Write → auf der [`UMayDialogueInstance`](../runtime/read-write-api.md).
-* Dialogue-Validation → auf dem Asset.
-* SaveGame-Serialisierung → [`UMayDialogueSaveHelper`](../persistence/quicksave-helper.md).
-
-## Thread-Safety
-
-Alle Methoden sind **Game-Thread-only**. Das Subsystem dahinter erwartet `GWorld`-Kontext.
+- Variable Get/Set → am Subsystem oder an der Instance direkt
+- `CanStartDialogue` → am Subsystem direkt
 
 ## Siehe auch
 
-* [`UMayDialogueSubsystem`](api-subsystem.md)
-* [Delegates & Events](api-delegates.md)
-* [Runtime → Einen Dialog starten](../runtime/starting-dialogues.md) – narrativer Startpunkt.
+- [API: Subsystem](api-subsystem.md) — vollständige Subsystem-API mit Delegates.
+- [API: Delegates](api-delegates.md) — alle Delegate-Signaturen.
+- [Runtime → Einen Dialog starten](../runtime/starting-dialogues.md) — geführter Walkthrough.

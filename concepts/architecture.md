@@ -1,191 +1,112 @@
+---
+description: Die Hauptbausteine des Plugins und wie sie zusammenarbeiten — aus Nutzersicht.
+---
+
 # Architektur im Großen
 
-MayDialogue besteht aus **drei Modulen**, die auf drei unterschiedlichen Engine-Layern arbeiten. Dieses Kapitel zeigt dir, welches Modul wofür zuständig ist und wie sie miteinander reden.
+MayDialogue besteht aus vier Hauptbausteinen, die du als Nutzer kennen solltest: das **Dialog-Asset**, die **Participant-Komponente**, das **Subsystem** und die **UI-Schicht**. Dieses Kapitel zeigt, wie sie zusammenhängen — ohne in interne Klassen-Details zu gehen.
 
-## Die drei Module
+> 📸 **Bild-Platzhalter:** `architecture-overview.png` — Übersichtsgrafik aller vier Hauptbausteine.
+> *Setup:* Eine einfache Blockdiagramm-Darstellung mit vier Kästen: „Dialog-Asset (Disk)", „Subsystem (Welt)", „Participant-Komponente (Actor)", „UI-Widget". Pfeile: Asset → Subsystem (wird geladen von), Participant-Komponente → Subsystem (startet über), Subsystem → UI-Widget (sendet Events an). Kein Code, nur Boxen und Beschriftungen.
 
-| Modul | Typ | Lade-Phase | Wofür |
-| --- | --- | --- | --- |
-| `MayDialogue` | `Runtime` | `PreDefault` | Kern: Asset, Instance, Subsystem, Nodes, UI, Audio, Participant |
-| `MayDialogueEditor` | `UncookedOnly` | `PreDefault` | Asset-Editor, Graph, Compiler, Validator, Debugger, Preview |
-| `MayDialogueGAS` | `Runtime` | `Default` | GAS-spezifische Requirements & SideEffects |
+## Die vier Hauptbausteine
 
-### Warum drei Module?
+### 1. Das Dialog-Asset
 
-* **Editor-Code darf nicht in den Shipping-Build.** `UncookedOnly` für `MayDialogueEditor` garantiert das.
-* **GAS als erste-Klasse-Bürger, aber ohne Core-Abhängigkeit im Public-Header.** Das Core-Modul `MayDialogue` referenziert `GameplayAbilities` nur privat; das öffentliche API-Surface bleibt GAS-frei. Projekte, die GAS nicht nutzen wollen, können das GAS-Modul (theoretisch) deaktivieren, ohne die Runtime zu zerbrechen.
-* **Lade-Reihenfolge.** `MayDialogue` lädt in `PreDefault`, `MayDialogueGAS` in `Default` – damit sind Base-Klassen garantiert verfügbar, wenn GAS seine Subklassen registriert.
+Ein Dialog-Asset (`UMayDialogueAsset`) ist eine Datei in deinem Content-Browser. Es enthält:
 
-## Die Laufzeit-Schichten
+- Den **Node-Graph** — der gesamte Dialogverlauf, visuell als verbundene Boxen.
+- Die **Sprecher-Liste** — wer spricht, mit welchem Portrait, welcher Farbe, welchem Audio-Setup.
+- Die **Variablen-Deklarationen** — alle Variablen, die im Gespräch existieren.
 
-```mermaid
-flowchart TD
-    subgraph Caller["Game Code"]
-        BP[Blueprint / C++]
-    end
+Das Asset ist reine **Struktur und Daten**. Es läuft nichts, wenn du es nur im Content-Browser hast. Erst wenn ein Dialog gestartet wird, entsteht aus dem Asset eine laufende Instanz.
 
-    subgraph API["Public API"]
-        Lib[UMayDialogueLibrary]
-        Part[UMayDialogueParticipant]
-    end
+> 📸 **Bild-Platzhalter:** `asset-content-browser.png` — Content-Browser mit einem geöffneten Dialog-Asset.
+> *Setup:* Content-Browser zeigt ein Asset `DA_Guard_Greeting` mit MayDialogue-Icon. Daneben der Asset-Editor mit geöffnetem Graph, sichtbar: Entry-Node (grün), eine SayLine (rote Title-Bar für Wächter-Sprecher), ein PlayerChoice-Node mit zwei Choices, Exit-Node (rot). Speakers-Panel rechts oben zeigt einen Eintrag „Wächter" mit orangefarbigem Farb-Chip.
 
-    subgraph Orchestration["Orchestration"]
-        Sub[UMayDialogueSubsystem<br/><i>UWorldSubsystem</i>]
-    end
+### 2. Die Participant-Komponente
 
-    subgraph Runtime["Runtime"]
-        Inst[UMayDialogueInstance]
-        Asset[UMayDialogueAsset]
-        Nodes[UMayDialogueNode_*]
-    end
+`UMayDialogueParticipant` ist ein **ActorComponent**, den du an jeden Actor hängst, der in Dialogen vorkommt — NPCs, den Spieler-Pawn, Objekte mit Stimme.
 
-    subgraph UI["UI Layer"]
-        Widget[UMayDialogueWidget]
-        Slate[SMayDialogueWidget]
-    end
+Die Komponente hat zwei Hauptaufgaben:
 
-    BP --> Lib
-    BP --> Part
-    Lib --> Sub
-    Part --> Sub
-    Sub --> Inst
-    Inst -->|reads| Asset
-    Asset -->|contains| Nodes
-    Inst -->|broadcasts| Widget
-    Inst -->|broadcasts| Slate
+- **Identität**: Sie trägt den `ParticipantTag` (z.B. `Dialogue.Speaker.Guard`). Darüber verknüpft das Plugin zur Laufzeit den lebendigen Actor im Level mit dem Sprecher-Eintrag im Asset.
+- **Gedächtnis**: In `PersistentMemory` speicherst du Variablen, die Gespräche überdauern (z.B. ob der Spieler den NPC schon kennengelernt hat).
+
+> 📸 **Bild-Platzhalter:** `participant-component-details.png` — Details-Panel der Participant-Komponente an einem NPC.
+> *Setup:* Ein Guard-Actor im Level ausgewählt, Details-Panel zeigt die `MayDialogueParticipant`-Komponente. Sichtbare Felder: `ParticipantTag = Dialogue.Speaker.Guard`, `DisplayName = Wächter`, `DefaultDialogue = DA_Guard_Greeting` (Asset-Referenz), `bAutoFacePartner = true`. Portrait-Slot ist befüllt mit einem Texture2D-Verweis.
+
+### 3. Das Subsystem
+
+`UMayDialogueSubsystem` ist ein **World-Subsystem** — es existiert einmal pro Welt und lebt automatisch, du musst es nicht anlegen.
+
+Es ist die einzige Instanz, die neue Gespräche starten und beenden darf. Alle drei Start-Pfade (direkt auf der Komponente, über die Blueprint-Library, oder per Code) laufen am Ende beim Subsystem zusammen.
+
+Das Subsystem verwaltet die aktive Instanz und räumt sie nach dem Ende automatisch auf.
+
+> 📸 **Bild-Platzhalter:** `blueprint-start-dialogue.png` — Blueprint-Graph eines Interaktions-Triggers, der einen Dialog startet.
+> *Setup:* Ein einfacher BP-Graph mit: `Event BeginOverlap` → `Start Default Dialogue` (MayDialogueLibrary-Node). Node-Pins sichtbar: `Instigator = Get Player Pawn`, `Target = Self (GuardActor)`. Der Start-Node ist violett (Library-Funktion), der Output-Pin zeigt eine Verbindung zu einem `Print String`-Node mit Text „Dialog gestartet".
+
+```cpp
+// C++ — drei gleichwertige Wege, einen Dialog zu starten
+
+// 1. Auf der Komponente (OOP-Stil)
+Guard->FindComponentByClass<UMayDialogueParticipant>()->StartDefaultDialogue(Player);
+
+// 2. Über die Library (Blueprint-nah)
+UMayDialogueLibrary::StartDialogue(this, DA_Guard_Greeting, PlayerPawn, GuardActor);
+
+// 3. Direkt am Subsystem
+UMayDialogueSubsystem::Get(this)->StartDialogue(DA_Guard_Greeting, PlayerPawn, GuardActor);
 ```
 
-### UMayDialogueSubsystem
+### 4. Die UI-Schicht
 
-Ein **WorldSubsystem**, d.h. eins pro Welt. Es ist die **einzige Autorität**, die neue Dialog-Instanzen erzeugen darf.
+Das Plugin liefert eine fertige UI mit. Du musst kein Widget von Grund auf bauen, um Dialoge anzuzeigen.
 
-* `StartDialogue(Asset, Instigator, Target)` — erzeugt und startet eine neue Instance.
-* `StopDialogue(Instance)` / `StopAllDialogues()` — bricht ab.
-* `GetActiveDialogue()` / `IsAnyDialogueActive()` — Abfrage.
-* `OnAnyDialogueStarted` / `OnAnyDialogueEnded` — Delegates für Lifecycle.
+Die UI-Schicht hört auf Events der aktiven Instanz (`OnMessageReceived`, `OnChoicesPresented`) und rendert Text, Portraits, Choices und Typewriter-Effekte. Du kannst das mitgelieferte Widget direkt nutzen, anpassen oder durch ein eigenes ersetzen.
 
-Tick-Methode: räumt beendete Instanzen am Frame-Ende auf (`CleanupCompletedDialogues`).
+> 📸 **Bild-Platzhalter:** `ui-ingame.png` — Laufender Dialog im PIE-Modus.
+> *Setup:* PIE-Ansicht mit aktivem Dialog. Unten im Bild das Dialog-Widget: Portrait des Wächters links, Name „Wächter" in orangefarbener Schrift, darunter der Dialog-Text mit laufendem Typewriter-Effekt (Cursor sichtbar). Keine Choices sichtbar (SayLine läuft gerade). Hintergrund: das Level.
 
-### UMayDialogueInstance
+## Datenfluss einer Sprechzeile
 
-Ein reines `UObject` (kein Actor, keine Komponente). Hält den **Zustand eines laufenden Gesprächs**:
+So läuft eine einzelne SayLine durch das System:
 
-* Aktueller Node, aktuelle Message, aktuelle Choices.
-* Dialogue-Scope-Variablen (`FInstancedPropertyBag`).
-* Scope-Stack für Link-/SubGraph-Rücksprünge.
-* Async-Node-Registry (wer wartet gerade auf was).
-* Camera-Blend-State.
-
-Der [Lifecycle](instance-lifecycle.md) wird im nächsten Kapitel ausführlich.
-
-### UMayDialogueAsset
-
-Ein **`UPrimaryDataAsset`**. Enthält:
-
-* Die kompilierte Node-Map (`TMap<FGuid, UMayDialogueNode_Base*>`).
-* Die Entry-Point-GUID.
-* Die Sprecher-Liste (`TArray<FMayDialogueSpeaker>`).
-* Editor-only: die Source-UEdGraphs (werden nicht gepackt).
-
-Der **Compiler** im Editor-Modul schreibt die Node-Map aus den UEdGraph-Nodes. Zur Laufzeit existieren die UEdGraphs nicht mehr – nur die kompilierten Runtime-Nodes.
-
-## Der Editor-Layer
-
-```mermaid
-flowchart TD
-    subgraph Editor["MayDialogueEditor"]
-        AE[FMayDialogueAssetEditor<br/><i>FAssetEditorToolkit</i>]
-        Graph[UMayDialogueGraph<br/><i>UEdGraph</i>]
-        Schema[UMayDialogueGraphSchema]
-        Comp[FMayDialogueCompiler]
-        Val[FMayDialogueValidator]
-        Dbg[FMayDialogueDebugger]
-        Prev[FMayDialoguePreviewRunner]
-    end
-
-    subgraph Runtime["MayDialogue Runtime"]
-        Asset[UMayDialogueAsset]
-    end
-
-    AE --> Graph
-    Graph --> Schema
-    AE -->|Compile-Button| Comp
-    Comp -->|writes| Asset
-    AE -->|Compile| Val
-    AE -->|PIE| Dbg
-    AE -->|Play in Preview| Prev
+```text
+Subsystem
+  └─→ Instance::ContinueToNode(SayLine-Node)
+        └─→ Node erzeugt FMayDialogueMessage (Text, Sprecher, Tags)
+              └─→ Instance broadcastet OnMessageReceived
+                    ├─→ UI-Widget rendert Text + Typewriter
+                    ├─→ Audio-System spielt Voice-Asset
+                    └─→ Dein Quest-System / Analytics reagiert (optional)
 ```
 
-### Asset-Editor
+Die Events sind **Multicast-Delegates** — beliebig viele Systeme können gleichzeitig lauschen, ohne sich gegenseitig zu stören.
 
-`FMayDialogueAssetEditor` ist ein `FAssetEditorToolkit` mit **zehn Tab-IDs**:
+## Module im Überblick
 
-`GraphTab`, `DetailsTab`, `CompilerResultsTab`, `FindResultsTab`, `PaletteTab`, `VariablesTab`, `SpeakersTab`, `DebuggerWatchTab`, `PreviewTab`, `OutlineTab`.
+Das Plugin besteht aus drei Modulen — für dich als Nutzer ist der Unterschied meistens unsichtbar:
 
-Details siehe [Editor → Asset-Editor](../editor/asset-editor.md).
+| Modul | Wofür | Sichtbar in |
+| --- | --- | --- |
+| `MayDialogue` | Laufzeit: Assets, Instanzen, Nodes, UI, Audio | Game-Code, Blueprints |
+| `MayDialogueEditor` | Editor: Graph, Compiler, Preview, Debugger | Nur im Editor, nicht im Build |
+| `MayDialogueGAS` | GAS-Requirements & -SideEffects | Wenn GAS aktiv ist |
 
-### Compiler & Validator
+Der Editor-Code ist strikt vom Spiel-Build getrennt. `MayDialogueGAS` lädt nur, wenn du GAS im Projekt aktiv hast — das Core-Modul selbst hat keine GAS-Abhängigkeit.
 
-Beide sind **statische Klassen** ohne Instanz. Der Compiler wird automatisch nach Graph-Änderungen getriggert (`bAutoCompileOnSave` in den Editor-Settings). Der Validator läuft vor jedem Compile und befüllt den Compiler-Results-Tab.
-
-### Debugger & Preview
-
-Zwei getrennte Werkzeuge mit unterschiedlichem Einsatzzweck:
-
-* **Debugger** lebt in **PIE** – richtige Spielwelt, echte Participants, echte GAS-States. Mit Breakpoints und Step-Controls.
-* **Preview** lebt **im Asset-Editor selbst** – keine PIE-Ladung, simulierter GAS-State, perfekt für schnelle Text-Iteration.
-
-## Das GAS-Modul
-
-```mermaid
-flowchart LR
-    Base[UMayDialogueRequirement<br/>UMayDialogueSideEffect]
-    subgraph GAS["MayDialogueGAS"]
-        ReqAttr[CheckAttribute]
-        ReqAbi[HasAbility]
-        ReqTag[HasTag]
-        SeAdd[AddTag]
-        SeRem[RemoveTag]
-        SeApp[ApplyEffect]
-        SeCue[TriggerCue]
-    end
-
-    ReqAttr -.subclass.-> Base
-    ReqAbi -.subclass.-> Base
-    ReqTag -.subclass.-> Base
-    SeAdd -.subclass.-> Base
-    SeRem -.subclass.-> Base
-    SeApp -.subclass.-> Base
-    SeCue -.subclass.-> Base
-```
-
-Das GAS-Modul **erweitert** das Core-Modul, ohne es zu modifizieren. Dank UE-Reflection erscheinen die GAS-Subklassen automatisch im Sub-Node-Picker, sobald das Modul geladen ist. Das Core-Modul weiß nichts davon.
-
-Details siehe [GAS-Integration](../gas/README.md).
-
-## Daten-Fluss auf einen Blick
-
-Ein SayLine wird gespielt:
-
-1. `Instance::ContinueToNode(NodeGuid)` ruft `Node->ExecuteNode(Context)`.
-2. Der Node baut eine `FMayDialogueMessage` und ruft `Instance::ReceiveMessage(Message, NextNodeGuid)`.
-3. `Instance` broadcastet `OnMessageReceived`.
-4. Das abonnierte Widget (UMG oder Slate) rendert Text + startet Typewriter.
-5. Bei Advance-Input ruft das Widget `Instance::AdvanceDialogue()`.
-6. Instance holt den nächsten Node und beginnt von vorne.
-
-Alle Events sind **Multicast-Delegates**, d.h. beliebig viele Listener können gleichzeitig lauschen – das Widget, dein Quest-System, ein Analytics-Logger, ein Achievements-Tracker.
+> 📸 **Bild-Platzhalter:** `modules-plugin-settings.png` — Plugin-Settings im Editor.
+> *Setup:* Edit → Plugins → MayDialogue. Alle drei Module (MayDialogue, MayDialogueEditor, MayDialogueGAS) sind als enabled markiert. Details-Panel rechts zeigt die Plugin-Beschreibung. Kein weiterer Content.
 
 ## Zusammenfassung
 
-| Schicht | Lebenszeit | Zuständig für |
+| Baustein | Lebt | Zuständig für |
 | --- | --- | --- |
-| Asset | Package/Disk | Struktur: Nodes, Speakers, Variablen-Deklarationen |
-| Subsystem | Welt | Orchestrierung, aktive Instanzen |
-| Instance | Dialog-Dauer | Graph-Traversierung, Scope, Delegates |
-| Node | Dialog-Dauer | Einzelne Aktion / Entscheidung |
-| Participant | Actor-Lebenszeit | Sprecher-Identität, Persistent-Memory |
-| Widget | Dialog-Dauer | Präsentation |
-| Editor-Toolkit | Editor-Session | Autoring, Debug, Preview |
+| Dialog-Asset | Auf Disk / im Content-Browser | Struktur: Nodes, Sprecher, Variablen |
+| Participant-Komponente | Am Actor | Identität im Level, persistentes Gedächtnis |
+| Subsystem | In der Welt (automatisch) | Gespräche starten, verwalten, beenden |
+| UI-Schicht | Während eines Dialogs | Text, Portraits, Choices anzeigen |
 
-Nächster Stopp: **wie der Graph visuell aufgebaut ist** – [Graph & visuelle Sprache](graph-visual-language.md).
+Weiter: [Graph & visuelle Sprache](graph-visual-language.md).

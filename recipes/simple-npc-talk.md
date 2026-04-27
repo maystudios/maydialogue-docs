@@ -1,114 +1,130 @@
-# Einfaches NPC-Gespräch
+---
+description: Minimales NPC-Gespräch mit zwei SayLines – der perfekte Einstieg in MayDialogue.
+---
 
-Das absolute Minimum: Ein NPC begrüßt den Spieler, sagt zwei Zeilen und beendet das Gespräch. Kein Branching, keine Bedingungen, keine Effekte. Dieses Rezept schärft dein Gefühl dafür, wie SayLine und Advance-Mode zusammenspielen.
+# Einfaches NPC-Gespräch
 
 ## Szenario
 
-Ein Dorfbewohner im Startdorf gibt dem Spieler Begrüßung + Kontext, dann schließt der Dialog automatisch. Kein Quest-Handling, kein Zustand.
+Ein Dorfbewohner begrüßt den Spieler, sagt zwei Sätze und das Gespräch endet. Kein Branching, keine Bedingungen, kein GAS. Dieses Rezept schärft dein Gefühl dafür, wie `Entry`, `SayLine` und `Exit` zusammenspielen – und welcher `AdvanceMode` wann sinnvoll ist.
 
-## Beteiligte Nodes
+## Was du lernst
 
-* 1 × [Entry](../nodes/core/entry.md)
-* 2 × [SayLine](../nodes/core/say-line.md)
-* 1 × [Exit](../nodes/core/exit.md)
+- Ein Dialog-Asset anlegen und benennen.
+- Speakers-Panel befüllen (Tag + DisplayName).
+- SayLine-Nodes verbinden und `AdvanceMode` setzen.
+- Den Dialog im Preview-Runner testen, ohne PIE zu starten.
 
-## Graph-Mock-Up
+## Voraussetzungen
 
-```
+- [Quick Start](../getting-started/quick-start.md) abgeschlossen.
+- Plugin aktiviert, Widget in Projekt-Einstellungen konfiguriert.
+
+## Mini-Graph
+
+```text
 [Entry]
    │
    ▼
-[SayLine: Dorfbewohner
-   "Willkommen in Kreuzhof, Fremder."
-   AdvanceMode: Manual]
+[SayLine: Dorfbewohner – "Willkommen in Kreuzhof, Fremder."  AdvanceMode: Manual]
    │
    ▼
-[SayLine: Dorfbewohner
-   "Pass auf dich auf. Nachts gehen komische Dinge um."
-   AdvanceMode: Manual]
+[SayLine: Dorfbewohner – "Nachts gehen komische Dinge um. Pass auf dich auf."  AdvanceMode: Manual]
    │
    ▼
 [Exit: Completed]
 ```
 
+> 📸 **Bild-Platzhalter:** `simple-npc-talk-graph-overview.png` — Übersichtsansicht des fertigen Graphen im Asset-Editor.
+> *Setup:* Asset `DA_Villager_Intro` geöffnet. Von links nach rechts: grüner `Entry`-Node → `SayLine "Willkommen in Kreuzhof"` (Title-Bar warm-gelb, Sprecher: Dorfbewohner) → `SayLine "Nachts gehen..."` (gleiche Farbe) → roter `Exit: Completed`-Node. Verbindungslinien gut sichtbar, kein Comment-Block.
+
 ## Schritt-für-Schritt
 
-1. **Asset anlegen**: *Content Browser → Rechtsklick → Miscellaneous → May Dialogue Asset*. Nenne es `DA_Villager_Intro`.
-2. **Speakers-Panel öffnen** (*Window → Speakers*). Neuer Eintrag:
-   * Name: *Dorfbewohner*
-   * SpeakerTag: `Dialogue.Speaker.Villager`
-3. **Graph vorbereiten**: Der Entry-Node existiert schon. Zieh vom Entry-Output-Pin einen Draht nach rechts los und wähle *Create Node → Say Line*. Verbinde den Output mit einem weiteren Say-Line und dann mit einem *Exit*-Node.
-4. **Erste SayLine** konfigurieren:
-   * `SpeakerTag`: `Dialogue.Speaker.Villager`
-   * `DialogueText`: *„Willkommen in Kreuzhof, Fremder."*
-   * `AdvanceModeOverride`: `Manual`
-5. **Zweite SayLine** analog mit dem zweiten Text.
-6. **Exit-Node**: `ExitStatus = Completed`. (Default, musst du nicht ändern.)
-7. **Compile** (Button oben im Asset-Editor). Wenn keine Fehler in der Outline erscheinen, bist du fertig.
+### 1. Asset anlegen
 
-## Advance-Mechanik, die du verstehen musst
+Im Content Browser: **Rechtsklick → Miscellaneous → May Dialogue Asset**. Name: `DA_Villager_Intro`.
 
-`AdvanceMode = Manual` bedeutet: Die Instance geht in `WaitingForAdvance` und verharrt dort, bis **jemand** `AdvanceDialogue()` aufruft. In der Standard-UI übernimmt das der Klick/Tastendruck auf die Textbox. Die drei wichtigsten Modi:
+### 2. Speaker registrieren
 
-| Mode | Advance durch |
-| --- | --- |
+**Window → Speakers** öffnen. Klick auf **Add Speaker**:
+
+| Feld | Wert |
+|------|------|
+| `DisplayName` | Dorfbewohner |
+| `SpeakerTag` | `Dialogue.Speaker.Villager` |
+| `Color` | Warm-Gelb (Picker) |
+
+> 📸 **Bild-Platzhalter:** `simple-npc-talk-speakers-panel.png` — Speakers-Panel mit ausgefülltem Eintrag.
+> *Setup:* Speakers-Panel geöffnet (Tab links). Einziger Eintrag: `DisplayName = "Dorfbewohner"`, `SpeakerTag = Dialogue.Speaker.Villager`, Farb-Chip warm-gelb.
+
+### 3. Nodes verbinden
+
+1. Vom **Entry**-Output-Pin einen Draht ziehen → **Create Node → Say Line**.
+2. `SpeakerTag` = `Dialogue.Speaker.Villager`, `DialogueText` = *„Willkommen in Kreuzhof, Fremder."*, `AdvanceModeOverride` = `Manual`.
+3. Vom Output dieser SayLine eine zweite SayLine anlegen: *„Nachts gehen komische Dinge um. Pass auf dich auf."*
+4. Vom Output der zweiten SayLine → **Exit**-Node, `ExitStatus = Completed`.
+5. **Compile** (Toolbar oben).
+
+> 📸 **Bild-Platzhalter:** `simple-npc-talk-sayline-details.png` — Details-Panel der ersten SayLine.
+> *Setup:* Erste SayLine im Graph ausgewählt. Details-Panel zeigt: `SpeakerTag = Dialogue.Speaker.Villager`, `DialogueText = "Willkommen in Kreuzhof, Fremder."`, `AdvanceModeOverride = Manual`. Voice-Slot leer.
+
+### 4. Im Preview-Runner testen
+
+Klick auf **Play** (Toolbar) → der Dialog läuft direkt im Editor. Advance mit **Space**, Abbruch mit **Esc**.
+
+## Advance-Modi im Überblick
+
+| Modus | Advance durch |
+|-------|---------------|
 | `Manual` | Spieler-Input (Klick / Enter) |
 | `Timer` | `AutoAdvanceDelay` verstreicht |
-| `AfterVoice` | Voice-Asset-Wiedergabe endet; Fallback Typewriter-Ende |
+| `AfterVoice` | Voice-Asset-Wiedergabe endet |
+| `Immediate` | Sofort, ohne Warten |
+| `AfterAnimation` | Montage auf Participant endet |
 
-Für Tutorials oder Cutscenes nimmst du meistens `Timer` oder `AfterVoice`, für interaktive NPC-Gespräche `Manual`.
+Für interaktive NPC-Gespräche: **Manual**. Für Cutscenes ohne Spieler-Input: **Timer** oder **AfterVoice**.
 
-## Runtime-Trigger
+## Blueprint-Triggering
 
-Im einfachsten Fall reicht ein Blueprint-Call, wenn der Spieler den NPC interagiert:
+Wenn der Spieler den NPC interagiert (z.B. über eine Interaction-Komponente):
 
+```text
+[Event OnInteract]
+   │
+   ▼
+[MayDialogueLibrary → Start Dialogue]
+   ├─ Asset:      DA_Villager_Intro
+   ├─ Instigator: Player Pawn
+   └─ Target:     Self (der NPC-Actor)
 ```
-[Event: OnInteract]
-  │
-  ▼
-[MayDialogueLibrary :: Start Dialogue]
-  ├ WorldContext: Self
-  ├ Asset:        DA_Villager_Intro
-  ├ Instigator:   Player Pawn
-  └ Target:       Self (der NPC)
-```
 
-In C++ äquivalent:
+> 📸 **Bild-Platzhalter:** `simple-npc-talk-bp-trigger.png` — Blueprint-Graph des Trigger-Events.
+> *Setup:* Beliebiger Actor-Blueprint geöffnet. Event-Graph zeigt: `Event OnInteract` → `Start Dialogue (MayDialogueLibrary)` mit gefüllten Pins: `Asset = DA_Villager_Intro`, `Instigator = Get Player Pawn`, `Target = Self`.
+
+{% hint style="info" %}
+**C++-Variante**
 
 ```cpp
 if (UMayDialogueSubsystem* Sub = UMayDialogueSubsystem::Get(GetWorld()))
 {
-    Sub->StartDialogue(Asset, PC->GetPawn(), this);
+    Sub->StartDialogue(DA_Villager_Intro, PC->GetPawn(), this);
 }
 ```
+{% endhint %}
 
-## Testen im Preview-Runner
+## Variation / Weiter gehen
 
-Du musst das nicht in PIE testen. Öffne das Asset, klicke *Play* oben rechts (der [Preview Runner](../editor/preview-runner.md)) – das Gespräch läuft direkt im Editor-Fenster mit dem Slate-Debug-Widget. Advance mit *Space*, Abbruch mit *Esc*.
+- Ersetze eine SayLine durch eine **RandomLine** für variable Begrüßungen → [Zufällige Begrüßungen](random-greetings.md).
+- Füge einen **PlayerChoice**-Node hinzu, damit der Spieler antworten kann → [Verzweigungen mit Bedingungen](branching-conditions.md).
+- Lagere die SayLines als eigenes Fragment aus → [Wiederverwendbare Dialog-Fragmente](linking-dialogues.md).
 
 ## Troubleshooting
 
-### Der Dialog wird sofort nach der ersten Zeile beendet
+**Dialog endet sofort nach der ersten Zeile.**
+Prüfe: Output-Pin von SayLine 1 zeigt direkt auf `Exit` statt auf SayLine 2. Oder `AdvanceModeOverride = Immediate` gesetzt – wechsle auf `Manual`.
 
-* **Ursache 1**: Der Output-Pin der ersten SayLine zeigt versehentlich direkt auf den Exit statt auf die zweite SayLine. Prüfe die Verbindung.
-* **Ursache 2**: Du hast `AdvanceMode = Immediate` gesetzt. Das zippt durch alle Nodes ohne Pause. Wechsle auf `Manual`.
+**Spieler-Input löst Advance nicht aus.**
+In den [Projekt-Einstellungen](../getting-started/project-settings.md) muss `bSwitchToUIInputDuringDialogue = true` sein. Außerdem muss das Widget Focus bekommen (`SetKeyboardFocus` in `NativeConstruct`).
 
-### Der Spieler-Input löst den Advance nicht aus
-
-* Prüfe in den [Projekt-Einstellungen](../getting-started/project-settings.md), ob `bSwitchToUIInputDuringDialogue = true` gesetzt ist. Sonst kommt der Klick nicht bei der Widget-Layer an.
-* Das Widget braucht *Focus*. Wenn du ein eigenes UMG-Widget hast, stelle sicher, dass `SetKeyboardFocus` bei `NativeConstruct` aufgerufen wird.
-
-### Der Name „Dorfbewohner" erscheint als leere Zeile
-
-* Im Speakers-Panel ist kein `DisplayName` gesetzt – nur der Tag. Fülle das Feld `DisplayName` aus oder überschreibe den Namen direkt am Speaker im Dialog-Asset.
-
-## Nächster Schritt
-
-Sobald dieses Minimum läuft, kannst du jederzeit zu den spannenderen Rezepten springen:
-
-* [Zufällige Begrüßungen](random-greetings.md) – ersetze die erste SayLine durch eine RandomLine, damit der NPC nicht immer dasselbe sagt.
-* [Verzweigungen mit Bedingungen](branching-conditions.md) – füge einen PlayerChoice hinzu.
-
-{% hint style="info" %}
-Wenn du die beiden SayLines später als Gemeinsam-Block an mehreren Stellen brauchst, lagere sie in ein eigenes Asset aus und referenziere sie per [Link](../nodes/core/link.md). Siehe [Wiederverwendbare Dialog-Fragmente](linking-dialogues.md).
-{% endhint %}
+**Name "Dorfbewohner" erscheint leer im Widget.**
+Im Speakers-Panel ist nur der Tag gesetzt, aber kein `DisplayName`. Trage den Anzeigenamen im Panel ein.

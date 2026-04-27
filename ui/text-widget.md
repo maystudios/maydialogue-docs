@@ -1,91 +1,104 @@
+---
+description: Das Text-Widget als Typewriter-Komponente — Anbindung, Rich-Text-Decorators, Babel-Hook und Skip-Verhalten.
+---
+
 # Text Widget
 
-`UMayDialogueWidget_Text` ist die Typewriter-Text-Komponente. Sie kapselt die Animation und liefert Hooks für jede enthüllte Zeichen-Position (Babel-Sync, Character-SFX).
+`UMayDialogueWidget_Text` ist die Typewriter-Komponente. Sie bekommt den Dialog-Text, enthüllt ihn Zeichen für Zeichen, und feuert Events für Babel-Synthese und Skip-Logik.
 
-## BindWidget-Slots
+> 📸 **Bild-Platzhalter:** `text-widget-ingame.png` — PIE-Viewport, Dialog mit laufendem Typewriter. Sichtbar: Partial-Text (ca. 60% enthüllt), Cursor-Blinken am Ende des enthüllten Texts. Rich-Text-Effekte aktiv (ein Wort in Rot, ein Wort mit Shake). Roter Rahmen um den Text-Bereich.
+> *Setup:* PIE starten, Dialog mit `<color=red>` und `<shake>`-Tags im Text triggern, Screenshot während Typewriter läuft.
 
-| Slot | Typ | Zweck |
-| --- | --- | --- |
-| `DialogueRichText` | `URichTextBlock` | Rendert den Text mit allen aktiven Decorators. |
+## Anbindung im UMG-Designer
 
-## Methoden
+Der einzige BindWidget-Slot:
 
-```cpp
-UFUNCTION(BlueprintCallable)
-void StartTypewriter(const FText& FullText, float CharactersPerSecond);
+| Name im Designer | Typ | Zweck |
+|---|---|---|
+| `DialogueRichText` | `URichTextBlock` | Rendert den Text mit allen aktiven Decorators |
 
-UFUNCTION(BlueprintCallable)
-void SkipTypewriter();
+Leg im UMG-Designer einen `RichTextBlock` an und benenne ihn **`DialogueRichText`**. Das Widget befüllt ihn automatisch.
 
-UFUNCTION(BlueprintPure)
-bool IsTypewriterActive() const;
-
-UFUNCTION(BlueprintPure)
-float GetTypewriterProgress() const;
-
-UFUNCTION(BlueprintImplementableEvent)
-void OnCharacterRevealed(FString Character, int32 Index);
-
-UFUNCTION(BlueprintImplementableEvent)
-void OnTypewriterComplete();
-```
-
-## Funktionsweise
-
-1. `StartTypewriter(Text, CPS)` parst Inline-Tags über `FMayDialogueTypewriterParser::Parse()`:
-   * `<pause=X>` → Pause-Events.
-   * `<speed=X>` → Speed-Change-Events.
-   * Visuelle Tags (`<shake>`, `<wave>`, `<color>`, `<b>`) **bleiben im Text** – sie werden vom RichTextBlock-Decorator verarbeitet.
-2. `NativeTick` akkumuliert Zeit, enthüllt Zeichen für Zeichen.
-3. Pro enthülltem Zeichen: `OnCharacterRevealed` Blueprint-Event.
-4. Bei Pause-Events: Akkumulator pausiert.
-5. Bei Speed-Events: Multiplikator wird aktualisiert.
-6. Am Text-Ende: `OnTypewriterComplete`.
-
-## Rich-Text-Decorator-Registrierung
-
-Der `URichTextBlock` im Text-Widget braucht seine **DecoratorClasses** – typisch:
-
-* `UMayDialogueShakeDecorator`
-* `UMayDialogueWaveDecorator`
-* `UMayDialogueColorDecorator`
-* `UMayDialogueBoldDecorator`
-
-Setze sie im Designer-Panel des `DialogueRichText`-Slot-Widgets.
-
-## Babel-Integration
-
-Das Text-Widget feuert `OnCharacterRevealed`. Der natürliche Hook für Babel-Synthese:
-
-```
-Event OnCharacterRevealed:
-  BabelSynth → OnCharacterRevealed(Character, Index, TotalCharCount)
-```
-
-Im Legacy-Pfad (ohne Sub-Widgets) ist das automatisch verdrahtet. Im Component-Pfad musst du es **manuell** in deinem Blueprint binden (Backlog-Gap 2 aus dem UI-Report).
-
-## Skip-Integration
-
-Wenn der Spieler den Skip-Input triggert:
+## Typewriter steuern
 
 ```cpp
-Text->SkipTypewriter();  // springt auf das Text-Ende
+// Startet den Typewriter. CPS <= 0 nutzt den Settings-Default.
+void StartTypewriter(FText FullText, float CharactersPerSecond)
+
+// Springt sofort zum vollen Text.
+void SkipTypewriter()
+
+// Setzt Text zurück und stoppt den Typewriter.
+void ClearText()
+
+// Abfragen
+bool IsTypewriterActive()       // läuft der Typewriter noch?
+float GetTypewriterProgress()   // 0.0 = kein Text, 1.0 = vollständig enthüllt
 ```
 
-Das Widget wertet `IsTypewriterActive()` vor jedem Advance-Call im Parent aus: wenn noch Typewriter läuft, wird der Skip-Input als „Typewriter skippen" interpretiert, nicht als „Dialog advance".
+## Blueprint Events
 
-## Typisches Design-Pattern
+```cpp
+// Feuert für jedes enthüllte Zeichen — Hook für Babel-Synthese und Charakter-SFX.
+void OnCharacterRevealed(FString Character, int32 Index)
 
+// Feuert wenn der gesamte Text enthüllt ist (normal oder per Skip).
+void OnTypewriterComplete()
 ```
-[WBP_Text]
-└── Vertical Box
-    ├── DialogueRichText (mit Decorators)
-    └── Auto-Scroll-Hint (optional)
+
+## Rich-Text-Decorators registrieren
+
+Das `DialogueRichText`-Widget muss seine Decorator-Klassen kennen. Im UMG-Designer:
+
+1. `DialogueRichText` auswählen.
+2. Details-Panel → **Decorator Classes** → Elemente hinzufügen:
+   - `UMayDialogueShakeDecorator`
+   - `UMayDialogueWaveDecorator`
+   - `UMayDialogueColorDecorator`
+   - `UMayDialogueBoldDecorator`
+
+> 📸 **Bild-Platzhalter:** `text-widget-decorators.png` — UMG-Designer, `DialogueRichText` ausgewählt. Details-Panel rechts zeigt den Abschnitt "Decorator Classes" mit vier Einträgen: Shake, Wave, Color, Bold. Roter Pfeil auf diesen Abschnitt.
+> *Setup:* WBP_MyText im UMG-Designer öffnen, DialogueRichText auswählen, Details-Panel screenshotten.
+
+## Babel-Synthese anbinden
+
+Das `OnCharacterRevealed`-Event ist der Hook für Babel-Style-Stimmeffekte:
+
+```text
+Event On Character Revealed (Character, Index)
+  → BabelSynth → OnCharacterRevealed (Character, Index, TotalCharCount)
 ```
 
-Styling passiert über den TextStyle des RichTextBlocks (Font, Color, Default-Brush).
+{% hint style="warning" %}
+Im Component-Pfad (Sub-Widget-Architektur) ist die Babel-Anbindung **nicht automatisch**. Du bindest `OnCharacterRevealed` manuell in deinem Blueprint. Referenz auf `BabelSynth` holst du vom Top-Level-Widget.
+{% endhint %}
 
-## Anmerkungen
+## Skip-Logik
 
-* Pro Frame werden normalerweise **mehrere Zeichen** enthüllt – nicht zwingend eins pro Frame. Das `OnCharacterRevealed`-Event feuert für jedes.
-* Bei sehr hoher `CharactersPerSecond` kann das Event pro Frame dutzende Male feuern. Babel- oder SFX-Logik sollte damit umgehen können.
+Das Top-Level-Widget prüft vor jedem Advance-Call:
+
+```text
+RequestAdvance()
+  → IsTypewriterActive()?
+      True  → SkipTypewriter()    ← erster Klick: Text komplett zeigen
+      False → AdvanceDialogue()   ← zweiter Klick: nächste Zeile / Dialog beenden
+```
+
+Aus Spieler-Sicht: erster Klick auf Skip zeigt den vollen Text sofort, zweiter Klick geht weiter.
+
+## Eigenes Text-Widget bauen
+
+**Schritt 1** — Blueprint-Subklasse: Parent `MayDialogueWidget_Text`, Name z.B. `WBP_MyText`.
+
+**Schritt 2** — UMG-Designer: `RichTextBlock` anlegen, Name: `DialogueRichText`. Decorator-Klassen eintragen (s. oben).
+
+> 📸 **Bild-Platzhalter:** `text-widget-umg-designer.png` — UMG-Designer von WBP_MyText. Hierarchy: Canvas → RichTextBlock (Name: "DialogueRichText"). Details-Panel: Font, Farbe, Wrapping eingestellt, Decorator Classes befüllt.
+> *Setup:* WBP_MyText im UMG-Designer, Hierarchy + Details-Panel-Abschnitt screenshotten.
+
+**Schritt 3** — Optional: `OnCharacterRevealed` und `OnTypewriterComplete` im Event-Graph für eigene Effekte überschreiben.
+
+**Schritt 4** — In deinem DialogFrame das `TextWidget`-Child durch `WBP_MyText` ersetzen.
+
+{% hint style="info" %}
+Styling (Font, Farbe, Zeilenabstand) passiert über den `TextStyle` des RichTextBlocks im UMG-Designer. Der Typewriter-Effekt selbst ist davon unabhängig.
+{% endhint %}

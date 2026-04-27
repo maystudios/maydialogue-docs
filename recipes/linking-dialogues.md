@@ -1,22 +1,29 @@
-# Wiederverwendbare Dialog-Fragmente
+---
+description: Denselben Dialog-Block in mehreren Assets nutzen – Link-Node vs. SubGraph, Entscheidungshilfe und Setup.
+---
 
-Wenn du merkst, dass in fünf Dialog-Assets exakt derselbe Abschluss-Satz steht („Pass auf dich auf, die Wälder sind gefährlich."), hast du ein Wiederverwendungs-Problem. Die Lösung: **Link-Node** oder **SubGraph-Node**. Dieses Rezept zeigt dir beide, mit einer klaren Empfehlung, wann welche.
+# Wiederverwendbare Dialog-Fragmente
 
 ## Szenario
 
-Alle Händler im Spiel enden ihr Gespräch mit einem identischen Farewell-Block: *„Guten Weg, Reisender."* → optionale zufällige Warnung → Exit. Statt das in jedes Asset zu kopieren, lagern wir den Block aus.
+Alle Händler im Spiel enden ihr Gespräch mit demselben Farewell-Block: *„Guten Weg, Reisender."* gefolgt von einer zufälligen Warnung. Statt diesen Block in jedes Asset zu kopieren, lagerst du ihn einmal aus. Bei fünf Händlern sparst du fünffache Pflege – und Bugfixes greife an einer Stelle.
 
-## Variante A – Link-Node
+## Was du lernst
 
-### Aufbau
+- Link-Node auf ein externes Fragment-Asset zeigen lassen.
+- `bReturnAfterExit` nutzen, damit der Host-Dialog nach dem Fragment weiterläuft.
+- SubGraph als Alternative für interne Strukturierung.
+- Wann Link, wann SubGraph.
 
-Ein separates Asset `DA_Common_Farewell` mit dem gemeinsamen Pattern. In jedem Händler-Dialog ein **Link-Node**, der auf dieses Asset zeigt.
+## Voraussetzungen
 
-### Graph-Mock-Ups
+- [Einfaches NPC-Gespräch](simple-npc-talk.md) abgeschlossen.
 
-**`DA_Common_Farewell`**:
+## Mini-Graph
 
-```
+**Fragment-Asset `DA_Common_Farewell`:**
+
+```text
 [Entry]
    │
    ▼
@@ -29,125 +36,109 @@ Ein separates Asset `DA_Common_Farewell` mit dem gemeinsamen Pattern. In jedem H
 [Exit: Completed]
 ```
 
-**`DA_Merchant_*`**:
+**Händler-Asset `DA_Merchant_*`:**
 
-```
-... Händler-spezifisches Gespräch ...
+```text
+[... Händler-spezifisches Gespräch ...]
    │
    ▼
-[Link → DA_Common_Farewell]
+[Link → DA_Common_Farewell  bReturnAfterExit: true]
    │
-   ▼  (returnt nach Asset-Exit hierher)
+   ▼
 [Exit: Completed]
 ```
 
-### Schritt-für-Schritt
+> 📸 **Bild-Platzhalter:** `linking-dialogues-graph-overview.png` — Zwei Assets nebeneinander: Fragment-Asset links, Händler-Asset rechts mit Link-Node.
+> *Setup:* Content Browser und zwei Editor-Fenster nebeneinander. Links: `DA_Common_Farewell` mit Entry → SayLine → RandomLine → Exit. Rechts: `DA_Merchant_A` mit Gesprächsblock → Link-Node (Portal-Icon) → Exit. Link-Node hat `LinkedAsset = DA_Common_Farewell` im Details-Panel sichtbar.
 
-1. **Fragment-Asset anlegen**: `DA_Common_Farewell` mit obigem Inhalt. Speaker-Tag hier: `Dialogue.Speaker.CurrentSpeaker` (ein generischer Token – siehe Pro-Tipp unten).
-2. **Im Händler-Dialog**: Vom letzten Händler-Node → *Create Node → Link*.
-3. **Link-Node konfigurieren**:
-   * `LinkedAsset`: `DA_Common_Farewell`
-   * `EntryGuid`: *(leer = Asset-Entry)*
-   * `bReturnAfterExit`: `true`
-4. **Rückkehr verdrahten**: Der Link-Node hat einen Output, der feuert, **wenn das verlinkte Asset geexitet ist** (und der Scope-Stack zurückpoppt). Verbinde ihn mit deinem Abschluss-Exit.
+## Schritt-für-Schritt – Link-Variante
 
-### Wie der Scope-Stack das löst
+### 1. Fragment-Asset anlegen
 
-Beim Auftreffen auf Link-Node push die Instance einen `FMayDialogueScopeEntry` auf ihren internen Stack:
+Neues Asset `DA_Common_Farewell`. Speaker: `Dialogue.Speaker.CurrentSpeaker` (generischer Token – see Pro-Tipp).
 
-```cpp
-ScopeStack.Push({ Asset: "DA_Common_Farewell", ReturnNodeGuid: LinkNode.OutputNode });
-```
+Graph: Entry → SayLine *„Guten Weg, Reisender."* → RandomLine mit drei Warnungen → Exit (`Completed`).
 
-Der Exit-Node im Fragment pop das oberste Frame und springt dorthin zurück. Details siehe [Instance & Lifecycle](../concepts/instance-lifecycle.md#links-scope-stack).
+### 2. Link-Node im Händler-Dialog einbauen
+
+Im Händler-Asset am Ende des eigentlichen Gesprächs: Vom letzten Output-Pin → **Create Node → Link**.
+
+### 3. Link-Node konfigurieren
+
+| Property | Wert |
+|----------|------|
+| `LinkedAsset` | `DA_Common_Farewell` |
+| `EntryGuid` | *(leer = Standard-Entry)* |
+| `bReturnAfterExit` | `true` |
+
+### 4. Rückkehr verdrahten
+
+Der Link-Node hat einen Output-Pin, der feuert wenn das Fragment beendet ist. Verbinde ihn mit deinem finalen Exit-Node.
+
+> 📸 **Bild-Platzhalter:** `linking-dialogues-link-node-details.png` — Details-Panel des Link-Nodes.
+> *Setup:* Link-Node ausgewählt. Details zeigt: `LinkedAsset = DA_Common_Farewell`, `EntryGuid = (leer)`, `bReturnAfterExit = true (Checkbox aktiviert)`.
 
 {% hint style="info" %}
-**Pro-Tipp** für Speaker-Tags: Statt harter Tags im Fragment nutze generische Token wie `Dialogue.Speaker.CurrentSpeaker`, die im Host-Dialog-Asset gemappt werden. So kann das Farewell-Asset für jeden Händler funktionieren.
+**Pro-Tipp Speaker-Tokens:** Statt harter Speaker-Tags im Fragment nutze `Dialogue.Speaker.CurrentSpeaker`. Im Host-Asset wird dieser Token auf den aktuell sprechenden Händler gemappt – so funktioniert das Fragment für jeden Händler ohne Anpassung.
 {% endhint %}
 
-## Variante B – SubGraph-Node
+## SubGraph-Variante (für rein interne Strukturierung)
 
-SubGraph ist wie Link, nur dass das Fragment **nicht als eigenes Asset** existiert, sondern als Child-Graph innerhalb desselben Assets.
+Wenn das Fragment **nicht** in anderen Assets gebraucht wird, sondern nur den eigenen Graph aufräumen soll:
 
-### Aufbau
+Vom letzten Output-Pin → **Create Node → SubGraph**. Benenne ihn *„Farewell Block"*. Doppelklick öffnet den Sub-Graph in einem neuen Tab mit Breadcrumb-Navigation.
 
-Im Händler-Dialog ein SubGraph-Node, der intern einen eigenen kleinen Graph hält.
-
-### Graph-Mock-Up
-
-```
-... Händler-Gespräch ...
+```text
+[... Händler-Gespräch ...]
    │
    ▼
-┌────────────────────────────┐
-│ SubGraph: "Farewell Block" │
-│  ┌──────┐                   │
-│  │Entry │                   │
-│  └──┬───┘                   │
-│     ▼                        │
-│  [SayLine: "Guten Weg."]   │
-│     │                        │
-│  ┌──▼───┐                   │
-│  │ Exit │                   │
-│  └──────┘                   │
-└────────────────────────────┘
-   │
+[SubGraph: "Farewell Block"]
+   │ (intern: Entry → SayLine → RandomLine → Exit)
    ▼
 [Exit: Completed]
 ```
 
-### Wann SubGraph, wann Link?
+## Link vs. SubGraph
 
 | Kriterium | Link | SubGraph |
-| --- | --- | --- |
+|-----------|------|----------|
 | Wiederverwendung über Asset-Grenzen | Ja | Nein |
-| Editor-Übersichtlichkeit in großen Assets | Nein | Ja (collapsible) |
-| Eigenes Speakers-/Variables-Scope | Ja (neues Asset) | Nein (erbt vom Parent) |
-| Referenz-Änderungen propagieren | Ja (zentral) | Nein (lokal) |
-| Perforce-/Merge-Konflikte | Getrennt, weniger Konflikte | Alles in einer Datei |
+| Collapsible im eigenen Asset | Nein | Ja |
+| Eigenes Speakers-Scope | Ja | Nein (erbt vom Parent) |
+| Bugfix greift überall | Ja (zentral) | Nein (lokal) |
+| Merge-Konflikte | Weniger (getrennte Assets) | Mehr (alles in einer Datei) |
 
-**Faustregel**: Wiederverwendung → Link. Reine Graph-Ordnung innerhalb *einem* Asset → SubGraph.
+**Faustregel:** Wiederverwendung über mehrere Assets → **Link**. Nur internes Aufräumen → **SubGraph**.
 
-## Kombination: Link + Parameter
+## Blueprint-Triggering
 
-Du kannst vor dem Link-Node [SetVariable](../nodes/actions/set-variable.md) benutzen, um dem Fragment Parameter mitzugeben (Dialogue-Scope teilt sich über den Link, weil die Variablen auf der Instance leben, nicht auf dem Asset):
+Für den Aufrufer ändert sich nichts. Normaler Start-Call – das Fragment läuft in derselben Instance:
 
-```
-... Händler-spezifisch ...
+```text
+[Event OnInteract]
    │
    ▼
-[SetVariable: "MerchantPriceMood" (Int) = 2]
-   │
-   ▼
-[Link → DA_Common_Farewell]
+[MayDialogueLibrary → Start Dialogue]
+   ├─ Asset: DA_Merchant_A
+   └─ ...
 ```
 
-Innerhalb des Fragments kannst du mit einem Branch auf diese Variable reagieren.
+> 📸 **Bild-Platzhalter:** `linking-dialogues-bp-trigger.png` — Blueprint-Trigger am Händler.
+> *Setup:* Händler-Actor Blueprint. `Event OnInteract` → `Start Dialogue (MayDialogueLibrary)`, `Asset = DA_Merchant_A`.
 
-## Runtime-Verhalten
+## Variation / Weiter gehen
 
-Für den Aufrufer ist das transparent. Es gibt nur **eine Instance** – das Fragment läuft nicht als neuer Dialog, sondern wird in dieselbe Instance „eingeklinkt". `OnDialogueStarted` feuert nicht erneut.
-
-Auch wichtig:
-
-* `GetCurrentNodeGUID()` liefert während des Fragments den Node im **Fragment-Asset** zurück, nicht im Parent.
-* `GetActiveDialogueAsset()` liefert den Host. Das Fragment-Asset findest du nur über den Scope-Stack (siehe Subsystem-API).
+- Vor dem Link-Node eine Variable setzen (`SetVariable`), die das Fragment liest – Parameter übergeben ohne neue Assets. Siehe [GAS-getriebener Dialog](gas-driven-dialogue.md).
+- Fragment abhängig von Spieler-Tags variieren: Branch im Fragment-Asset. Alle Nutzer profitieren automatisch.
+- Mehrere Fragmente verschachteln: Link A → Link B → Link C. Der Scope-Stack verwaltet die Rückkehr.
 
 ## Troubleshooting
 
-### Der Dialog endet nach dem Fragment, obwohl er weiterlaufen soll
+**Dialog endet nach dem Fragment, obwohl er weiterlaufen soll.**
+`bReturnAfterExit = false` am Link-Node. Oder der Exit im Fragment hat `ExitStatus = Failed` und dein Host-Dialog reagiert darauf mit einem anderen Ausgang. Prüfe das Flag.
 
-* Exit-Node im Fragment setzt `ExitStatus = Completed`, aber `bReturnAfterExit` am Link-Node ist `false`. Dann wird der Host-Dialog mitbeendet. Setze das Flag oder leite das Fragment stattdessen über einen Return-Sonder-Exit.
+**Infinite-Loop zwischen Host und Fragment.**
+Das Fragment linkt zurück auf den Host. Der Scope-Stack wird tiefer als Limit (16). Nutze Branches statt gegenseitige Links.
 
-### Infinite-Loop zwischen Host und Fragment
-
-* Dein Fragment linkt zurück auf den Host (gegenseitig). Der Scope-Stack wird dann beliebig tief. Ab einer Tiefe von 16 bricht das Plugin ab. Das sollte ein Design-Fehler sein – nutze Branches statt gegenseitige Links.
-
-### Speaker im Fragment wird nicht aufgelöst
-
-* Der Host-Dialog kennt den Speaker-Tag, das Fragment nicht. Füge den Speaker auch im Fragment-Asset hinzu oder nutze den Token-Ansatz aus dem Pro-Tipp.
-
-## Nächster Schritt
-
-* [GAS-getriebener Dialog](gas-driven-dialogue.md) – Fragment-Inhalt abhängig von Spieler-Tags machen.
-* [Eigene Nodes per Blueprint](../extension/custom-nodes.md) – wenn du einen wiederkehrenden Logik-Block brauchst, der mehr als nur ein Fragment ist.
+**Speaker im Fragment wird nicht aufgelöst.**
+Das Fragment-Asset kennt den Speaker-Tag nicht. Füge den Speaker dort ebenfalls hinzu oder nutze den Token-Ansatz aus dem Pro-Tipp.

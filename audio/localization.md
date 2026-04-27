@@ -1,89 +1,101 @@
+---
+description: Für jede Sprache ein eigenes Voice-Asset – wie die VoicePerCulture-Map funktioniert und wie das System zur Laufzeit auflöst.
+---
+
 # Lokalisierung (VoicePerCulture)
 
-MayDialogue unterstützt **pro-Kultur Voice-Assets**. Zur Laufzeit wählt das System basierend auf der aktiven UE-Culture das passende Asset.
+## Wann brauche ich das?
 
-## Datenmodell
+Wenn dein Spiel in mehreren Sprachen erscheint und du pro Sprache eigene Voice-Aufnahmen hast:
 
-Auf jeder SayLine:
+- Englische Stimme für `en`, deutsche für `de`, japanische für `ja`
+- Zur Laufzeit spielt automatisch die passende Aufnahme – ohne Blueprint-Logik
 
-```cpp
-UPROPERTY(EditDefaultsOnly, Category = "Audio")
-TMap<FString, USoundBase*> DialogueVoice;
+MayDialogue kombiniert das mit UEs Standard-Text-Lokalisierung: der **Text** einer SayLine wird über das normale UE-Lokalisierungs-Dashboard übersetzt, die **Stimme** über die `DialogueVoice`-Map auf der SayLine.
+
+## Die VoicePerCulture-Map
+
+Auf jeder SayLine gibt es eine Map:
+
+```text
+DialogueVoice:
+  "en" → VO_EN_Hello
+  "de" → VO_DE_Hallo
+  "ja" → VO_JA_Konnichiwa
 ```
 
-Key: Culture-Code (`"en"`, `"de"`, `"ja"`, `"fr"` …). Value: das Voice-Asset für diese Culture.
+Key: BCP-47-Culture-Code. Value: das `USoundBase`-Asset für diese Kultur.
 
-## Auflösungs-Logik
+> 📸 **Bild-Platzhalter:** `localization-voiceperculture-map.png` — SayLine-Details-Panel mit ausgefüllter DialogueVoice-Map.
+> *Setup:* SayLine-Node im Dialog-Editor auswählen. Details-Panel rechts: Bereich "Audio" aufgeklappt, `DialogueVoice`-Map sichtbar mit drei Einträgen: Key `en` → Asset `VO_EN_Hello`, Key `de` → Asset `VO_DE_Hallo`, Key `ja` → Asset `VO_JA_Konnichiwa`. Roter Pfeil auf die Map-Einträge.
 
-1. System fragt UE-Locale-API nach der aktuellen Culture.
-2. Lookup in `DialogueVoice[Culture]`.
-3. Wenn nicht vorhanden: Fallback auf den **Default-Key** (typisch `"en"` oder leerer String).
-4. Wenn auch das fehlt: keine Voice → Babel oder Silence.
+## Wie du Einträge setzt
 
-## FText für Text
+1. SayLine-Node im Graph auswählen
+2. Details-Panel → Bereich "Audio" → `DialogueVoice`
+3. `+`-Button → Key eingeben (z.B. `"de"`) → Asset-Slot mit Voice-Asset füllen
+4. Pro Sprache wiederholen
 
-Alle Text-Properties sind `FText`, d.h. sie gehen automatisch in UE's Lokalisierungs-Flow:
+> 📸 **Bild-Platzhalter:** `localization-add-entry.png` — DialogueVoice-Map mit dem "+" Button und einem halb ausgefüllten neuen Eintrag.
+> *Setup:* Gleiche Ansicht wie oben, aber Fokus auf den `+`-Button und einen neu angelegten, noch leeren Key-Value-Eintrag. Key-Feld ist aktiv (Cursor sichtbar), Value-Slot noch leer. Zeigt den Arbeitsablauf des Hinzufügens.
 
-* Text-Gather-Pass (`Localization Dashboard`).
-* Export/Import als PO-Files.
-* Runtime-Cultures switch übersetzt Text sofort.
+## Auflösungs-Logik zur Laufzeit
 
-Kombiniert mit `DialogueVoice` hast du für jede Sprache:
+MayDialogue fragt UEs Locale-API nach der aktuellen Culture und löst so auf:
 
-* Text (übersetzt via FText).
-* Voice (aus dem Map-Key).
+1. Suche `DialogueVoice[aktuelle Culture]` — z.B. `"de-AT"`
+2. Nicht gefunden? → Region abschneiden, suche `"de"`
+3. Nicht gefunden? → Suche Default-Key (typisch `"en"` oder leerer String)
+4. Immer noch nicht gefunden? → Kein Voice-Asset → Babel oder Stille
 
-## Beispiel-Konfiguration
+```text
+Gesuchte Culture: "de-AT"
+  → Lookup "de-AT" → nicht gefunden
+  → Lookup "de"    → gefunden: VO_DE_Hallo ✓
+```
 
-SayLine „Hallo"  
-DialogueText (FText):
-
-* Namespace: `Dialog_Greeting`
-* Key: `hello_line`
-* Default-String: `"Hallo."` (wird im Gather gesammelt und in `.po`-File angepasst).
-
-DialogueVoice (Map):
-
-* `"en"` → `VO_EN_Hello`
-* `"de"` → `VO_DE_Hallo`
-* `"ja"` → `VO_JA_Konnichiwa`
-
-Wenn die Culture `de-DE` ist:
-
-* Text: *„Hallo."* (aus PO-File, sofern importiert).
-* Voice: `VO_DE_Hallo`.
-
-## Culture-Switch im Preview-Runner
-
-Der [Preview-Runner](../editor/preview-runner.md) hat ein **Culture-Dropdown**. Wechsel wirkt sofort – du testest Lokalisierung ohne Engine-Neustart.
-
-## Babel und Lokalisierung
-
-Wenn eine SayLine **kein** Voice-Asset für die aktuelle Culture hat:
-
-1. System schaut nach Default-Key.
-2. Wenn auch nicht: Babel-Synthese läuft am Text (der ja bereits lokalisiert ist).
-
-Babel funktioniert **kulturagnostisch** – es synthetisiert aus dem Text-String, unabhängig von der Sprache.
-
-## Locale-Code-Konventionen
-
-UE nutzt BCP-47-Codes. Übliche Keys:
+## Gängige Culture-Codes
 
 | Code | Sprache |
-| --- | --- |
+|---|---|
 | `en` | Englisch |
 | `de` | Deutsch |
 | `fr` | Französisch |
 | `ja` | Japanisch |
-| `zh-Hans` | Chinesisch (vereinfacht) |
+| `zh-Hans` | Chinesisch (Vereinfacht) |
 | `es-419` | Spanisch (Lateinamerika) |
+| `pt-BR` | Portugiesisch (Brasilien) |
 
-Die Abgleichs-Logik findet auch Regions-Varianten:
+UE nutzt BCP-47-Codes. Region-Varianten (`de-AT`, `en-GB`) fallen automatisch auf den Basis-Code zurück.
 
-* Gesucht: `de-AT` → Fallback: `de` → Fallback: Default-Key.
+## Text-Lokalisierung kombinieren
 
-## Anmerkungen
+Der Text (`DialogueText`) auf jeder SayLine ist ein `FText` und durchläuft UEs Standard-Lokalisierungs-Pipeline:
 
-* Voice-Assets als **Hard-Reference** (nicht SoftObjectPtr) – damit sie beim Package-Cooker mit-gepackt werden.
-* Große Voice-Libraries: mit **Streaming-SoundWaves** kombinieren, damit Memory beim Level-Start nicht explodiert.
+- Localization Dashboard sammelt alle Texte (Gather)
+- Export als `.po`-Dateien für Übersetzer
+- Import übersetzter `.po`-Dateien
+- Runtime-Culture-Switch übersetzt den Text sofort
+
+Kombiniert mit der `DialogueVoice`-Map hast du pro Sprache sowohl den richtigen Text als auch die richtige Stimme.
+
+## Culture im Preview-Runner wechseln
+
+Der [Preview-Runner](../editor/preview-runner.md) hat ein Culture-Dropdown. Ein Klick wechselt die aktive Culture – du hörst sofort das richtige Voice-Asset und siehst den übersetzten Text, ohne den Editor neu zu starten.
+
+> 📸 **Bild-Platzhalter:** `localization-preview-runner-culture-dropdown.png` — Preview-Runner mit geöffnetem Culture-Dropdown, aktive Culture "de".
+> *Setup:* Preview-Runner-Panel im Editor unten oder als eigenes Fenster. Oben im Panel ein Dropdown-Menü mit Culture-Auswahl. Dropdown offen, Optionen: en, de, ja, fr. "de" ist markiert. Darunter der aktive Dialog-Text auf Deutsch sichtbar.
+
+## Babel als Fallback für fehlende Sprachen
+
+Wenn eine SayLine kein Voice-Asset für die aktuelle Culture hat (und kein Default-Key vorhanden ist), greift Babel automatisch – sofern `bEnableBabelVoice` in den Project Settings aktiv ist. Babel synthetisiert aus dem Text-String, unabhängig von der Sprache.
+
+{% hint style="info" %}
+**Babel als Entwicklungs-Platzhalter:** In frühen Projektphasen reicht es, nur `"en"`-Voice-Assets zu setzen. Für alle anderen Kulturen klingt Babel. So kannst du Lokalisierungs-Flows testen, ohne alle Aufnahmen fertig zu haben.
+{% endhint %}
+
+## Hinweise zur Asset-Verwaltung
+
+{% hint style="warning" %}
+Voice-Assets werden als **Hard-Reference** gespeichert. Sie werden beim Kochen des Packages mit-gepackt. Bei großen Voice-Libraries: `Streaming`-Flag in den SoundWave-Properties aktivieren, damit der Memory-Footprint beim Level-Start kontrolliert bleibt.
+{% endhint %}

@@ -1,140 +1,127 @@
+---
+description: Wie du den Dialog-Graph liest — Farben, Formen, Sub-Nodes, Choice-Pins.
+---
+
 # Graph & visuelle Sprache
 
-Die visuelle Sprache von MayDialogue ist kein Zufall. Jede Farbe, jede Pill, jede Icon-Position folgt einer Idee: **Ein Dialog-Asset soll sich wie ein Drehbuch lesen lassen.** Wer spricht, was sagt er, welche Wahl hat der Spieler, was passiert dann.
+Wer einen Dialog-Asset öffnet, sieht zuerst den Graph. Dieser Abschnitt erklärt, was du siehst — damit du einen fremden Dialog sofort lesen kannst, ohne jeden Node einzeln anzuklicken.
 
-## Grundprinzipien
+> 📸 **Bild-Platzhalter:** `graph-overview-full.png` — Übersichtsaufnahme eines mittleren Dialog-Graphen.
+> *Setup:* Asset `DA_Guard_Greeting` geöffnet. Sichtbar von links nach rechts: `Entry` (grüne Kapsel) → `SayLine "Halt! Wer bist du?"` (dunkelrote Title-Bar, Sprecher: Wächter) → `PlayerChoice` (lila, zwei Choice-Pills im Body) → zwei abgehende Leitungen zu je einer `SayLine`-Reaktion → beide enden in `Exit` (rote Kapsel). Kein Comment-Overlay, sauberes horizontales Layout.
 
-1. **Der Graph ist das Dokument.** Nicht der Details-Panel.
-2. **Sprecher-Farben als primärer Anker.** Wer spricht, erkennt man sofort.
-3. **Inline-Texte statt Property-Jagd.** Doppelklick bearbeitet direkt im Node.
-4. **Sub-Nodes kompakt im Body, nicht als eigene Boxen.** Requirements, Choices, SideEffects leben als Pills.
-5. **Formen markieren Semantik.** Entry/Exit sind kompakte Kapseln, Branches sind Diamant-ähnlich, SubGraphs haben Ordner-Icons.
+## Grundprinzipien auf einen Blick
 
-## Anatomie eines Say-Line-Nodes
+- **Farbe = Sprecher.** Wer spricht, erkennst du an der Title-Bar-Farbe, nicht am Text.
+- **Text ist inline sichtbar.** Du musst keinen Node anklicken, um zu wissen was er sagt.
+- **Sub-Nodes sind Pills im Body.** Requirements, Choices und SideEffects erscheinen direkt am übergeordneten Node — keine eigenen Boxen im Graph.
+- **Formen markieren Semantik.** Entry/Exit sind Kapseln, Branch ist diamantförmig, SubGraph hat ein Ordner-Icon.
 
-```
-┌──────────────────────────────────────────────┐
-│ 🔴 Wächter                                    │ ← Title-Bar in Sprecher-Farbe
-├──────────────────────────────────────────────┤
-│ Halt! Wer bist du?                           │ ← Inline-Text (Preview)
-│                                              │
-│ 🏷 Dialogue.Emotion.Stern                     │ ← Emotion-Tags (falls gesetzt)
-│                                              │
-│ ⚙ +SetVariable: HasMet = true                │ ← SideEffect-Pill
-└──────────────────────────────────────────────┘
-      ●                                      ●
-      │                                      │
-    Input                                Output
-```
-
-Elemente:
-
-* **Title-Bar-Farbe** = Speaker-NodeColor (aus der Sprecher-Liste des Assets).
-* **Breakpoint-Indikator** (kleiner roter Punkt) erscheint rechts oben, wenn ein Breakpoint gesetzt ist.
-* **Inline-Text** ist ein Auszug (typisch 2-3 Zeilen). Bei längeren Texten gibt es optional eine Expansion-Funktion.
-* **Emotion-Tags** werden als kleine Tag-Pills unter dem Text gezeigt, wenn vorhanden.
-* **SideEffect-Pills** hängen als kompakte Zeilen am unteren Body-Rand.
-
-## Anatomie eines Player-Choice-Nodes
+## Anatomie: SayLine-Node
 
 ```
-┌──────────────────────────────────────────────┐
-│ 🟣 Player Choice                             │
-├──────────────────────────────────────────────┤
-│ Du antwortest:                               │ ← PromptText
-│                                              │
-│ 🔓 Ein Freund des Königs.              ────► │ ← Choice 0 (kein Req)
-│ 🔒 Ich kenne das Passwort: ...         ────► │ ← Choice 1 (HasTag req, hidden)
-│ ⚠️ Das geht dich nichts an.            ────► │ ← Choice 2 (FailedButVisible)
-└──────────────────────────────────────────────┘
+┌────────────────────────────────────────────┐
+│ [dunkelrot] Wächter                        │  ← Title-Bar in Sprecher-Farbe
+├────────────────────────────────────────────┤
+│ Halt! Wer bist du?                         │  ← Inline-Text (editierbar per Doppelklick)
+│                                            │
+│ 🏷 Dialogue.Emotion.Stern                   │  ← Emotion-Tag (falls gesetzt)
+│ ⚙ SetVariable: HasMet = true               │  ← SideEffect-Pill
+└────────────────────────────────────────────┘
+      ●                                    ●
+    Input                               Output
+```
+
+- **Title-Bar** trägt die Sprecher-Farbe, die im Speakers-Panel des Assets konfiguriert ist.
+- **Inline-Text** zeigt die ersten 2–3 Zeilen. Doppelklick auf den Text öffnet ein Inline-Editfeld — kein Details-Panel nötig.
+- **Emotion-Tags** erscheinen als kompakte Chips unter dem Text, wenn sie gesetzt sind.
+- **SideEffect-Pills** zeigen Inline-Aktionen (z.B. `SetVariable`, `AddTag`) als einzeilige Einträge am unteren Node-Rand.
+
+> 📸 **Bild-Platzhalter:** `sayline-node-annotated.png` — Ein einzelner SayLine-Node mit Beschriftungs-Overlays.
+> *Setup:* Asset-Editor, ein einzelner SayLine-Node ist ausgewählt und zentriert. Sprecher: Wächter (dunkelrote Title-Bar). Text: „Halt! Wer bist du?". Emotion-Tag `Dialogue.Emotion.Stern` sichtbar als kleiner blauer Chip. SideEffect-Pill `SetVariable HasMet = true` darunter. Rote Pfeile mit Beschriftungen zeigen auf: Title-Bar („Sprecher-Farbe"), Text („Inline-Text"), Tag-Chip („EmotionTag"), Pill („SideEffect").
+
+## Anatomie: PlayerChoice-Node
+
+```
+┌────────────────────────────────────────────┐
+│ [lila] Player Choice                       │
+├────────────────────────────────────────────┤
+│ Du antwortest:                             │  ← PromptText
+│                                            │
+│ 🔓 Ein Freund des Königs.           ─────► │  ← Choice 0 (frei)
+│ 🔒 Ich kenne das Passwort.          ─────► │  ← Choice 1 (geblockt, versteckt)
+│ ⚠️ Das geht dich nichts an.         ─────► │  ← Choice 2 (sichtbar, aber gesperrt)
+└────────────────────────────────────────────┘
       ●
-      │
     Input
 ```
 
-Drei Zustände pro Choice:
+Jede Choice hat einen **eigenen Output-Pin**. Die Struktur der Entscheidung ist die Struktur des Graphen — du siehst sofort, wie viele Pfade es gibt.
 
-| Symbol | Bedeutung |
+| Icon | Bedeutung im Laufzeit-Preview |
 | --- | --- |
-| 🔓 | Passed — Choice ist sichtbar und wählbar. |
-| ⚠️ | FailedButVisible — Choice ist sichtbar, aber ausgegraut. Tooltip zeigt `UnavailableReason`. |
-| 🔒 | FailedAndHidden — Choice wird gar nicht angezeigt. |
+| 🔓 Offenes Schloss | Wählbar — Requirement erfüllt oder kein Requirement gesetzt. |
+| ⚠️ Gelbes Warnsymbol | Sichtbar, aber nicht wählbar. Tooltip zeigt den Grund. |
+| 🔒 Geschlossenes Schloss | Unsichtbar für den Spieler. Wird gefiltert. |
 
-Jede Choice hat einen **eigenen Output-Pin**. Die Struktur der Entscheidung ist die Struktur des Graphen.
+> 📸 **Bild-Platzhalter:** `playerchoice-node-preview.png` — PlayerChoice-Node im Preview-Modus mit Schloss-Icons.
+> *Setup:* Preview-Runner aktiv. Der PlayerChoice-Node ist zentriert. Choice 0 zeigt grünes offenes Schloss (keine Anforderung). Choice 1 zeigt rotes Schloss (Requirement fehlgeschlagen, `FailedAndHidden`). Choice 2 zeigt gelbes Warndreieck (Requirement fehlgeschlagen, `FailedButVisible`, ausgegraut). Output-Pins für Choice 0 und 2 sichtbar, Output für Choice 1 gestrichelt.
 
-## Branch- vs. Player-Choice
+## Branch vs. PlayerChoice
 
-Ein Branch sieht **anders aus** als ein PlayerChoice:
+Beide Nodes werten Bedingungen aus — aber mit unterschiedlicher Absicht:
 
-* **Branch** ist eine kompakte Diamant-Box mit True/False/(Fallback)-Pins. Die Bedingung ist EIN Requirement.
-* **PlayerChoice** ist eine breite Box mit N Choice-Pills im Body und N Output-Pins.
-
-Beides evaluiert Requirements, aber:
-
-* **Branch** fragt: „Welchen Weg soll der **Dialog** nehmen?" (automatisch).
-* **PlayerChoice** fragt: „Welchen Weg soll der **Spieler** wählen?" (interaktiv).
-
-## Entry, Exit, Knot, SubGraph
-
-Formale Markierungen, die sich visuell absetzen:
-
-* **Entry** — kompakte grüne Kapsel, nur Output-Pin. Nicht löschbar.
-* **Exit** — kompakte rote Kapsel, nur Input-Pin.
-* **Knot** — kleiner Kreis, dient nur der Kabel-Führung. Beim Compile aufgelöst.
-* **SubGraph** — Box mit Ordner-Icon. Doppelklick öffnet den Sub-Graph mit Breadcrumb-Pfad am oberen Rand.
-
-## Kommentare & Reroute
-
-UE-native Tools, voll integriert:
-
-* **Comment** (C oder Rechtsklick → Add Comment): farbiger Rahmen um eine Node-Gruppe. Folgt beim Verschieben, dient der semantischen Gruppierung.
-* **Reroute / Knot**: Doppelklick auf einen Draht zwischen zwei Nodes fügt einen Knot ein. Knots werden beim Compile aufgelöst (`ResolveKnotChain`) – Runtime sieht nur die Direktverbindung.
-
-## Auto-Layout
-
-Die Toolbar hat einen **Auto-Layout-Button**. Dahinter steckt eine Sugiyama-artige Layered-Layout-Implementierung:
-
-1. Nodes werden nach Graph-Ebene sortiert (Entry = 0, alle direkten Nachfolger = 1, usw.).
-2. Pro Ebene werden Nodes so angeordnet, dass Draht-Kreuzungen minimiert werden.
-3. Knots werden durchgereicht, kollabierte Bereiche bleiben stabil.
-
-Ergebnis ist nicht perfekt – ein manueller Feinschliff lohnt sich bei Show-Case-Assets. Aber ein chaotisch gewachsener Graph wird in Sekunden lesbar.
-
-## Farb-Konventionen (Default)
-
-| Node-Typ | Default-Farbe | Editor-Property |
+| | Branch | PlayerChoice |
 | --- | --- | --- |
-| Entry / Exit | Grün / Rot | `EntryExitColor` (Editor-Settings) |
-| SayLine | Per-Speaker | aus `FMayDialogueSpeaker.NodeColor` |
-| Player Choice | Lila | `PlayerChoiceColor` |
-| Branch | Blau | `BranchColor` |
-| Random Line | Gelb | `RandomLineColor` |
-| Wait | Türkis | `WaitColor` |
-| Link / SubGraph | Orange | `LinkColor` / `SubGraphColor` |
-| Camera Focus | Hellblau | `CameraFocusColor` |
-| Play Animation | Grün | `AnimationColor` |
-| Variable / Event | Violett / Gold | `VariableColor` / `LogicColor` |
-| Validation Error | Rot | `ErrorColor` |
+| Wer entscheidet? | Die Logik (automatisch) | Der Spieler (interaktiv) |
+| Aussehen | Kompakte Diamant-Box | Breite Box mit Choice-Pills |
+| Pins | True / False / Fallback | Ein Pin pro Choice |
+| Typische Frage | „Welchen Weg nimmt der Dialog?" | „Was antwortet der Spieler?" |
 
-Alle Werte lassen sich unter **Project Settings → MayDialogue Editor** anpassen.
+> 📸 **Bild-Platzhalter:** `branch-vs-playerchoice.png` — Beide Node-Typen nebeneinander.
+> *Setup:* Zwei Nodes nebeneinander. Links: `Branch`-Node (blaue Title-Bar, Diamant-Form, drei Pins: True, False, Fallback, Requirement-Pill im Body). Rechts: `PlayerChoice`-Node (lila, breite Box, drei Choice-Pills mit je einem Output-Pin). Roter Pfeil mit Beschriftung: „Logik entscheidet" (Branch), „Spieler entscheidet" (PlayerChoice).
 
-## Outline-Panel als Gegenpol
+## Sonderformen: Entry, Exit, SubGraph, Knot
 
-Der Graph ist wunderbar, aber er ist 2D. Wenn du suchst: „Wo ist die SayLine mit dem Text *„…du bist schon wieder hier…"*?", willst du nicht einen Minimap-Fetzen, sondern eine **Liste**.
+| Node | Form | Funktion |
+| --- | --- | --- |
+| **Entry** | Grüne Kapsel, nur Output-Pin | Startpunkt des Dialogs. Genau einer pro Asset. Nicht löschbar. |
+| **Exit** | Rote Kapsel, nur Input-Pin | Endpunkt. Status: Completed oder Failed. |
+| **SubGraph** | Box mit Ordner-Icon | Doppelklick öffnet den eingebetteten Sub-Graph mit Breadcrumb-Pfad oben. |
+| **Knot** | Kleiner Kreis | Kabel-Führung. Wird beim Compile aufgelöst — Runtime sieht nur die Direktverbindung. |
 
-Das Outline-Panel rendert alle Nodes als flache Liste mit:
+## Farb-Referenz
 
-* **Sprecher-Farb-Chip** links.
-* **Primärtext** (Sprecher-Name oder Node-Typ).
-* **Sekundärtext** (gekürzter Dialog-Text, max 60 Zeichen).
-* **Typ-Badge** rechts (`Say`, `PC`, `Br`, `Rn`, `Wt`, `Ln`, `Sg`, `Ev`, `Fx`, `SV`, `PS`, `CF`, `CS`, `PA`, `E`, `X`).
+| Node-Typ | Standardfarbe |
+| --- | --- |
+| Entry | Grün |
+| Exit | Rot |
+| SayLine | Per-Sprecher (aus Speakers-Panel) |
+| PlayerChoice | Lila |
+| Branch | Blau |
+| Random Line | Gelb |
+| Wait | Türkis |
+| Link / SubGraph | Orange |
+| SetVariable / Event | Violett / Gold |
 
-Mit Volltextsuche, Typ-Filter und Click-to-Jump.
+Alle Farben lassen sich unter **Project Settings → MayDialogue Editor** anpassen.
 
-Details siehe [Editor → Outline](../editor/outline.md).
+> 📸 **Bild-Platzhalter:** `color-reference-nodes.png` — Eine Reihe verschiedener Node-Typen mit Farbchips.
+> *Setup:* Alle Node-Typen nebeneinander in einer Reihe, jeder leer aber farbig. Von links nach rechts: Entry (grün), Exit (rot), SayLine (rot/orange, Sprecher-Farbe), PlayerChoice (lila), Branch (blau), RandomLine (gelb), Wait (türkis), Link (orange), SetVariable (violett). Keine Verbindungen zwischen den Nodes.
+
+## Kommentare und Auto-Layout
+
+- **Comment-Boxen** (Taste `C` oder Rechtsklick → Add Comment): Farbiger Rahmen um eine Node-Gruppe. Bewegt sich mit, wenn du die Gruppe verschiebst.
+- **Auto-Layout-Button** in der Toolbar: Sortiert den Graphen nach Ebenen (Entry = links, Exits = rechts). Nützlich für einen chaotisch gewachsenen Graphen. Ein manueller Feinschliff lohnt sich danach.
+
+## Das Outline-Panel
+
+Wenn der Graph zu groß wird, um nach einer bestimmten Zeile zu suchen: Das **Outline-Panel** listet alle Nodes flach auf — mit Sprecher-Farb-Chip, Text-Vorschau und Typ-Badge. Volltextsuche und Typ-Filter sind eingebaut. Klick auf einen Eintrag springt direkt zum Node im Graph.
+
+> 📸 **Bild-Platzhalter:** `outline-panel.png` — Outline-Panel mit gefüllter Node-Liste.
+> *Setup:* Outline-Panel-Tab geöffnet (rechts neben dem Graph). Liste zeigt 8–10 Einträge: jeder Eintrag hat links einen farbigen Chip (Sprecher-Farbe), daneben Sprecher-Name und erste Zeile des Texts (abgekürzt auf 60 Zeichen), rechts ein Typ-Badge (`Say`, `PC`, `Br`, `X` etc.). Suchfeld oben ist leer. Ein Eintrag ist blau markiert (ausgewählt).
 
 ## Zusammenfassung
 
-Der Graph ist die Hauptarbeitsfläche, er rendert **Sprecher, Text und Sub-Nodes inline**, und er ist durch Farben, Icons und Formen so gestaltet, dass ein Dialog-Asset auch ohne Erklärung lesbar ist. Parallel dazu gibt es das Outline-Panel als zweite Sichtweise, die Sprecher und Zeilen linear listet.
+Der Graph ist so gestaltet, dass du ihn **lesen** kannst, ohne jeden Node anzuklicken: Sprecher-Farben geben Orientierung, Inline-Texte zeigen den Inhalt, Sub-Node-Pills zeigen Bedingungen und Aktionen, Formen unterscheiden Semantik. Das Outline-Panel ergänzt den Graph als lineare Textliste.
 
-Weiter mit dem Kern der Laufzeit: [Instance & Lifecycle](instance-lifecycle.md).
+Weiter: [Instance & Lifecycle](instance-lifecycle.md).

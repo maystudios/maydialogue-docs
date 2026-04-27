@@ -1,199 +1,264 @@
-# Delegates & Events (Referenz)
+---
+description: Alle Delegate-Typen mit Signatur, Feuer-Zeitpunkt und typischen Einsatzfällen.
+---
 
-MayDialogue broadcastet an zwei Ebenen: **pro Instance** (Lifecycle-Events eines einzelnen Gesprächs) und **pro Subsystem** (globale „irgendein Dialog"-Events). Alle Delegates sind `DYNAMIC_MULTICAST_DELEGATE*` und damit Blueprint-bindbar.
+# API: Delegates & Events
+
+MayDialogue broadcastet auf zwei Ebenen: **Instance** (pro Gespräch) und **Subsystem** (global). Alle Delegates sind `DYNAMIC_MULTICAST_DELEGATE` — beliebig viele Listener, Blueprint-bindbar.
+
+---
 
 ## Übersicht
 
-| Delegate | Ebene | Feuer-Punkt |
-| --- | --- | --- |
-| `OnDialogueStarted` | Instance | Direkt nach Instance-Erzeugung, vor Entry-Execution. |
+| Delegate | Ebene | Feuer-Zeitpunkt |
+|---|---|---|
+| `OnDialogueStarted` | Instance | Direkt nach Instance-Erzeugung, vor erstem Node. |
 | `OnDialogueEnded` | Instance | Bei Exit (Completed/Failed) oder Abort. |
 | `OnNodeReached` | Instance | Nach erfolgreicher Node-Execution. |
-| `OnMessageReceived` | Instance | Wenn eine SayLine-Message feststeht. |
-| `OnChoicesPresented` | Instance | Wenn PlayerChoice gebaut + gefiltert ist. |
-| `OnChoiceMade` | Instance | Nach `SelectChoice(Index)`. |
-| `OnVariableChanged` | Instance | Nach Variable-Mutation via SetVariable. |
+| `OnMessageReceived` | Instance | Wenn SayLine eine Message aufbaut. |
+| `OnChoicesPresented` | Instance | Wenn PlayerChoice-Node Optionen filtert und präsentiert. |
+| `OnChoiceMade` | Instance | Nach `SelectChoice(Index)`, vor der Transition. |
+| `OnVariableChanged` | Instance | Nach Variable-Mutation (Node oder externer Code). |
 | `OnDialogueEventFired` | Instance | Bei FireEvent-Node. |
-| `OnAnyDialogueStarted` | Subsystem | Pro startender Instance. |
-| `OnAnyDialogueEnded` | Subsystem | Pro endender Instance. |
+| `OnAnyDialogueStarted` | Subsystem | Jedes Mal wenn irgendein Dialog startet. |
+| `OnAnyDialogueEnded` | Subsystem | Jedes Mal wenn irgendein Dialog endet. |
 
-## Signaturen
+---
 
-### OnDialogueStarted (Instance)
+## Instance-Delegates
+
+### OnDialogueStarted
 
 ```cpp
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(
-    FOnDialogueStarted,
+    FOnMayDialogueStarted,
     UMayDialogueAsset*, Asset,
     AActor*,            Instigator,
     AActor*,            Target,
     float,              StartTime);
+
+UPROPERTY(BlueprintAssignable, Category = "MayDialogue|Events")
+FOnMayDialogueStarted OnDialogueStarted;
 ```
 
-**Feuer-Punkt**: `UMayDialogueSubsystem::StartDialogue`, Schritt 4.
-**Einsatz**: Quest-Log-Eintrag anlegen, Player-Bewegung einfrieren, Musik-Switch.
+**Feuer-Zeitpunkt**: Nach Instance-Erzeugung, vor dem ersten Node.
+**Einsatz**: Player-Bewegung einfrieren, Quest-Log-Eintrag anlegen, Musik-Switch.
 
-### OnDialogueEnded (Instance)
+---
+
+### OnDialogueEnded
 
 ```cpp
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FiveParams(
-    FOnDialogueEnded,
-    UMayDialogueAsset*,       Asset,
-    EMayDialogueExitStatus,   ExitStatus,
-    float,                    Duration,
-    AActor*,                  Instigator,
-    AActor*,                  Target);
+    FOnMayDialogueEnded,
+    UMayDialogueAsset*,     Asset,
+    EMayDialogueExitStatus, ExitStatus,
+    float,                  Duration,
+    AActor*,                Instigator,
+    AActor*,                Target);
+
+UPROPERTY(BlueprintAssignable, Category = "MayDialogue|Events")
+FOnMayDialogueEnded OnDialogueEnded;
 ```
 
-**Feuer-Punkt**: `EndDialogue(Completed/Failed)` oder `AbortDialogue`.
-**Einsatz**: Player-Bewegung wieder freigeben, Quest-Abschluss prüfen, Follow-up-Dialog queuen.
+**Feuer-Zeitpunkt**: `EndDialogue()` (Completed/Failed) oder `AbortDialogue()`.
+**Einsatz**: Player-Bewegung freigeben, Quest-Abschluss prüfen, Follow-up-Dialog queuen.
 
-### OnNodeReached (Instance)
+---
+
+### OnNodeReached
 
 ```cpp
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
-    FOnNodeReached,
-    FGuid,                    NodeGuid,
-    UMayDialogueNodeBase*,    Node);
+    FOnMayDialogueNodeReached,
+    FGuid,                 NodeGuid,
+    UMayDialogueNode_Base*, Node);
+
+UPROPERTY(BlueprintAssignable, Category = "MayDialogue|Events")
+FOnMayDialogueNodeReached OnNodeReached;
 ```
 
-**Feuer-Punkt**: Direkt nach `Node->ExecuteNode(...)`.
-**Einsatz**: Debug-HUD, Breakpoint-System, Analytics.
+**Feuer-Zeitpunkt**: Direkt nach `ExecuteNode(...)`.
+**Einsatz**: Debug-HUD, Telemetrie, Breakpoint-System.
 
-### OnMessageReceived (Instance)
+---
+
+### OnMessageReceived
 
 ```cpp
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
-    FOnMessageReceived,
+    FOnMayDialogueMessageReceived,
     const FMayDialogueMessage&, Message);
+
+UPROPERTY(BlueprintAssignable, Category = "MayDialogue|Events")
+FOnMayDialogueMessageReceived OnMessageReceived;
 ```
 
-**Feuer-Punkt**: Innerhalb von `SayLine::ExecuteNode`, nachdem `FMayDialogueMessage` gebaut wurde.
-**Einsatz**: Das UI hängt sich hier rein und rendert den Text.
+**Feuer-Zeitpunkt**: Innerhalb `SayLine::ExecuteNode`, nachdem `FMayDialogueMessage` gebaut wurde.
+**Einsatz**: UI-Widget rendert Sprecher-Name, Text und Porträt.
 
-### OnChoicesPresented (Instance)
+---
+
+### OnChoicesPresented
 
 ```cpp
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
-    FOnChoicesPresented,
+    FOnMayDialogueChoicesPresented,
     const TArray<FMayDialogueChoiceEntry>&, Choices);
+
+UPROPERTY(BlueprintAssignable, Category = "MayDialogue|Events")
+FOnMayDialogueChoicesPresented OnChoicesPresented;
 ```
 
-**Feuer-Punkt**: `Instance::PresentChoices(...)`.
-**Einsatz**: Choice-List-Widget rendert, Timeout-Bar startet, Controller-Vibration.
+**Feuer-Zeitpunkt**: `Instance::PresentChoices(...)`.
+**Einsatz**: Choice-Buttons rendern, Timeout-Bar starten, Controller-Vibration.
 
-### OnChoiceMade (Instance)
+---
+
+### OnChoiceMade
 
 ```cpp
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
-    FOnChoiceMade,
+    FOnMayDialogueChoiceMade,
     int32, ChoiceIndex);
+
+UPROPERTY(BlueprintAssignable, Category = "MayDialogue|Events")
+FOnMayDialogueChoiceMade OnChoiceMade;
 ```
 
-**Feuer-Punkt**: `Instance::SelectChoice(Index)`, vor der Transition.
-**Einsatz**: Analytics (welche Choice wählen Spieler?), Achievement-Trigger.
+**Feuer-Zeitpunkt**: `Instance::SelectChoice(Index)`, vor der Transition.
+**Einsatz**: Analytics ("welche Choices wählen Spieler?"), Achievement-Trigger.
 
-### OnVariableChanged (Instance)
+---
+
+### OnVariableChanged
 
 ```cpp
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(
-    FOnVariableChanged,
-    FName,                          VariableName,
-    EMayDialogueVariableScope,      Scope,
-    EMayDialogueVariableType,       Type,
-    const FString&,                 NewValueAsString);
+    FOnMayDialogueVariableChanged,
+    FName,                     VariableName,
+    EMayDialogueVariableScope, Scope,
+    EMayDialogueVariableType,  Type,
+    const FString&,            NewValueAsString);
+
+UPROPERTY(BlueprintAssignable, Category = "MayDialogue|Events")
+FOnMayDialogueVariableChanged OnVariableChanged;
 ```
 
-**Feuer-Punkt**: Nach SetVariable (Action-Node oder SideEffect).
-**Einsatz**: HUD-Update (z.B. Disposition-Anzeige), Live-Quest-Status.
+**Feuer-Zeitpunkt**: Nach `SetVariable`-Node oder externem `SetDialogueVariable`-Call.
+**Einsatz**: HUD-Update (Dispositions-Anzeige), Live-Quest-Status.
 
 {% hint style="info" %}
-Der Value kommt **als String**. Für typspezifische Werte parse zurück je nach `Type` oder nutze die `UMayDialogueInstance::GetDialogueVariableTyped<T>`-Helpers.
+Der Wert kommt als String. Mit `Type` weißt du wie du ihn zurück parsst (z.B. `FCString::Atoi` für Int).
 {% endhint %}
 
-### OnDialogueEventFired (Instance)
+---
+
+### OnDialogueEventFired
 
 ```cpp
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
-    FOnDialogueEventFired,
-    FGameplayTag, EventTag);
+    FOnMayDialogueEventFired,
+    const FGameplayTag&, EventTag);
+
+UPROPERTY(BlueprintAssignable, Category = "MayDialogue|Events")
+FOnMayDialogueEventFired OnDialogueEventFired;
 ```
 
-**Feuer-Punkt**: FireEvent-Action-Node.
-**Einsatz**: Lose Kopplung zu weltfremden Systemen (Audio, Lichteffekt, AI-Switch).
+**Feuer-Zeitpunkt**: `FireEvent`-Action-Node im Dialog-Graphen.
+**Einsatz**: Lose Kopplung zu externen Systemen — Lichteffekte, AI-Switch, Sound-Trigger.
 
-### OnAnyDialogueStarted / OnAnyDialogueEnded (Subsystem)
+---
+
+## Subsystem-Delegates
+
+### OnAnyDialogueStarted / OnAnyDialogueEnded
 
 ```cpp
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
     FOnAnyDialogueEvent,
     UMayDialogueInstance*, Instance);
+
+UPROPERTY(BlueprintAssignable, Category = "MayDialogue|Events")
+FOnAnyDialogueEvent OnAnyDialogueStarted;
+
+UPROPERTY(BlueprintAssignable, Category = "MayDialogue|Events")
+FOnAnyDialogueEvent OnAnyDialogueEnded;
 ```
 
-**Feuer-Punkt**: Subsystem-Level, parallel zur Instance-Variante.
-**Einsatz**: Globale Game-Systems (Quest-Log, Music-Mixer, Save-Trigger).
+**Feuer-Zeitpunkt**: Subsystem-Level, parallel zur Instance-Variante.
+**Einsatz**: Audio-Ducking, globaler Input-Mode-Switch, Analytics.
+
+---
 
 ## Binding-Patterns
 
-### C++ - Einzelne Instance
+### Blueprint: Instance-Delegate binden
+
+> 📸 **Bild-Platzhalter:** `delegate-bind-instance-bp.png` — BP-Graph: Start Dialogue → Bind Event to On Dialogue Ended.
+> *Setup:* NPC-Blueprint. `Start Dialogue` (Return Value = Instance) → `Bind Event to On Dialogue Ended` (Instance-Pin = Return Value, Event-Pin = Custom Event `Handle Dialogue Ended`). Custom Event hat Params: `Asset`, `ExitStatus`, `Duration`, `Instigator`, `Target`. Darunter `Switch on EMayDialogueExitStatus`.
+
+```text
+[Start Dialogue] → Return Value (Instance)
+    │
+    ▼
+[Bind Event to On Dialogue Ended]  ──► Custom Event: Handle Dialogue Ended
+                                             (ExitStatus, Duration, ...)
+```
+
+### Blueprint: Subsystem-Delegate binden
+
+```text
+[Event BeginPlay]
+    │
+    ▼
+[Get Dialogue Subsystem]
+    │
+    ▼
+[Bind Event to On Any Dialogue Started]  ──► Custom Event: Handle Any Start
+[Bind Event to On Any Dialogue Ended]    ──► Custom Event: Handle Any End
+```
+
+### C++: Instance-Delegate
 
 ```cpp
 UMayDialogueInstance* Inst = Sub->StartDialogue(Asset, Player, NPC);
 if (Inst)
 {
-    Inst->OnDialogueEnded.AddDynamic(this, &AMyPawn::HandleDialogueEnded);
+    Inst->OnDialogueEnded.AddDynamic(this, &AMyActor::HandleEnd);
+    Inst->OnVariableChanged.AddDynamic(this, &AMyActor::HandleVarChange);
 }
 ```
 
-### C++ - Global (Subsystem)
+### C++: Subsystem-Delegate + Cleanup
 
 ```cpp
-UMayDialogueSubsystem* Sub = UMayDialogueSubsystem::Get(GetWorld());
-Sub->OnAnyDialogueStarted.AddDynamic(this, &AQuestLog::HandleAnyStart);
-Sub->OnAnyDialogueEnded.AddDynamic(this, &AQuestLog::HandleAnyEnd);
+// BeginPlay
+Sub->OnAnyDialogueStarted.AddDynamic(this, &AMyActor::HandleStart);
+Sub->OnAnyDialogueEnded.AddDynamic(this, &AMyActor::HandleEnd);
+
+// EndPlay — Subsystem lebt bis Welt-Ende, daher sauber aufräumen
+Sub->OnAnyDialogueStarted.RemoveDynamic(this, &AMyActor::HandleStart);
+Sub->OnAnyDialogueEnded.RemoveDynamic(this, &AMyActor::HandleEnd);
 ```
 
-### Blueprint
+---
 
-```
-[Get Dialogue Subsystem]
-   │
-   ▼
-[Bind Event to On Any Dialogue Started]
-   └─► Custom Event: Handle Dialogue Started
-```
+## Delegate-Cheatsheet: Wann welches?
 
-Für Instance-Delegates: Rückgabewert von `Start Dialogue` nehmen und `Bind Event to On Dialogue Ended` am Instance-Pin setzen.
-
-## Unbind nicht vergessen
-
-Wenn der bindende Actor vor dem Dialog-Ende zerstört wird, broadcastet UE trotzdem weiter. Das Multicast-Delegate prüft `IsValid(Target)` – insofern meistens ungefährlich, aber sauber ist:
-
-```cpp
-BeginPlay:   AddDynamic
-EndPlay:     RemoveDynamic
-```
-
-Für Subsystem-Delegates gilt das stärker – die leben bis Welt-Ende.
-
-## Reihenfolge bei mehreren Listenern
-
-`DYNAMIC_MULTICAST` garantiert **keine bestimmte Reihenfolge**. Wenn dein System darauf angewiesen ist, dass z.B. das UI *nach* dem Quest-Log updatet, nutze Prioritäts-Queues in deinem Game-Code oder chain explizit.
-
-## Häufige Szenarien – Delegate-Cheatsheet
-
-| Szenario | Bestes Delegate |
-| --- | --- |
+| Ziel | Bestes Delegate |
+|---|---|
 | Dialog-Overlay einblenden | `OnDialogueStarted` (Subsystem oder Instance) |
 | Typewriter starten | `OnMessageReceived` |
 | Choice-Buttons rendern | `OnChoicesPresented` |
-| Achievement „10 Gute Choices" | `OnChoiceMade` |
-| Quest-Log-Eintrag aktualisieren | `OnVariableChanged` oder `OnDialogueEventFired` |
-| Player-Movement re-enablen | `OnDialogueEnded` |
-| Analytics „Dialog abgebrochen" | `OnDialogueEnded` + Filter auf `ExitStatus == Aborted` |
+| Wahl des Spielers loggen | `OnChoiceMade` |
+| Quest-Schritt abschließen | `OnDialogueEnded` (ExitStatus == Completed) |
+| HUD-Wert live aktualisieren | `OnVariableChanged` |
+| Lichteffekt aus Dialog-Graphen triggern | `OnDialogueEventFired` |
+| Player-Bewegung freigeben | `OnDialogueEnded` |
+| Audio ducken für alle Dialoge | `OnAnyDialogueStarted` / `OnAnyDialogueEnded` am Subsystem |
 
 ## Siehe auch
 
-* [`UMayDialogueSubsystem`](api-subsystem.md)
-* [Typen & Enums](types.md) – `EMayDialogueExitStatus`, `EMayDialogueVariableType` etc.
-* [Runtime → Bridge & Lifecycle-Events](../runtime/bridge-events.md)
+- [Typen & Enums](types.md) — `EMayDialogueExitStatus`, `EMayDialogueVariableType`, `FMayDialogueMessage` etc.
+- [Runtime → Bridge & Lifecycle-Events](../runtime/bridge-events.md) — geführter Walkthrough mit Code-Beispielen.

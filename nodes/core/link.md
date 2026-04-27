@@ -1,56 +1,62 @@
 # Link
 
-Der **Link-Node** springt in ein **anderes Dialog-Asset** – mit optionalem Return-Stack.
+Der Link-Node springt in ein anderes Dialog-Asset. Optional kehrt die Ausführung nach dessen Ende in den aktuellen Dialog zurück — so lassen sich wiederverwendbare Dialog-Fragmente auslagern.
 
-## Runtime-Verhalten
+## Wann setze ich ihn ein?
 
-`ExecuteNode`:
-
-1. Push Scope-Entry auf den Stack: `{ Asset: ThisAsset, ReturnNodeGuid: NextNodeAfterLink }`.
-2. Wechsel zum Ziel-Asset; starte dessen Entry-Node.
-
-Beim Erreichen eines Exit im Ziel-Asset:
-
-* Scope-Stack pop.
-* Wenn Stack nicht leer: zurück zum `ReturnNodeGuid`.
-* Wenn Stack leer: Dialog endet komplett.
+- Für Dialog-Bausteine, die mehrere Assets nutzen (z.B. eine Standard-Verabschiedung, ein häufiges NPC-Fragment).
+- Als "Kapitel-Wechsel": der aktuelle Dialog endet, ein neuer startet ohne Return (`bReturnAfterTarget = false`).
+- Um lange Dialoge in kleinere Assets aufzuteilen, die separat bearbeitet werden können.
+- Für verschachtelte Dialog-Sequenzen, die nach Abschluss wieder zum Aufrufer zurückkehren.
 
 ## Properties
 
-| Property | Typ | Zweck |
-| --- | --- | --- |
-| `TargetAsset` | `UMayDialogueAsset*` | Das Asset, in das gesprungen wird. |
-| `bReturnAfterExit` | `bool` | Wenn `true`: Scope-Push (kehrt zurück). Wenn `false`: Ziel ersetzt komplett (kein Return). |
+| Property | Typ | Standard | Bedeutung |
+| --- | --- | --- | --- |
+| `TargetDialogueAsset` | `TSoftObjectPtr<UMayDialogueAsset>` | leer | Das Ziel-Asset. Soft-Referenz — wird erst bei Bedarf geladen. |
+| `bReturnAfterTarget` | `bool` | `true` | `true` = nach Ende des Ziel-Assets zurück zum nächsten Node; `false` = Ziel ersetzt den aktuellen Dialog komplett (kein Return). |
 
-## Pins
+{% hint style="info" %}
+Das Ziel-Asset wird immer an dessen einzigem Entry-Node gestartet. Du kannst keinen anderen Einstiegspunkt wählen.
+{% endhint %}
 
-* **Input**.
-* **Output** – nächstes Node nach Return (nur wenn `bReturnAfterExit`).
+> 📸 **Bild-Platzhalter:** `link-node-graph.png` — Link-Node mit Ziel-Asset und Return-Pin.
+> *Setup:* Link-Node mit `TargetDialogueAsset = DA_CommonFarewell` und `bReturnAfterTarget = true`. Input-Pin verbunden mit `SayLine "Komm morgen wieder."` links. Output-Pin (Return) verbunden mit `Exit Completed` rechts. Im Body des Link-Nodes: Asset-Name sichtbar.
 
-## Typisches Pattern: Wiederverwendbare Fragmente
+> 📸 **Bild-Platzhalter:** `link-details-panel.png` — Details-Panel des Link-Nodes.
+> *Setup:* Link-Node auswählen. Im Details-Panel sichtbar: `TargetDialogueAsset = DA_CommonFarewell`, `bReturnAfterTarget = true`.
 
+## Mini-Beispiel
+
+**Wiederverwendbares Fragment:**
+
+```text
+DA_GuardGreeting:
+  [Entry] → [SayLine: "Willkommen."] → [Link → DA_CommonFarewell, bReturnAfterTarget=true]
+                                          │ (Return)
+                                          ▼
+                                        [Exit: Completed]
+
+DA_CommonFarewell:
+  [Entry] → [SayLine: "Gute Reise."] → [Exit]
 ```
-GreetingHub:        [SayLine: "Willkommen."] → [Link → DA_CommonFarewell] → [Exit]
-                                                  ↓ ReturnPin
-                                                  [SetVariable: HasGreeted = true]
-                                                  ↓
-                                                  [Exit]
 
-DA_CommonFarewell:  [Entry] → [SayLine: "Gute Reise."] → [Exit]
+**Kapitel-Wechsel ohne Return:**
+
+```text
+[SayLine: "Das Abenteuer beginnt jetzt."] → [Link → DA_Chapter2_Opening, bReturnAfterTarget=false]
 ```
 
-Nach dem Farewell-Dialog springt die Ausführung via Scope-Stack zurück und führt die `SetVariable`-SideEffect aus.
+> 📸 **Bild-Platzhalter:** `link-example-graph.png` — Zwei Assets: Aufrufer mit Link-Node und Ziel-Asset.
+> *Setup:* Links Asset `DA_GuardGreeting`: `Entry` → `SayLine "Willkommen."` → `Link (DA_CommonFarewell, Return=true)` → `Exit Completed`. Rechts Asset `DA_CommonFarewell`: `Entry` → `SayLine "Gute Reise."` → `Exit`. Annotation mit Pfeil "Return nach Exit".
 
-## Typisches Pattern: Kapitel-Wechsel
+## Häufige Fallstricke
 
-```
-[Exit_HubDialog] wird durch [Link → DA_Chapter2_Opening] ersetzt, bReturnAfterExit=false.
-```
+- **Zirkuläre Links** (Asset A → Asset B → Asset A): Theoretisch möglich und führen zu einer Endlosschleife. Begrenze sie mit einem Requirement oder einer Variable.
+- **`TargetDialogueAsset` leer**: Der Compiler meldet einen Error. Der Link-Node braucht immer ein gültiges Ziel.
 
-Das Hub-Dialog-Asset ist dadurch beim Übergang aus dem Scope.
+## Erweitern
 
-## Anmerkungen
-
-* **Scope-Stack-Tiefe**: beliebig tief schachtelbar.
-* **Cross-Asset-Step-Into im PIE-Debugger ist rudimentär** – siehe [Debugger](../../editor/debugger.md#bekannte-einschrankungen).
-* **Zirkulare Links** (A→B→A→B…) können theoretisch endlos laufen; im Zweifel durch ein Requirement / Variable gebremst.
+{% hint style="info" %}
+Link vs. SubGraph: Wenn das Fragment nur innerhalb dieses Assets gebraucht wird, nutze stattdessen [SubGraph](sub-graph.md) — kein separates Asset nötig, einfacher im Editor zu navigieren.
+{% endhint %}

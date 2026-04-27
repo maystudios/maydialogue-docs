@@ -1,37 +1,37 @@
+---
+description: Alle Nodes als durchsuchbare Liste – filtern, suchen und per Klick direkt anspringen.
+---
+
 # Outline
 
-Der **Outline-Tab** ist die Liste-Sicht auf deinen Dialog. Während der Graph die räumliche Anordnung zeigt, zeigt der Outline die **lineare Struktur** – Sprecher, Text-Previews, Typ-Badges.
+Der Outline-Tab zeigt alle Nodes deines Dialogs als **sortierte Liste** – mit Sprecher-Chips, Text-Previews und Typ-Badges. Klick auf eine Zeile springt direkt zum Node im Graph.
 
-## Warum eine Liste, wenn es einen Graph gibt?
+> 📸 **Bild-Platzhalter:** `outline-overview.png` — Outline-Tab mit sieben Einträgen eines vollständigen Dialogs.
+> *Setup:* Outline-Tab aktiv. Sieben Zeilen: Entry (kein Chip, Badge „E"), SayLine Guard „Halt! Wer bist du?" (dunkelroter Chip, Badge „Say"), PlayerChoice „Du antwortest:" (blauer Chip, Badge „PC"), SayLine Guard „Dann passiere." (dunkelroter Chip), SayLine Guard „Dann verzieh dich!" (dunkelroter Chip), Exit Completed (kein Chip, Badge „X"), Exit Failed (kein Chip, Badge „X"). Suchfeld oben leer, Filter auf „All".
 
-Der Graph ist räumlich – du suchst Nodes nach ihrer Position. Dialoge denken aber in **Sprechern und Zeilen**, nicht in 2D-Koordinaten. *„Wo steht die SayLine, in der Anna vom Keller spricht?"* ist eine Sprecher+Text-Suche, keine Positions-Suche.
+## Wofür brauchst du den Outline?
 
-Der Outline ist die direkte Antwort darauf:
+Der Graph zeigt Nodes räumlich – du suchst sie nach ihrer Position. Sobald ein Asset mehr als 20 Nodes hat, wird räumliche Suche mühsam. Der Outline beantwortet Fragen wie:
 
-```
-🔴 Wächter    │  Halt! Wer bist du?                          │ Say
-🔵 Spieler    │  Du antwortest:                              │ PC
-🔴 Wächter    │  Dann passiere in Frieden.                   │ Say
-🔴 Wächter    │  Dann verzieh dich!                          │ Say
-              │  (Exit: Completed)                           │ X
-              │  (Exit: Failed)                              │ X
-```
+- *„Wer sagt das nochmal?"* → Sprecher-Chip sofort sichtbar
+- *„Wie viele PlayerChoices hat dieser Dialog?"* → Filter: Player Choice
+- *„Welche SayLine spricht über den Keller?"* → Suchfeld: „Keller"
 
-## Anatomie
-
-Pro Zeile:
+## Aufbau einer Zeile
 
 | Element | Bedeutung |
 | --- | --- |
-| **Farb-Chip** | `NodeColor` des Sprechers (grau bei nicht-Sprecher-Nodes). |
-| **Primärtext** | DisplayName (Sprecher) oder Node-Titel. |
-| **Sekundärtext** | Gekürzter Dialog-Text (max 60 Zeichen, ellipsis). |
-| **Typ-Badge** | Zwei-Buchstaben-Kennung rechts. |
+| **Farb-Chip** | Sprecher-Farbe (grau für Nodes ohne Sprecher) |
+| **Primärtext** | Sprecher-DisplayName oder Node-Titel |
+| **Sekundärtext** | Dialog-Text-Preview (gekürzt auf 60 Zeichen) |
+| **Typ-Badge** | Zweiletter-Kürzel rechts |
 
-### Typ-Badges
+### Typ-Badges Referenz
 
-| Badge | Bedeutung |
+| Badge | Node-Typ |
 | --- | --- |
+| `E` | Entry |
+| `X` | Exit |
 | `Say` | SayLine |
 | `PC` | PlayerChoice |
 | `Br` | Branch |
@@ -39,74 +39,76 @@ Pro Zeile:
 | `Wt` | Wait |
 | `Ln` | Link |
 | `Sg` | SubGraph |
-| `Ev` | FireEvent |
-| `Fx` | ApplyEffect |
-| `SV` | SetVariable |
-| `PS` | PlaySound |
-| `CF` | CameraFocus |
-| `CS` | CameraShake |
-| `PA` | PlayAnimation |
-| `E` | Entry |
-| `X` | Exit |
+| `Ev` | Fire Event |
+| `Fx` | Apply Effect |
+| `SV` | Set Variable |
+| `PS` | Play Sound |
+| `CF` | Camera Focus |
+| `CS` | Camera Shake |
+| `PA` | Play Animation |
 
-## Bedienung
+## Suchen
 
-### Suche
+Suchfeld am oberen Rand des Outline-Tabs. Die Liste filtert **live** während du tippst.
 
-Suchfeld am oberen Rand. Filtert **live** nach:
+Durchsucht werden:
+- Sprecher-DisplayName und Node-Titel (Primärtext)
+- Dialog-Text-Preview (Sekundärtext)
+- Typ-Badge-Kürzel (z.B. „Say" zeigt alle SayLines)
 
-* Primärtext (Sprecher-Name / Node-Titel).
-* Sekundärtext (Dialog-Text, gekürzt).
-* Typ-Badge (z.B. *„Say"* zeigt alle SayLines).
+> 📸 **Bild-Platzhalter:** `outline-search.png` — Outline mit „Keller" im Suchfeld, zwei gefilterte Treffer sichtbar.
+> *Setup:* Outline-Tab, Suchfeld „Keller" eingetippt. Nur noch zwei SayLines sichtbar: „Du weißt was im Keller ist." und „Der Keller ist verriegelt." Beide mit dunkelrotem Guard-Chip. Roter Pfeil auf das Suchfeld.
 
-### Filter
+## Filtern nach Node-Typ
 
-Dropdown rechts neben dem Suchfeld. Optionen:
+Dropdown rechts neben dem Suchfeld wählt einen Typ-Filter:
 
-* **All** (Default).
-* **Say Line**.
-* **Player Choice**.
-* **Branch**.
-* **Actions** (alle Action-Nodes).
-* **Flow Control** (Wait, Link, SubGraph).
-* **Special** (Entry, Exit, Knot).
+| Filter | Zeigt |
+| --- | --- |
+| **All** | Alle Nodes (Standard) |
+| **Say Line** | Nur SayLines |
+| **Player Choice** | Nur PlayerChoice-Nodes |
+| **Branch** | Nur Branch-Nodes |
+| **Actions** | Set Variable, Fire Event, Apply Effect, Play Sound, Kamera- und Animation-Nodes |
+| **Flow Control** | Wait, Link, SubGraph |
+| **Special** | Entry, Exit, Knot |
 
-Kombinierbar mit der Suche.
+Filter und Suchfeld lassen sich kombinieren: Filter auf „Say Line" + Suchtext „Wächter" zeigt alle SayLines des Wächters.
 
-### Click-to-Jump
+> 📸 **Bild-Platzhalter:** `outline-filter-dropdown.png` — Filter-Dropdown offen, „Player Choice" hervorgehoben, darunter zwei PC-Nodes in der Liste sichtbar.
+> *Setup:* Outline-Tab, Filter-Dropdown aufgeklappt. „Player Choice" markiert. Im Hintergrund der Liste zwei PlayerChoice-Einträge mit blauen Chips. Roter Pfeil auf das Dropdown.
 
-Klick auf eine Zeile selektiert den Node im Graph und zentriert die Kamera auf ihn. Perfekt, um in einem 150-Node-Asset einen bestimmten Moment zu finden.
+## Click-to-Jump
 
-### Live-Update
+Klick auf eine Outline-Zeile:
+1. Selektiert den Node im Graph.
+2. Zentriert die Graph-Kamera auf den Node.
 
-Das Panel bindet sich an das Graph-Change-Delegate. Nodes hinzufügen / löschen / ändern aktualisiert die Liste sofort.
+Damit findest du jeden Node in einem 150-Node-Asset in unter einer Sekunde – ohne manuelles Scrollen und Suchen im Graph.
+
+## Live-Update
+
+Der Outline aktualisiert sich automatisch, wenn du im Graph Nodes hinzufügst, löschst oder umbenennt. Du musst den Tab nicht neu öffnen oder manuell aktualisieren.
 
 {% hint style="info" %}
-Falls das Delegate in seltenen Fällen nicht feuert, hat der Outline ein **Polling-Fallback** (Hash-Check pro Tick) – die Liste wird so oder so synchron gehalten.
+In seltenen Fällen, in denen ein Graph-Änderungs-Signal nicht sofort ankommt, hat der Outline einen automatischen Fallback-Sync (Hash-Check im Hintergrund). Die Liste bleibt in jedem Fall synchron.
 {% endhint %}
 
-## Einsatzfälle
+## Typische Einsatzfälle
 
-### „Wer sagt das?"
+**„Wer sagt das?"**
+Text ins Suchfeld eingeben. Erster Treffer zeigt den Sprecher-Chip und -Namen.
 
-Such-Feld: Textauszug eingeben. Die erste Treffer-Zeile zeigt dir den Sprecher-Chip und den Namen.
+**„Wie viele Choices hat dieser Dialog?"**
+Filter auf Player Choice → Zeilenzahl ablesen.
 
-### „Wie viele SayLines hat dieser Dialog?"
+**„Alle Kamera-Nodes prüfen"**
+Filter auf Actions → Nur Kamera- und Animations-Nodes sichtbar.
 
-Filter auf **Say Line**, Zeilenzahl ablesen.
+**„Zu einem bestimmten Exit springen"**
+Filter auf Special → Beide Exits sichtbar, den richtigen anklicken.
 
-### „Welche Choices hat der Dialog?"
+> 📸 **Bild-Platzhalter:** `outline-click-to-jump.png` — Outline mit selektierter Zeile, im Hintergrund springt der Graph auf den zugehörigen Node.
+> *Setup:* Outline-Tab, zweite SayLine-Zeile angeklickt (blau markiert). Im Graph-Bereich dahinter zentriert die Kamera auf diese SayLine, Node leicht hervorgehoben (Selektion-Farbe). Roter Pfeil auf die selektierte Zeile im Outline.
 
-Filter auf **Player Choice**, alle Choice-Nodes werden gelistet.
-
-### „Geh zum dritten RandomLine-Node"
-
-Filter auf **Action** oder direkt über Typ-Badge-Suche (`Rn`), dritte Zeile anklicken.
-
-## Minimap-Ersatz
-
-Die Design-Idee: Dialog-Autoren denken in Sprechern und Zeilen, nicht in 2D-Positionen. Eine pixelige Minimap hilft weniger als eine gut durchsuchbare Liste.
-
-Deshalb gibt es aktuell **keine Minimap** als eigenen Tab. Falls du trotzdem eine räumliche Übersicht brauchst, nutze den Graph-Zoom-Out und die Auto-Layout-Aktion.
-
-Weiter: [Find-in-Dialogue →](find.md).
+Weiter: [Find-in-Dialogue →](find.md)

@@ -1,66 +1,51 @@
 # Player Choice
 
-Der **PlayerChoice-Node** präsentiert dem Spieler eine Liste von Antwort-Optionen.
+Der PlayerChoice-Node pausiert den Dialog und präsentiert dem Spieler eine Liste von Antwort-Optionen. Die Ausführung wartet, bis eine Choice gewählt wird — oder ein optionaler Timeout abläuft.
 
-## Runtime-Verhalten
+## Wann setze ich ihn ein?
 
-`ExecuteNode`:
-
-1. Iteriert `Choices[]`.
-2. Pro Choice: `Requirements` evaluieren, `FMayDialogueChoiceEntry` erzeugen.
-3. `FailedAndHidden`-Choices aus der Liste entfernen.
-4. `Instance::PresentChoices(Entries, Timeout, DefaultIndex)` aufrufen.
-5. TaskResult: `PauseAndPresentChoices`.
-
-Die Instance wechselt in `WaitingForChoice`. Das Widget erhält `OnChoicesPresented` und zeigt die Buttons.
-
-Bei `SelectChoice(Index)`:
-
-1. Re-Validation der Choice.
-2. Sub-Node-`SideEffects` ausführen.
-3. Sprung zum `TargetNodeGuid` der gewählten Choice.
+- Wenn der Spieler eine Entscheidung treffen soll, die den weiteren Dialog-Verlauf bestimmt.
+- Für klassische RPG-Dialoge mit mehreren Antwortmöglichkeiten.
+- Wenn einzelne Optionen nur für Spieler mit bestimmten Tags oder Attributen sichtbar sein sollen (Requirements auf der Choice).
+- Mit Timeout, wenn die Wahl zeitlich begrenzt sein soll (z.B. Verhör-Szene).
+- Mit ChoiceTags, wenn externe Systeme (Analytics, Achievement) wissen sollen, welche Art Antwort gewählt wurde.
 
 ## Properties
 
-| Property | Typ | Zweck |
-| --- | --- | --- |
-| `PromptText` | `FText` | Optional; wird über den Choices angezeigt (*„Du antwortest:"*). |
-| `Choices` | `TArray<UMayDialogueChoice*>` | Instanced Sub-Node-Array. |
-| `ChoiceTimeout` | `float` | 0 = kein Timeout. |
-| `TimeoutDefaultChoice` | `int32` | Welcher Choice-Index wird bei Timeout ausgewählt. |
+| Property | Typ | Standard | Bedeutung |
+| --- | --- | --- | --- |
+| `PromptText` | `FText` | leer | Optionaler Text über den Choices, z.B. `"Du antwortest:"`. |
+| `Choices` | Array `UMayDialogueChoice*` | leer | Die Antwort-Optionen. Jede ist ein [Choice-Sub-Node](../sub-nodes/choice.md). |
+| `ChoiceTimeout` | `float` | `0.0` | Timeout in Sekunden. `0` = kein Timeout. |
+| `TimeoutDefaultChoice` | `int32` | `0` | Index der Choice, die bei Timeout automatisch gewählt wird. Nur aktiv wenn `ChoiceTimeout > 0`. |
 
 ## Sub-Node: Choice
 
-Jede Choice hat:
+Jede Option im `Choices`-Array ist ein [Choice-Sub-Node](../sub-nodes/choice.md) mit eigenem Text, Requirements und SideEffects. Details auf der [Choice-Seite](../sub-nodes/choice.md).
 
-* `ChoiceText` (FText).
-* `ChoiceTags` (GameplayTagContainer – für externe Auswertung).
-* `Requirements` (Array).
-* `SideEffects` (Array).
-* `TargetNodeGuid` (vom Compiler aus Output-Pins befüllt).
-* `UnavailableReason` (FText – Tooltip bei FailedButVisible).
+> 📸 **Bild-Platzhalter:** `playerchoice-node-graph.png` — PlayerChoice-Node im Graph mit drei Choices.
+> *Setup:* PlayerChoice-Node mit drei Choice-Pills im Body: `"Ein Freund des Königs."`, `"Das geht dich nichts an."`, `"Passwort: 'Schattentür'."` (letzte mit Requirement-Pill `HasTag Story.HeardPassword`). Drei Output-Pins rechts verbunden mit je einem SayLine-Node. Input-Pin verbunden mit einem SayLine-Node links.
 
-Mehr in [Sub-Nodes → Choice](../sub-nodes/choice.md).
+> 📸 **Bild-Platzhalter:** `playerchoice-details-panel.png` — Details-Panel des PlayerChoice-Nodes.
+> *Setup:* PlayerChoice-Node auswählen. Im Details-Panel sichtbar: `PromptText = "Du antwortest:"`, `Choices` (Array mit 3 Einträgen), `ChoiceTimeout = 8.0`, `TimeoutDefaultChoice = 1`.
 
-## Pins
+## Mini-Beispiel
 
-* **Input**.
-* **Mehrere Outputs** – einer pro Choice, in der Graph-Darstellung rechts neben der Choice-Pill.
-
-## Typisches Pattern
-
-```
-[SayLine: "Was willst du?"]
+```text
+[SayLine: Wächter | "Was willst du?"]
   │
   ▼
-[PlayerChoice]
-  ├─ Choice 0 "Freund"   ──► [SayLine: "Passiere."]
-  ├─ Choice 1 "Dieb"     ──► [AddTag-Node] ──► [SayLine: "Verschwinde!"]
-  └─ Choice 2 "Passwort" ──► [ApplyEffect-Node] ──► [SayLine: "Willkommen."]
+[PlayerChoice: PromptText="Du antwortest:"]
+  ├─ Choice 0 "Freund"            ──► [SayLine: "Dann passiere."]  ──► [Exit: Completed]
+  ├─ Choice 1 "Passwort nennen"   ──► [SayLine: "Willkommen."]     ──► [Exit: Completed]
+  │    Requirement: HasTag Story.HeardPassword (FailedAndHidden)
+  └─ Choice 2 "Schweigen"        ──► [SayLine: "Verschwinde!"]    ──► [Exit: Failed]
 ```
 
-## Anmerkungen
+> 📸 **Bild-Platzhalter:** `playerchoice-example-graph.png` — Vollständiger Mini-Graph mit PlayerChoice.
+> *Setup:* `Entry` → `SayLine "Was willst du?"` → `PlayerChoice` (3 Choices). Output 0 → `SayLine "Dann passiere."` → `Exit Completed`. Output 1 → `SayLine "Willkommen."` → `Exit Completed`. Output 2 → `SayLine "Verschwinde!"` → `Exit Failed`. Alle Verbindungen sichtbar. Choice 1 zeigt Requirement-Pill.
 
-* Requirements werden **bei SelectChoice erneut evaluiert** – eine Choice, die in der Wartezeit durch Variable-Änderung unavailable wird, wird beim Klick abgelehnt.
-* Das UI zeigt **UnavailableReason** als Tooltip auf ausgegrauten Buttons.
-* Der **Skip-Button** hat keine Wirkung im `WaitingForChoice`-Zustand – nur SayLines können geskippt werden.
+## Häufige Fallstricke
+
+- **Requirements werden bei Auswahl erneut geprüft**: Wenn sich zwischen Anzeige und Klick eine Variable ändert und eine Choice dadurch unavailable wird, wird der Klick abgelehnt. Das ist gewollt, kann aber überraschend sein.
+- **Leeres `Choices`-Array**: Der Dialog bleibt in `WaitingForChoice` hängen, weil es nichts zu wählen gibt. Immer mindestens eine Choice eintragen.

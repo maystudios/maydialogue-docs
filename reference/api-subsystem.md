@@ -1,154 +1,170 @@
-# `UMayDialogueSubsystem` (Referenz)
+---
+description: Alle public Methoden und Delegates von UMayDialogueSubsystem.
+---
 
-Der zentrale Orchestrator. Ein `UWorldSubsystem`, pro Welt genau eine Instanz. Implementiert zusätzlich `FTickableGameObject` (für Auto-Advance / Async-Watchdog) und `IMayDialogueBridge` (für externe Konsumenten).
+# API: UMayDialogueSubsystem
 
-* **Header**: `Source/MayDialogue/Runtime/MayDialogueSubsystem.h`
-* **Modul**: `MayDialogue`
-* **Base**: `UWorldSubsystem`
-* **Interfaces**: `FTickableGameObject`, `IMayDialogueBridge`
+Zentraler Orchestrator. Ein `UWorldSubsystem`, pro Welt genau eine Instanz. Implementiert außerdem `FTickableGameObject` (für Auto-Advance/Watchdog) und `IMayDialogueBridge` (für externe Konsumenten).
+
+- **Header**: `Source/MayDialogue/Public/MayDialogueSubsystem.h`
+- **Modul**: `MayDialogue`
+- **Base**: `UWorldSubsystem`
+
+---
 
 ## Zugriff
 
 ```cpp
 // C++
-UMayDialogueSubsystem* Sub = UMayDialogueSubsystem::Get(World);
+UMayDialogueSubsystem* Sub = GetWorld()->GetSubsystem<UMayDialogueSubsystem>();
 
-// Blueprint
-[Get World Subsystem (MayDialogue Subsystem)]
+// Via Library-Helper
+UMayDialogueSubsystem* Sub = UMayDialogueLibrary::GetDialogueSubsystem(this);
 ```
 
-Oder via Library-Kurzform:
+```text
+// Blueprint
+[Get MayDialogue Subsystem]
+```
+
+> 📸 **Bild-Platzhalter:** `subsystem-access-bp.png` — Blueprint-Node `Get MayDialogue Subsystem` mit Rückgabe-Pin.
+> *Setup:* Beliebiges Blueprint, Rechtsklick → "Get MayDialogue Subsystem" eingeben. Node mit gelbem Subsystem-Rückgabe-Pin sichtbar. Rückgabe-Pin geht in eine Variable.
+
+---
+
+## Dialog-Lifecycle-Methoden
+
+| Signatur | Rückgabe | Beschreibung |
+|---|---|---|
+| `StartDialogue(Asset, Instigator, Target)` | `UMayDialogueInstance*` | Pre-Flight-Check → Instance erzeugen → Entry starten. `nullptr` bei Fehler. |
+| `CanStartDialogue(Asset, Instigator, Target)` | `bool` | Reiner Query. Klärt ob `StartDialogue` klappen würde. |
+| `StopDialogue(Instance)` | `void` | Abortet eine bestimmte Instance. No-op bei `nullptr`. |
+| `StopAllDialogues()` | `void` | Abortet alle aktiven Instances. |
 
 ```cpp
-UMayDialogueLibrary::GetDialogueSubsystem(WorldContext);
+UFUNCTION(BlueprintCallable, Category = "MayDialogue|Subsystem")
+UMayDialogueInstance* StartDialogue(UMayDialogueAsset* Asset, AActor* Instigator, AActor* Target);
+
+UFUNCTION(BlueprintCallable, Category = "MayDialogue|Subsystem")
+bool CanStartDialogue(UMayDialogueAsset* Asset, AActor* Instigator, AActor* Target) const;
+
+UFUNCTION(BlueprintCallable, Category = "MayDialogue|Subsystem")
+void StopDialogue(UMayDialogueInstance* Instance);
+
+UFUNCTION(BlueprintCallable, Category = "MayDialogue|Subsystem")
+void StopAllDialogues();
 ```
 
-## Lifecycle-Methoden
+**StartDialogue-Ablauf:**
 
-| Signatur | Beschreibung |
-| --- | --- |
-| `UMayDialogueInstance* StartDialogue(Asset, Instigator, Target)` | Pre-Flight → Instance erzeugen → Entry ansteuern. Liefert Instance oder `nullptr`. |
-| `bool CanStartDialogue(Asset, Instigator, Target) const` | Reiner Query; klärt, ob `StartDialogue` klappen würde. |
-| `void StopDialogue(UMayDialogueInstance* Instance)` | Abortet die angegebene Instance. |
-| `void StopAllDialogues()` | Abortet alle aktiven Instances. |
-
-### StartDialogue-Flow
-
-```mermaid
-graph TB
-    A[StartDialogue gerufen] --> B{CanStartDialogue?}
-    B -- Nein --> X[nullptr zurück]
-    B -- Ja --> C{Dialog aktiv?}
-    C -- Ja --> D[StopAllDialogues]
-    C -- Nein --> E
-    D --> E[NewObject UMayDialogueInstance]
-    E --> F[Participants auflösen]
-    F --> G[OnDialogueStarted broadcasten]
-    G --> H[ContinueToNode Entry]
-    H --> I[Instance zurückgeben]
+```text
+StartDialogue gerufen
+    │
+    ▼
+CanStartDialogue?  →  Nein → nullptr
+    │ Ja
+    ▼
+Dialog aktiv?  →  Ja → StopAllDialogues
+    │
+    ▼
+Neue Instance erzeugen
+    │
+    ▼
+Participants auflösen
+    │
+    ▼
+OnAnyDialogueStarted broadcasten
+    │
+    ▼
+Entry-Node starten → Instance zurückgeben
 ```
+
+---
 
 ## Query-Methoden
 
-| Signatur | Beschreibung |
-| --- | --- |
-| `UMayDialogueInstance* GetActiveDialogue() const` | Liefert die (einzige) aktive Instance oder `nullptr`. |
-| `bool IsAnyDialogueActive() const` | Kurz-Query. |
-| `const TArray<UMayDialogueInstance*>& GetAllActiveDialogues() const` | In Seltenst-Fällen: Alle Instances (sollte ≤ 1 sein). |
+| Signatur | Rückgabe | Beschreibung |
+|---|---|---|
+| `GetActiveDialogue()` | `UMayDialogueInstance*` | Aktive Instance oder `nullptr`. |
+| `IsAnyDialogueActive()` | `bool` | Prüft ob irgendetwas läuft. |
 
-## Tick-Verantwortlichkeiten
+```cpp
+UFUNCTION(BlueprintCallable, Category = "MayDialogue|Subsystem")
+UMayDialogueInstance* GetActiveDialogue() const;
 
-Das Subsystem implementiert `FTickableGameObject::Tick(DeltaTime)`. Jeden Frame:
+UFUNCTION(BlueprintPure, Category = "MayDialogue|Subsystem")
+bool IsAnyDialogueActive() const;
+```
 
-1. Camera-Blend-Fortschritt (bei aktivem CameraFocus).
-2. Auto-Advance-Timer dekrementieren (AdvanceMode `Timer`).
-3. Choice-Timeouts dekrementieren.
-4. Async-Node-Watchdogs prüfen.
-5. `CleanupCompletedDialogues()` – am Frame-Ende entsorgte Instances wegräumen.
-
-Du musst **nie** selbst ticken.
+---
 
 ## Subsystem-Delegates
 
+| Delegate | Typ | Feuer-Zeitpunkt |
+|---|---|---|
+| `OnAnyDialogueStarted` | `FOnAnyDialogueEvent` | Direkt nachdem eine Instance startet. |
+| `OnAnyDialogueEnded` | `FOnAnyDialogueEvent` | Direkt nachdem eine Instance endet. |
+
 ```cpp
-UPROPERTY(BlueprintAssignable, Category="Dialogue|Events")
+UPROPERTY(BlueprintAssignable, Category = "MayDialogue|Events")
 FOnAnyDialogueEvent OnAnyDialogueStarted;
 
-UPROPERTY(BlueprintAssignable, Category="Dialogue|Events")
+UPROPERTY(BlueprintAssignable, Category = "MayDialogue|Events")
 FOnAnyDialogueEvent OnAnyDialogueEnded;
 ```
 
-Typ `FOnAnyDialogueEvent` ist ein `DYNAMIC_MULTICAST_DELEGATE_OneParam(UMayDialogueInstance*)`. Das Delegate feuert **pro Instance**, egal wie viele parallel laufen. In der Regel jedoch nur eine.
+`FOnAnyDialogueEvent` = `DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAnyDialogueEvent, UMayDialogueInstance*, Instance)`
 
-Beispiel-Binding in C++:
+---
 
-```cpp
-Sub->OnAnyDialogueStarted.AddDynamic(this, &AQuestLog::HandleDialogueStarted);
+## Read/Write-Methoden (Bridge-API)
 
-void AQuestLog::HandleDialogueStarted(UMayDialogueInstance* Instance)
-{
-    UE_LOG(LogQuest, Log, TEXT("Dialog %s gestartet"),
-        *GetNameSafe(Instance->GetDialogueAsset()));
-}
-```
+Alle direkt am Subsystem als Blueprint-Callable — operieren auf der aktiven Instance.
 
-Blueprint-Binding:
+| Blueprint-Name | Rückgabe | Beschreibung |
+|---|---|---|
+| `Get Active Dialogue Asset` | `UMayDialogueAsset*` | Asset der aktiven Instance. |
+| `Get Current Node GUID` | `FGuid` | GUID des laufenden Nodes. |
+| `Get Active Participants` | `TArray<AActor*>` | Alle teilnehmenden Actors. |
+| `Get Dialogue Variable (As String)` | `bool` | Liest Dialog-Variable als String. Out-Param: Wert. |
+| `Get Participant Variable (As String)` | `bool` | Liest Participant-Variable als String. |
+| `Get Pending Choices` | `TArray<FMayDialogueChoiceEntry>` | Aktuelle Choice-Liste (leer wenn kein PlayerChoice). |
+| `Set Dialogue Variable (From String)` | `bool` | Setzt Dialog-Variable aus String. |
+| `Set Participant Variable (From String)` | `bool` | Setzt Participant-Variable aus String. |
+| `Select Choice` | `bool` | Wählt Choice per Index. |
+| `Force Advance` | `bool` | Überspringt aktuellen Advance-Wait. |
 
-```
-[Get Dialogue Subsystem]
-    │
-    ▼
-[Bind Event to On Any Dialogue Started]  ──► Ziel-Event
-```
+Details mit Beispielen: [Read/Write-API](../runtime/read-write-api.md).
 
-## `IMayDialogueBridge`-Implementierung
-
-Das Subsystem implementiert die `IMayDialogueBridge`-Methoden weiter. Damit können externe Module MayDialogue **ausschließlich** über das Interface konsumieren:
-
-| Interface-Methode | Rückgabe |
-| --- | --- |
-| `GetActiveDialogueAsset()` | Aktuelles Host-Asset oder nullptr. |
-| `GetCurrentNodeGUID()` | GUID des aktuell laufenden Nodes. |
-| `GetActiveParticipants()` | Alle Participant-Actors im aktiven Dialog. |
-| `GetDialogueVariable(Name, Type, OutString)` | Liest eine Dialogue-Variable. |
-| `GetParticipantVariable(ParticipantTag, Name, Type, OutString)` | Liest eine Participant-Variable. |
-| `IsDialogueActive()` | Wrapper um `IsAnyDialogueActive`. |
-
-Details zum Interface: [Runtime → Bridge & Lifecycle-Events](../runtime/bridge-events.md).
-
-## Per-Instance-Delegates
-
-Die Instance selbst hat **eigene** Delegates (siehe [Delegates & Events](api-delegates.md)). Diese sind pro Gespräch, während die Subsystem-Delegates global sind. Faustregel:
-
-| Ziel | Wo binden |
-| --- | --- |
-| Alle Dialoge im Spiel | Subsystem (`OnAnyDialogueStarted/Ended`). |
-| Nur ein bestimmtes Gespräch | Instance (`OnDialogueStarted/Ended`). |
-
-## Deinitialisierung
-
-Beim Welt-Wechsel ruft UE `Deinitialize()`:
-
-1. `StopAllDialogues()` – alle Instances sauber abbrechen.
-2. Timer/Delegates auf der Welt detachen.
-3. `CleanupCompletedDialogues()` final.
-
-Nach `Deinitialize` ist das Subsystem gone – neue Welt bekommt frisches Objekt.
-
-## Replikation
-
-Das Subsystem ist **nicht repliziert** (jeder Client hat eigenes `UWorldSubsystem`-Objekt). Multiplayer-Sync läuft über Participant-RPCs, siehe [Participants & Sprecher → Netz-Awareness](../concepts/participants-speakers.md#netz-awareness-multiplayer-ready).
+---
 
 ## Sicherheits-Contracts
 
-* Alle Methoden sind **Game-Thread-only**.
-* `StartDialogue` mit `nullptr`-Asset loggt Warning und liefert `nullptr` (kein Crash).
-* Mehrfach-Abort derselben Instance ist idempotent.
-* Während laufendem `StopAllDialogues` dürfen die Delegate-Handler **nicht** `StartDialogue` aufrufen (das führt zu einem Re-Entrant-Lock; ein Warn wird geloggt und der Call verworfen).
+- Alle Methoden sind **Game-Thread-only**.
+- `StartDialogue` mit `nullptr`-Asset loggt Warning und liefert `nullptr` — kein Crash.
+- Mehrfach-Abort derselben Instance ist idempotent.
+- Während `StopAllDialogues` darf aus den Delegate-Handlern heraus **nicht** `StartDialogue` gerufen werden (Re-Entrant-Guard; ein Warning wird geloggt und der Call verworfen).
+
+---
+
+## Deinitialisierung (Level-Travel)
+
+UE ruft `Deinitialize()` beim Welt-Wechsel:
+
+1. `StopAllDialogues()` — alle Instances sauber abbrechen.
+2. Timer und Delegates detachen.
+3. `CleanupCompletedDialogues()` final leeren.
+
+Das neue Level bekommt ein frisches Subsystem-Objekt.
+
+---
+
+## Replikation
+
+Das Subsystem ist **nicht repliziert**. Jeder Client hat sein eigenes lokales Subsystem-Objekt. Multiplayer-Sync läuft über `UMayDialogueParticipant`-RPCs.
 
 ## Siehe auch
 
-* [`UMayDialogueLibrary`](api-library.md)
-* [Delegates & Events](api-delegates.md)
-* [Runtime → Subsystem-API](../runtime/subsystem-api.md) – narrativer Walkthrough.
-* [Bridge & Lifecycle-Events](../runtime/bridge-events.md) – Interface-Vertrag.
+- [API: Library](api-library.md) — Convenience-Wrapper.
+- [API: Delegates](api-delegates.md) — vollständige Delegate-Signaturen.
+- [Runtime → Subsystem-API](../runtime/subsystem-api.md) — geführter Walkthrough mit Beispielen.

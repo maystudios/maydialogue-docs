@@ -1,17 +1,20 @@
 # Core-Nodes
 
-Die **neun** Core-Nodes sind das Rückgrat jedes Dialogs. Sie definieren den Fluss: Wo fängt es an, wer spricht, wo verzweigt es, wo endet es.
+Die neun Core-Nodes sind das Rückgrat jedes Dialogs. Sie legen fest, wo der Dialog startet, wer spricht, wo er verzweigt und wie er endet.
 
-| Node | Kategorie | Advance-Modi |
+| Node | Wofür | Advance-Modus |
 | --- | --- | --- |
-| [Entry](entry.md) | Struktur | Immediate (auto) |
-| [Exit](exit.md) | Struktur | – (Ende) |
-| [Say Line](say-line.md) | Präsentation | Manual / Timer / AfterVoice / AfterAnimation / Immediate |
-| [Player Choice](player-choice.md) | Interaktion | – (wartet auf Choice) |
-| [Branch](branch.md) | Flow | Immediate |
-| [Random Line](random-line.md) | Flow + Präsentation | wie Say Line |
-| [Wait](wait.md) | Flow | auf Duration / Event |
-| [Link](link.md) | Flow | Immediate (oder wie Child-Dialog) |
-| [SubGraph](sub-graph.md) | Flow | Immediate |
+| [Entry](entry.md) | Startpunkt des Graphen | Immediate (automatisch) |
+| [Exit](exit.md) | Endpunkt mit Status | — (beendet Dialog) |
+| [Say Line](say-line.md) | Sprecher sagt eine Zeile | Manual / Timer / AfterVoice / AfterAnimation / Immediate |
+| [Player Choice](player-choice.md) | Spieler wählt eine Option | — (wartet auf Auswahl) |
+| [Branch](branch.md) | Automatische Bedingungsverzweigung | Immediate |
+| [Random Line](random-line.md) | Zufällige Zeile aus mehreren Varianten | wie Say Line |
+| [Wait](wait.md) | Pause auf Zeit, Event oder Bedingung | auf Trigger |
+| [Link](link.md) | Wechsel in anderes Asset | Immediate / wie Ziel-Dialog |
+| [SubGraph](sub-graph.md) | Aufklappen eines internen Sub-Graphen | Immediate |
 
-Jede Seite dokumentiert Properties, Input/Output-Pins, Beispiel und bekannte Einschränkungen.
+> 📸 **Bild-Platzhalter:** `core-overview-graph.png` — Übersicht aller Core-Nodes in einem Demo-Graphen.
+> *Setup:* Neues Test-Asset mit folgenden Nodes von links nach rechts: `Entry` (grün) → `SayLine` → `PlayerChoice` mit zwei Choices → je eine `SayLine` → `Exit Completed` (oben) und `Exit Failed` (unten). Daneben separat: `Branch`-, `Wait`-, `RandomLine`-, `Link`- und `SubGraph`-Node nebeneinander, jeweils unverbunden, zur visuellen Übersicht.
+
+Jede Seite dokumentiert Properties, Laufzeit-Verhalten, Beispiel-Graphen und typische Fallstricke.

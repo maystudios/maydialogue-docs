@@ -1,28 +1,61 @@
+---
+description: Einen GameplayCue one-shot feuern — Partikel, SFX, UI-Flash, kombiniert und repliziert.
+---
+
 # Trigger Cue
 
-Feuert einen **GameplayCue** one-shot. Für cosmetische Akzente (Partikel, SFX, UI-Flashes).
+Feuert einen `GameplayCue` als one-shot über den `AbilitySystemComponent`. Der Cue läuft cosmetically — Partikel, Sound, UI-Effekt — repliziert via GAS auf alle Clients. Pass-through, kein Warten.
 
-## Runtime-Verhalten
+## Wann nutzen
 
-`ExecuteNode` (im MayDialogueGAS-Modul):
+- **Fluch-Visualeffekt** — NPC spricht Fluch aus, Partikel + Sound + UI-Flash erscheinen simultan am Spieler.
+- **Heilungs-Glow** — Heilerin legt Hand an, `GameplayCue.Dialog.Heal` blinkt grün am NPC.
+- **Magischer Treffer** — Zauberer schlägt in die Luft, Cue trifft Spieler (`bTriggerOnInstigator=true`).
+- **Multiplayer-sicherer Cosmetic** — Effekt muss auf allen Clients gleichzeitig sichtbar sein (kein PlaySound-Workaround nötig).
 
-1. Baut `FGameplayCueParameters` (Instigator, EffectCauser).
-2. Löst Target-ASC auf.
-3. `ASC->ExecuteGameplayCue(CueTag, Params)`.
-4. Advance.
+---
+
+> 📸 **Bild-Platzhalter:** `trigger-cue-node.png` — Node "Trigger Cue" im MayDialogue-Graphen.
+> *Setup:* Node allein, Title-Bar "Trigger Cue" (Kategorie-Farbe: lila/GAS). Subtitle zeigt: `GameplayCue.Dialog.Curse → Target`. Input- und Output-Pin sichtbar.
+
+---
 
 ## Properties
 
-| Property | Typ | Zweck |
-| --- | --- | --- |
-| `CueTag` | `FGameplayTag` | Muss unter `GameplayCue.*` liegen. |
-| `bTriggerOnInstigator` | `bool` | `true` → Spieler; `false` → Target. |
+| Property | Typ | Beschreibung |
+|---|---|---|
+| `CueTag` | `FGameplayTag` | Tag des GameplayCue. Muss unter `GameplayCue.*` liegen. |
+| `bTriggerOnInstigator` | `bool` | `true` = Cue läuft am Spieler-ASC. `false` = Cue läuft am Ziel-NPC-ASC. Default: `true`. |
 
-## Typisches Pattern
+---
 
-Fluch-Visualeffekt, wenn der NPC ihn ausspricht:
+> 📸 **Bild-Platzhalter:** `trigger-cue-details.png` — Details-Panel mit NPC-Target-Setup.
+> *Setup:* Node auswählen. Im Details-Panel sichtbar: `CueTag = GameplayCue.Dialog.Curse`, `bTriggerOnInstigator = false`.
 
-```
+---
+
+## Action-Node oder SideEffect-Sub-Node?
+
+Wenn der Cue-Effekt der **dramatische Hauptmoment** dieses Graph-Schrittes ist (der Fluch-Moment ist bewusst als eigener Schritt inszeniert), nimm den Action-Node. Wenn der Cue nur ein stiller cosmetic Begleiteffekt einer SayLine ist, hänge ihn als SideEffect-Pill an die SayLine.
+
+---
+
+## TriggerCue vs. PlaySound vs. CameraShake
+
+| | Trigger Cue | Play Sound | Camera Shake |
+|---|---|---|---|
+| System | GAS (`ExecuteGameplayCue`) | UE-Audio direkt | UE-Camera |
+| Repliziert | Ja, via GAS | Nein | Ja (`ClientStartCameraShake`) |
+| Typischer Inhalt | Partikel + Sound + UI kombiniert | Nur Sound | Nur Kamera-Shake |
+| Läuft am | Target-Actor / Instigator | World-Position oder 2D | Spielerkamera |
+
+Wenn du nur einen Sound brauchst: [Play Sound](play-sound.md). Wenn du nur Kamera-Shake brauchst: [Camera Shake](camera-shake.md). Wenn du Partikel + Sound + UI-Flash kombiniert und repliziert brauchst: Trigger Cue.
+
+---
+
+## Beispiel: Fluch-Szene
+
+```text
 [SayLine: NPC "Ich verfluche dich!"]
   │
   ▼
@@ -32,15 +65,21 @@ Fluch-Visualeffekt, wenn der NPC ihn ausspricht:
 [SayLine: NPC "Mögen die Götter dir nicht mehr folgen."]
 ```
 
-## Unterschied zu PlaySound / CameraShake
+> 📸 **Bild-Platzhalter:** `trigger-cue-example-graph.png` — Graphausschnitt der Fluch-Szene.
+> *Setup:* Drei Nodes: SayLine (NPC) → TriggerCue (GameplayCue.Dialog.Curse, "→ Target" im Subtitle) → SayLine (NPC). Alle Pins verbunden.
 
-| | TriggerCue | PlaySound | CameraShake |
-| --- | --- | --- | --- |
-| System | GAS | UE-Audio | UE-Camera |
-| Wird repliziert | Ja (via GAS) | Nein | Ja (Client-Start) |
-| Typischer Use-Case | Kombinierter Partikel + Sound + UI-Flash | Nur Sound | Nur Kamera |
+---
 
-## Anmerkungen
+## Fallstricke
 
-* Cues mit `GameplayCueNotify_Static` (one-shot) passen am besten. Persistente Cues (`Notify_Actor`) brauchen explizites Adden/Entfernen über GE.
-* Der Cue läuft **am Target-Actor** (bei `bTriggerOnInstigator=false`), nicht am Spieler-Camera-Space.
+{% hint style="warning" %}
+`CueTag` muss unter `GameplayCue.*` liegen — andere Tags-Hierarchien werden vom GAS-Routing nicht erkannt. Ein falsches Prefix führt zu einem stillen No-Op ohne Fehler.
+{% endhint %}
+
+{% hint style="info" %}
+Für **one-shot Effekte** nutze `GameplayCueNotify_Static` als Cue-Klasse (kein Actor, kein persistenter Zustand). Persistente Cues (`GameplayCueNotify_Actor`) müssen explizit per `Add`/`Remove`-Mechanismus gemanagt werden — Trigger Cue allein reicht dafür nicht.
+{% endhint %}
+
+- Der Cue läuft am **Target-Actor-Ursprung**, nicht im Kamera-Space — Partikel erscheinen am NPC, nicht vor der Kamera.
+- Der Node erfordert das **MayDialogueGAS-Modul** — ohne dieses Modul ist der Node nicht verfügbar.
+- Ziel muss einen `UAbilitySystemComponent` haben — sonst No-Op + Log-Warning.
