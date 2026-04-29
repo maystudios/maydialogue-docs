@@ -112,39 +112,134 @@ Event Execute Node (Context)
 
 ---
 
-{% hint style="success" %}
-**Variante in C++**
+## Variante in C++
+
+Setup-Grundlagen (Build.cs, BlueprintNativeEvent-Pattern, Module-Reload, Editor-Sichtbarkeit) → [C++-Erweiterung — Grundlagen](cpp-fundamentals.md).
+
+### Header (`MyDN_NotifyQuest.h`)
 
 ```cpp
-UCLASS(meta=(DisplayName="Notify Quest"))
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Nodes/MayDialogueNode_Base.h"
+#include "MyDN_NotifyQuest.generated.h"
+
+struct FMayDialogueContext;
+struct FMayDialogueTaskResult;
+
+UCLASS(BlueprintType, meta=(DisplayName="Notify Quest"))
 class MYGAME_API UMyDN_NotifyQuest : public UMayDialogueNode_Base
 {
     GENERATED_BODY()
+
 public:
-    UPROPERTY(EditAnywhere, Category="Quest")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Quest")
     FName QuestStepName;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Quest")
+    bool bMarkCompleted = false;
 
     virtual FMayDialogueTaskResult ExecuteNode_Implementation(
         const FMayDialogueContext& Context) override;
+
+    virtual FText GetNodeDisplayName_Implementation() const override;
+    virtual FLinearColor GetNodeColor_Implementation() const override;
 };
 ```
 
+### Implementation (`MyDN_NotifyQuest.cpp`)
+
 ```cpp
+#include "MyDN_NotifyQuest.h"
+#include "Instance/MayDialogueInstance.h"
+#include "Types/MayDialogueTypes.h"
+#include "MyGame/Quest/QuestSubsystem.h"
+
 FMayDialogueTaskResult UMyDN_NotifyQuest::ExecuteNode_Implementation(
     const FMayDialogueContext& Context)
 {
-    if (auto* Quest = UQuestSubsystem::Get(Context.DialogueInstance->GetWorld()))
+    if (QuestStepName != NAME_None)
     {
-        Quest->ReportDialogReached(QuestStepName);
+        UWorld* World = Context.DialogueInstance ? Context.DialogueInstance->GetWorld() : nullptr;
+        if (UQuestSubsystem* Quest = World ? UQuestSubsystem::Get(World) : nullptr)
+        {
+            if (bMarkCompleted) Quest->MarkCompleted(QuestStepName);
+            else                Quest->ReportStepReached(QuestStepName);
+        }
     }
 
+    // Sub-Node-SideEffects ausführen — die Basisklasse macht das NICHT automatisch,
+    // wenn du ExecuteNode überschreibst. Sonst würden Designer-konfigurierte
+    // SideEffects auf dem Node ignoriert.
     ExecuteSideEffects(Context);
+
+    // FailBehavior wird in der Engine über die Pre-Execution-Requirements-Evaluation
+    // gehandhabt — du gibst hier nur den Erfolgs-Pfad zurück.
     return FMayDialogueTaskResult::Advance(GetFirstValidOutput(Context));
+}
+
+FText UMyDN_NotifyQuest::GetNodeDisplayName_Implementation() const
+{
+    if (QuestStepName == NAME_None)
+    {
+        return NSLOCTEXT("MyGame", "NotifyQuestEmpty", "Notify Quest (no step)");
+    }
+    return FText::Format(
+        NSLOCTEXT("MyGame", "NotifyQuestFmt", "Notify Quest: {0}{1}"),
+        FText::FromName(QuestStepName),
+        bMarkCompleted ? FText::FromString(TEXT(" ✓")) : FText::GetEmpty());
+}
+
+FLinearColor UMyDN_NotifyQuest::GetNodeColor_Implementation() const
+{
+    return FLinearColor(0.2f, 0.45f, 0.8f);   // Quest-blue, klar abgrenzbar von SayLine/Branch
 }
 ```
 
-Sobald das Projekt kompiliert ist, erscheint der C++-Node genau wie ein Blueprint-Node im Kontext-Menü.
+{% hint style="info" %}
+**`BlueprintNativeEvent` — kein UFUNCTION-Override im Subclass.** Override `ExecuteNode_Implementation`, NICHT `ExecuteNode`. Wenn du es trotzdem mit `UFUNCTION(...)` markierst, gibt UHT einen Fehler. `GetNodeDisplayName` und `GetNodeColor` folgen demselben Pattern.
 {% endhint %}
+
+{% hint style="warning" %}
+**`ExecuteSideEffects(Context)` nicht vergessen.** Wenn du `ExecuteNode_Implementation` überschreibst, übernimmst du die volle Kontrolle — die Basisklasse ruft die SideEffects-Sub-Nodes nicht mehr für dich auf. Vergiss diesen Aufruf NICHT, sonst werden Designer-konfigurierte SideEffects (Add Tag, Apply Effect, deine eigenen) ignoriert.
+{% endhint %}
+
+### Async Custom-Node (Wait-on-Event-Pattern)
+
+Wenn dein Node auf etwas wartet (Animation, Timer, externe API), gib `Wait()` zurück und löse später per `Instance->ContinueToNode(...)` aus:
+
+```cpp
+FMayDialogueTaskResult UMyDN_AwaitWebhook::ExecuteNode_Implementation(
+    const FMayDialogueContext& Context)
+{
+    UMayDialogueInstance* Instance = Context.DialogueInstance;
+    if (!Instance) return FMayDialogueTaskResult::Abort();
+
+    const FGuid NextNode = GetFirstValidOutput(Context);
+
+    // Async-State auf der Instance registrieren — siehe MayDialogueNodeAsyncState.h
+    UMyDN_AwaitWebhookState* State = Instance->GetOrCreateAsyncState<UMyDN_AwaitWebhookState>(NodeGuid);
+    State->NextNodeGuid = NextNode;
+    State->BindCompletionDelegate([Instance, NextNode]()
+    {
+        if (IsValid(Instance))
+        {
+            Instance->ContinueToNode(NextNode);
+        }
+    });
+
+    return FMayDialogueTaskResult::Wait();
+}
+```
+
+Vergiss in `CleanupAsyncState` die Delegate-Unbinds nicht — sonst leakt dein Node nach Dialog-Abort. Siehe `MayDialogueNode_Wait.cpp` und `MayDialogueNode_PlayAnimation.cpp` als Referenz-Implementations im Plugin.
+
+### C++ + Blueprint mischen
+
+Wenn du einen reusable Custom-Node-Typ baust, machs als C++-Basis (`Blueprintable`) mit der Subsystem-Bridge in C++, und lass Designer dann konkrete BP-Subclasses ableiten (`BP_DN_QuestStart`, `BP_DN_QuestComplete`, …). Spart Build-Cycles bei Iteration.
+
+Sobald dein C++-Modul kompiliert ist, erscheint der Node genau wie ein BP-Node im Kontext-Menü unter der `Class Settings → Category` — Editor-Reload genügt, kein Asset-Refresh.
 
 ---
 

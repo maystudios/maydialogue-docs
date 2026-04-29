@@ -118,9 +118,10 @@ FOnMayDialogueChoicesPresented OnChoicesPresented;
 ### OnChoiceMade
 
 ```cpp
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
     FOnMayDialogueChoiceMade,
-    int32, ChoiceIndex);
+    int32,                         ChoiceIndex,
+    const FGameplayTagContainer&,  ChoiceTags);
 
 UPROPERTY(BlueprintAssignable, Category = "MayDialogue|Events")
 FOnMayDialogueChoiceMade OnChoiceMade;
@@ -129,16 +130,21 @@ FOnMayDialogueChoiceMade OnChoiceMade;
 **Feuer-Zeitpunkt**: `Instance::SelectChoice(Index)`, vor der Transition.
 **Einsatz**: Analytics ("welche Choices wählen Spieler?"), Achievement-Trigger.
 
+{% hint style="info" %}
+`ChoiceTags` is the `FGameplayTagContainer` from the chosen `FMayDialogueChoiceEntry`. Quest systems and analytics can react to tag metadata directly from the delegate without re-querying the instance.
+{% endhint %}
+
 ---
 
 ### OnVariableChanged
 
 ```cpp
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FiveParams(
     FOnMayDialogueVariableChanged,
     FName,                     VariableName,
     EMayDialogueVariableScope, Scope,
     EMayDialogueVariableType,  Type,
+    const FString&,            OldValueAsString,
     const FString&,            NewValueAsString);
 
 UPROPERTY(BlueprintAssignable, Category = "MayDialogue|Events")
@@ -146,10 +152,10 @@ FOnMayDialogueVariableChanged OnVariableChanged;
 ```
 
 **Feuer-Zeitpunkt**: Nach `SetVariable`-Node oder externem `SetDialogueVariable`-Call.
-**Einsatz**: HUD-Update (Dispositions-Anzeige), Live-Quest-Status.
+**Einsatz**: HUD-Update (Dispositions-Anzeige), Live-Quest-Status, Undo-Preview.
 
 {% hint style="info" %}
-Der Wert kommt als String. Mit `Type` weißt du wie du ihn zurück parsst (z.B. `FCString::Atoi` für Int).
+Both the old and new values are provided as strings. Use `Type` to parse them back (e.g. `FCString::Atoi` for Int). `OldValueAsString` is empty when the variable did not exist before this mutation.
 {% endhint %}
 
 ---
@@ -228,6 +234,10 @@ if (Inst)
     Inst->OnDialogueEnded.AddDynamic(this, &AMyActor::HandleEnd);
     Inst->OnVariableChanged.AddDynamic(this, &AMyActor::HandleVarChange);
 }
+
+// Handler must match the 5-param signature:
+// void AMyActor::HandleVarChange(FName VarName, EMayDialogueVariableScope Scope,
+//     EMayDialogueVariableType Type, const FString& OldValue, const FString& NewValue);
 ```
 
 ### C++: Subsystem-Delegate + Cleanup

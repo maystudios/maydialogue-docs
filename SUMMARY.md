@@ -117,6 +117,7 @@
 * [Eigene Requirements](extension/custom-requirements.md)
 * [Eigene SideEffects](extension/custom-side-effects.md)
 * [Bridge implementieren](extension/bridge-implementation.md)
+* [C++-Erweiterung — Grundlagen](extension/cpp-fundamentals.md)
 
 ## Rezepte
 

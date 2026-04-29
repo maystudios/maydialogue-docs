@@ -35,7 +35,7 @@ Alle Basisklassen sind `Blueprintable` und `EditInlineNew`. Das bedeutet:
 * **Für 90% aller Erweiterungen reicht Blueprint.** Du klickst, nicht tippst.
 * C++ ist sinnvoll, wenn du tiefe Integration in eigene C++-Systeme brauchst oder Performance-kritische Logik vorliegt.
 
-Jede Seite dieses Abschnitts zeigt zuerst den Blueprint-Weg, dann eine C++-Variante.
+Jede Seite dieses Abschnitts zeigt zuerst den Blueprint-Weg, dann eine C++-Variante. Die [C++-Grundlagen](cpp-fundamentals.md) (Build.cs-Setup, BlueprintNativeEvent-Pattern, Module-Reload) sind einmalig dokumentiert und für alle drei Erweiterungs-Typen gleich.
 
 ## Kapitel im Detail
 
@@ -43,6 +43,7 @@ Jede Seite dieses Abschnitts zeigt zuerst den Blueprint-Weg, dann eine C++-Varia
 * [Eigene Requirements](custom-requirements.md) — Neue Bedingungen für Choices, Branches, SayLines.
 * [Eigene SideEffects](custom-side-effects.md) — Neue Inline-Aktionen an beliebigen Nodes.
 * [Bridge-Implementation](bridge-implementation.md) — Dialog-Events in externe Systeme leiten.
+* [C++-Erweiterung — Grundlagen](cpp-fundamentals.md) — Build.cs, BlueprintNativeEvent, Module-Reload, Live-Coding-Caveats.
 
 > 📸 **Bild-Platzhalter:** `ext-overview-architecture.png` — Diagramm: Basisklassen-Hierarchie mit Blueprint-Subklassen als Erweiterungspunkte.
 > *Setup:* Einfaches UML-ähnliches Diagramm. Vier Basisklassen-Boxen: `UMayDialogueNode_Base`, `UMayDialogueRequirement`, `UMayDialogueSideEffect`, `IMayDialogueBridge`. Darunter jeweils Beispiel-Subklassen als gestrichelte Boxen: `BP_DN_NotifyQuest`, `BP_Req_QuestCompleted`, `BP_SE_QuestProgress`, `UMyQuestBridgeConsumer`. Pfeile von Subklassen zu Basisklassen.

@@ -15,7 +15,7 @@ Babel erzeugt automatisch akustisches Begleit-Material für jede Dialogue-Zeile,
 
 ## Wann greift Babel?
 
-Babel ist standardmäßig aktiv. Es greift für eine SayLine, wenn:
+Babel is enabled by default. Es greift für eine SayLine, wenn:
 
 1. Die `DialogueVoice`-Map keinen Eintrag für die aktuelle Culture hat **und**
 2. Kein Default-Voice-Asset vorhanden ist
@@ -29,6 +29,11 @@ Globaler Schalter in den Project Settings:
 |---|---|
 | `bEnableBabelVoice` | Babel global an/aus (Default: `true`) |
 | `DefaultBabelProfile` | Profil wenn kein Sprecher-Profil gesetzt |
+| `BabelEngine` | Synthesis engine: `Granular` (recommended, sample-pool based) or `BiquadLegacy` (original sinusoidal DSP path). Configurable via `EMayDialogueBabelEngine`. |
+
+{% hint style="info" %}
+`BabelEngine = Granular` uses the pre-recorded sample pool in `Content/DefaultBlips/Sounds/` for higher audio quality (Fears-to-Fathom / Animal-Crossing style). `BiquadLegacy` preserves the original procedural DSP path.
+{% endhint %}
 
 ## Zwei Synthese-Modi
 

@@ -121,49 +121,100 @@ Jedes davon ist eine kleine, fokussierte Blueprint-Klasse.
 
 ---
 
-{% hint style="success" %}
-**Variante in C++**
+## Variante in C++
+
+Setup-Grundlagen (Build.cs, BlueprintNativeEvent-Pattern, Module-Reload) → [C++-Erweiterung — Grundlagen](cpp-fundamentals.md).
+
+### Header (`MySE_QuestProgressUpdate.h`)
 
 ```cpp
+#pragma once
+
+#include "CoreMinimal.h"
+#include "SubNodes/MayDialogueSideEffect.h"
+#include "MySE_QuestProgressUpdate.generated.h"
+
+struct FMayDialogueContext;
+
 UCLASS(BlueprintType, EditInlineNew, meta=(DisplayName="Quest Progress Update"))
 class MYGAME_API UMySE_QuestProgressUpdate : public UMayDialogueSideEffect
 {
     GENERATED_BODY()
+
 public:
-    UPROPERTY(EditAnywhere, Category="Quest")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Quest")
     FName QuestID;
 
-    UPROPERTY(EditAnywhere, Category="Quest")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Quest", meta=(ClampMin="-1000", ClampMax="1000"))
     int32 ProgressDelta = 1;
 
+    // Server-seitig: Gameplay-Mutation
     virtual void ExecuteSideEffect_Implementation(const FMayDialogueContext& Context) override;
+
+    // Client-seitig: rein kosmetisch (Sound, Particles, UI-Toast)
+    virtual void ExecuteClientSideEffect_Implementation(const FMayDialogueContext& Context) override;
+
     virtual FText GetDisplayDescription_Implementation() const override;
 };
 ```
 
+### Implementation (`MySE_QuestProgressUpdate.cpp`)
+
 ```cpp
+#include "MySE_QuestProgressUpdate.h"
+#include "Instance/MayDialogueInstance.h"
+#include "Types/MayDialogueTypes.h"
+#include "MyGame/Quest/QuestSubsystem.h"
+#include "Kismet/GameplayStatics.h"
+
 void UMySE_QuestProgressUpdate::ExecuteSideEffect_Implementation(const FMayDialogueContext& Context)
 {
     if (QuestID == NAME_None || ProgressDelta == 0) return;
 
-    auto* Quest = UQuestSubsystem::Get(Context.DialogueInstance->GetWorld());
-    if (Quest)
+    UWorld* World = Context.DialogueInstance ? Context.DialogueInstance->GetWorld() : nullptr;
+    if (UQuestSubsystem* Quest = World ? UQuestSubsystem::Get(World) : nullptr)
     {
         Quest->AddProgress(QuestID, ProgressDelta);
+    }
+}
+
+void UMySE_QuestProgressUpdate::ExecuteClientSideEffect_Implementation(const FMayDialogueContext& Context)
+{
+    if (QuestID == NAME_None) return;
+
+    // Beispiel: Quest-Progress-Toast-Sound auf jedem Client abspielen.
+    if (UWorld* World = Context.DialogueInstance ? Context.DialogueInstance->GetWorld() : nullptr)
+    {
+        UGameplayStatics::PlaySound2D(World, /*USoundBase* */ nullptr /* hier dein Cue */);
     }
 }
 
 FText UMySE_QuestProgressUpdate::GetDisplayDescription_Implementation() const
 {
     return FText::Format(
-        NSLOCTEXT("MyGame", "QuestProgressDesc", "Quest Progress: {0} +{1}"),
+        NSLOCTEXT("MyGame", "QuestProgressDesc", "Quest Progress: {0} {1}{2}"),
         FText::FromName(QuestID),
+        ProgressDelta >= 0 ? FText::FromString(TEXT("+")) : FText::GetEmpty(),
         FText::AsNumber(ProgressDelta));
 }
 ```
 
-**Design-Tipp:** `GetDisplayDescription` dynamisch mit den aktuellen Property-Werten befüllen. `"Quest Progress: KillDragon +1"` ist im Graph hundertmal hilfreicher als `"Quest Progress Update"`.
+{% hint style="info" %}
+**`BlueprintNativeEvent` — kein UFUNCTION-Override im Subclass.** Override nur die `_Implementation`-Symbole. Beide Methoden (`ExecuteSideEffect_Implementation` UND `ExecuteClientSideEffect_Implementation`) können getrennt oder gemeinsam überschrieben werden — die nicht-überschriebene fällt auf den Basisklassen-Default zurück (No-Op).
 {% endhint %}
+
+### Server/Client-Aufruf-Verhalten
+
+`UMayDialogueNode_Base::ExecuteNode_Implementation` ruft die SideEffects in dieser Reihenfolge:
+
+1. **Server-Authoritative-Path:** `ExecuteSideEffect_Implementation` läuft auf dem Server (oder Standalone). Replication, GAS-Mutationen, SaveGame-Schreibvorgänge gehören hier rein.
+2. **Client-Replicated-Path:** `ExecuteClientSideEffect_Implementation` läuft auf jedem Client (inkl. Listen-Server-Host) als Cosmetic-Multicast. Sounds, Particles, UI-Toasts gehören hier rein.
+
+Im Singleplayer-Build laufen beide auf derselben Maschine — kein Unterschied. Im Multiplayer wirst du dankbar sein, dass die Trennung schon im API ist.
+
+### C++ + Blueprint mischen
+
+Same Pattern wie bei Requirements: C++-Basis (z.B. `UMySE_QuestActionBase` mit gemeinsamem Quest-Subsystem-Resolution) + BP-Subclasses (`BP_SE_QuestProgress`, `BP_SE_QuestComplete`, `BP_SE_QuestFail`). Designer iterieren in BP, das teure Plumbing ist einmal in C++.
 
 ---
 

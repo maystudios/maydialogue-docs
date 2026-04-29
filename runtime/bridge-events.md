@@ -148,6 +148,9 @@ void UMyDialogWidget::HandleMessage(const FMayDialogueMessage& Message)
 ```cpp
 Inst->OnChoicesPresented.AddDynamic(this, &UChoiceWidget::ShowChoices);
 Inst->OnChoiceMade.AddDynamic(this, &UAnalytics::LogChoice);
+
+// OnChoiceMade handler must match the 2-param signature:
+// void UAnalytics::LogChoice(int32 ChoiceIndex, const FGameplayTagContainer& ChoiceTags);
 ```
 
 ---
@@ -165,6 +168,7 @@ void UDispositionHUD::HandleVarChange(
     FName VarName,
     EMayDialogueVariableScope Scope,
     EMayDialogueVariableType Type,
+    const FString& OldValue,
     const FString& NewValue)
 {
     if (VarName == "DispositionLevel")
@@ -176,7 +180,7 @@ void UDispositionHUD::HandleVarChange(
 ```
 
 {% hint style="info" %}
-Der neue Wert kommt als String. Parse ihn je nach `Type` zurück (z.B. `FCString::Atoi` für Int).
+Both the old and new values are provided as strings. `OldValue` is empty when the variable did not previously exist. Parse values with `Type` (e.g. `FCString::Atoi` for Int).
 {% endhint %}
 
 ---

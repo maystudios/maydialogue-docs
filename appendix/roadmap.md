@@ -14,34 +14,45 @@ Wenn du einen Punkt priorisiert haben möchtest: Lege ein Issue im Tracker deine
 
 ## Kurzfristig: Offene Lücken schließen
 
-### Bug-Fixes
+### Bug-Fixes (v1.0 wave, verified 2026-04-29)
 
-Die folgenden Issues aus der [Known-Issues-Liste](../troubleshooting/known-issues.md) haben hohe Priorität:
+The following issues from the [Known-Issues list](../troubleshooting/known-issues.md) have been resolved:
 
-- **Widget-Lifetime**: Viewport-Widget sauber aus- und wiederbinden nach Level-Wechsel.
-- **Wait-Node Abort-Cleanup**: Timer sauber abbrechen, wenn ein Dialog abgebrochen wird.
-- **PlayAnimation Abort-Cleanup**: Montage-Delegates korrekt aufräumen.
-- **Input-Mode-Restore**: Vorherigen Input-Modus cachen statt hart auf `GameOnly` zu setzen.
-- **FailBehavior in ExecuteNode**: Requirement-Ergebnis und FailBehavior konsequent auswerten.
+- ~~**Widget-Lifetime**~~: ✅ Fixed — Subsystem Deinitialize tears down Slate and UMG auto-widgets.
+- ~~**Wait-Node Abort-Cleanup**~~: ✅ Fixed — `AsyncState_Wait::Cleanup` stops all timers; `AbortDialogue` calls `CleanupPendingAsyncNodes`.
+- ~~**PlayAnimation Abort-Cleanup**~~: ✅ Fixed — `AsyncState_PlayAnimation::Cleanup` replaces Montage end-delegate with empty lambda.
+- ~~**Input-Mode-Restore (Slate)**~~: ✅ Fixed for Slate path — `CachedPreviousInputMode` switch in `SMayDialogueWidget`. **UMG path still open.**
+- ~~**FailBehavior in ExecuteNode**~~: ✅ Fixed — `Node_Base.cpp` and `Instance::ContinueToNode` both honor FailBehavior.
 
-### Feature-Lücken
+**Still open:**
+- **Input-Mode-Restore (UMG path)**: `UMayDialogueWidget` has no `ApplyDialogueInputMode` / `RestoreGameInputMode` yet.
 
-- **`bOverride2D` auf SayLine / PlaySound**: Node-Level 2D-Override freischalten.
-- **SayLine `VolumeMultiplier` / `PitchMultiplier`**: Analog zu PlaySound.
-- **SetVariable Tag-Typ**: UI-Pfad für Tag-Variablen fertigstellen.
-- **SetVariable Participant-Scope**: Direkter Schreibpfad auf persistenten Speicher.
-- **Wait-Node Condition-Modus**: Polling-basierter Requirement-Check als dritter Wait-Modus.
+### Feature-Lücken (v1.0 wave)
+
+The following feature gaps have been resolved:
+
+- ~~**`bOverride2D` on SayLine / PlaySound**~~: ✅ Superseded by tri-state `NodeAudioMode` on both nodes.
+- ~~**SayLine `VolumeMultiplier` / `PitchMultiplier`**~~: ✅ `SayLine.h` exposes both.
+- ~~**SetVariable Tag-Typ**~~: ✅ `SetVariable.h::TagValue` implemented.
+- ~~**SetVariable Participant-Scope**~~: ✅ `Scope = Dialogue|Participant` + `TargetParticipantTag` implemented.
+- ~~**Wait-Node Condition-Modus**~~: ✅ `WaitCondition` + `ConditionCheckInterval` implemented and polled in AsyncState.
+- ~~**QuickSave-Helper**~~: ✅ `MayDialogueSaveHelper.h` exposes QuickSaveToSlot / QuickLoadFromSlot / DeleteSlot / DoesSlotExist.
+- ~~**Dialogue-Events → GameplayCues**~~: ✅ `LifecycleCueBindings` in Settings + Subsystem bridging.
+- ~~**Choice-Tag-Binding external**~~: ✅ `OnChoiceMade` is 2-param (`ChoiceIndex`, `ChoiceTags`).
+- ~~**Bridge Read/Write API**~~: ✅ Full API on `IMayDialogueBridge` and K2_* Blueprint mirrors on Subsystem.
+
+**Still open:**
 - **Live-Requirement-Pills im Preview**: Choice- und Branch-Pills im Preview-Runner in Echtzeit einfärben.
 - **Cross-Asset Step-Into im Debugger**: Debugger folgt dem Flow in verlinkte Assets.
-- **QuickSave-Helper**: API-Implementierung finalisieren.
+- **Subsystem-level `OnAnyVariableChanged`**: Per-instance binding works; global forward still missing.
 
 ---
 
 ## Mittelfristig: Qualität und Komfort
 
-### UMG Starter-Themes
+### UMG Starter-Themes (v1.1)
 
-Drei fertige Widget-Vorlagen zum sofortigen Einsatz:
+Three ready-to-use widget template sets — **not shipping in v1.0**, planned for v1.1 as a separate content add-on:
 
 - **Horror**: Dunkles Layout, rote Akzente, pixeliger Font-Stil.
 - **Visual Novel**: Großer Portrait-Bereich, weiche Ein-/Ausblend-Animation.
@@ -49,6 +60,7 @@ Drei fertige Widget-Vorlagen zum sofortigen Einsatz:
 
 ### Bridge-Erweiterung
 
+- `OnAnyVariableChanged` global forward on Subsystem (per-instance binding already works).
 - `OnNodeReached`-Delegate auf der Bridge (nicht nur auf der Instance).
 - Read-API für aktuelle Scope-Infos.
 - Write-API für Save-/Restore-Snapshots von Instance-Variablen — nützlich für Checkpoint-Systeme.

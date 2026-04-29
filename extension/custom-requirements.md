@@ -111,19 +111,31 @@ Jedes davon ist eine kleine Blueprint-Klasse, die Designer direkt aus dem Dropdo
 
 ---
 
-{% hint style="success" %}
-**Variante in C++**
+## Variante in C++
+
+Für komplexe oder performance-kritische Requirements ist C++ der bessere Weg. Setup-Grundlagen (Build.cs, BlueprintNativeEvent-Pattern, Module-Reload) liegen in [C++-Erweiterung — Grundlagen](cpp-fundamentals.md).
+
+### Header (`MyReq_QuestCompleted.h`)
 
 ```cpp
+#pragma once
+
+#include "CoreMinimal.h"
+#include "SubNodes/MayDialogueRequirement.h"
+#include "MyReq_QuestCompleted.generated.h"
+
+struct FMayDialogueContext;
+
 UCLASS(BlueprintType, EditInlineNew, meta=(DisplayName="Quest Completed"))
 class MYGAME_API UMyReq_QuestCompleted : public UMayDialogueRequirement
 {
     GENERATED_BODY()
+
 public:
-    UPROPERTY(EditAnywhere, Category="Quest")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Quest")
     FName QuestID;
 
-    UPROPERTY(EditAnywhere, Category="Quest")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Quest")
     int32 RequiredStage = 0;
 
     virtual EMayDialogueRequirementResult IsRequirementSatisfied_Implementation(
@@ -133,29 +145,54 @@ public:
 };
 ```
 
+### Implementation (`MyReq_QuestCompleted.cpp`)
+
 ```cpp
+#include "MyReq_QuestCompleted.h"
+#include "Instance/MayDialogueInstance.h"
+#include "Types/MayDialogueTypes.h"
+#include "MyGame/Quest/QuestSubsystem.h"
+
 EMayDialogueRequirementResult UMyReq_QuestCompleted::IsRequirementSatisfied_Implementation(
     const FMayDialogueContext& Context) const
 {
-    if (QuestID == NAME_None) return EMayDialogueRequirementResult::Passed;
+    if (QuestID == NAME_None)
+    {
+        return EMayDialogueRequirementResult::Passed;
+    }
 
-    auto* Quest = UQuestSubsystem::Get(Context.DialogueInstance->GetWorld());
-    if (!Quest) return EMayDialogueRequirementResult::Passed;
+    UWorld* World = Context.DialogueInstance ? Context.DialogueInstance->GetWorld() : nullptr;
+    UQuestSubsystem* Quest = World ? UQuestSubsystem::Get(World) : nullptr;
+    if (!Quest)
+    {
+        return EMayDialogueRequirementResult::Passed;
+    }
 
-    return Quest->IsCompletedAtStage(QuestID, RequiredStage)
-        ? EMayDialogueRequirementResult::Passed
-        : (bHideOnFail
-            ? EMayDialogueRequirementResult::FailedAndHidden
-            : EMayDialogueRequirementResult::FailedButVisible);
+    if (Quest->IsCompletedAtStage(QuestID, RequiredStage))
+    {
+        return EMayDialogueRequirementResult::Passed;
+    }
+
+    // GetFailResult() resolved Hidden vs Visible aus dem FailResult-Property der Basisklasse
+    // und respektiert das deprecated bHideOnFail-Flag für Migration.
+    return GetFailResult();
 }
 
 FText UMyReq_QuestCompleted::GetDisplayDescription_Implementation() const
 {
     return FText::Format(
-        NSLOCTEXT("MyGame", "QuestCompletedDesc", "Quest abgeschlossen: {0}"),
-        FText::FromName(QuestID));
+        NSLOCTEXT("MyGame", "QuestCompletedDesc", "Quest abgeschlossen: {0} (Stage ≥ {1})"),
+        FText::FromName(QuestID),
+        FText::AsNumber(RequiredStage));
 }
 ```
 
-`GetDisplayDescription` liefert den Text, der als Pill-Label im Graph erscheint. Eine gute Beschreibung macht Designer-Workflows drastisch einfacher.
+{% hint style="info" %}
+**`BlueprintNativeEvent` — kein UFUNCTION-Override.** Du überschreibst nur das `_Implementation`-Symbol, NICHT das nackte `IsRequirementSatisfied`. Wenn du es trotzdem mit `UFUNCTION(...)` markierst, gibt UHT einen "redundant override"-Fehler. Siehe [cpp-fundamentals §2](cpp-fundamentals.md#2-blueprintnativeevent-was-wie-warum).
 {% endhint %}
+
+`GetDisplayDescription` liefert den Text, der als Pill-Label im Graph erscheint. Dynamisch befüllen mit den aktuellen Property-Werten (`"Quest abgeschlossen: KillDragon (Stage ≥ 2)"`) ist hundertmal hilfreicher als der statische Klassen-Name.
+
+### C++ + Blueprint mischen
+
+Du kannst eine C++-Basis mit `Blueprintable` und `Abstract` anlegen, dann konkrete BP-Subclasses davon ableiten. Beispiel: `UMyReq_QuestBase` (C++, abstract, mit gemeinsamer Subsystem-Resolution) → `BP_Req_QuestActive`, `BP_Req_QuestCompleted`, `BP_Req_QuestStageReached` (BPs, jeweils unterschiedliche `IsRequirementSatisfied`-Logik). Designer arbeiten in BP, der teure Subsystem-Lookup ist einmal in C++ ausgelagert.

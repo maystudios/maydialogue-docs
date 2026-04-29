@@ -4,6 +4,10 @@ description: Horror-, Visual-Novel- und RPG-Theme — wie du ein Theme wählst, 
 
 # Themes & Starterkits
 
+{% hint style="warning" %}
+**Starter themes (Horror / Visual Novel / RPG) ship as a separate content add-on and are not included in v1.0.** v1.0 ships with the bare `DialogFrame` widget base classes only. See the **Custom Themes** section below to build your own theme from scratch. Pre-built themes will be available in v1.1.
+{% endhint %}
+
 MayDialogue liefert das Widget-Framework. Die **visuellen Themes** baust du als Blueprint-Subklassen — jedes ist ein vollständiger Satz Widget-Klassen, der das Aussehen deines Dialogs bestimmt.
 
 > 📸 **Bild-Platzhalter:** `themes-overview-comparison.png` — Drei PIE-Viewport-Screenshots nebeneinander: links Horror-Theme (dunkel, blutrote Akzente), Mitte VN-Theme (helles Panel unten, großes Portrait links), rechts RPG-Theme (pergament-farbenes Banner, kleines Portrait). Gleicher Dialog-Text in allen drei.
