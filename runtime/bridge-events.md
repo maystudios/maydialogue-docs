@@ -19,13 +19,45 @@ MayDialogue broadcastet an zwei Ebenen: **Instance-Delegates** für Events eines
 | `OnVariableChanged` | Instance | Eine Dialog-Variable oder Participant-Variable sich ändert. |
 | `OnDialogueEventFired` | Instance | Ein FireEvent-Node einen GameplayTag sendet. |
 | `OnAnyDialogueStarted` | Subsystem | Jedes Mal wenn irgendein Dialog startet. |
-| `OnAnyDialogueEnded` | Subsystem | Jedes Mal wenn irgendein Dialog endet. |
+| `OnAnyDialogueAborted` | Subsystem | Wenn irgendein Dialog abgebrochen wird — feuert **vor** `OnAnyDialogueEnded`. |
+| `OnAnyDialogueEnded` | Subsystem | Jedes Mal wenn irgendein Dialog endet (Completed oder Aborted). |
 
 ---
 
 ## Subsystem-Delegates (global)
 
 Nutze diese wenn du auf **alle Dialoge** reagieren willst — unabhängig davon welcher Asset oder NPC beteiligt ist.
+
+### OnAnyDialogueAborted
+
+Feuert wenn eine Instance mit `ExitStatus == Aborted` endet — **vor** `OnAnyDialogueEnded`.
+
+**Signatur:** `Asset, ExitStatus, Duration (float), Instigator (AActor*), Target (AActor*)`
+
+**Typische Use-Cases:**
+- Interrupted-Dialog als "unfinished" in Quest-Log markieren
+- Analytics: abgebrochenen Gesprächs-Versuch loggen
+- Aufräumen von temporärem State ohne false "Completed"-Auslösung
+
+```cpp
+Sub->OnAnyDialogueAborted.AddDynamic(this, &AMyActor::HandleAborted);
+
+void AMyActor::HandleAborted(
+    UMayDialogueAsset* Asset,
+    EMayDialogueExitStatus ExitStatus,
+    float Duration,
+    AActor* Instigator,
+    AActor* Target)
+{
+    UAnalyticsLibrary::LogEvent("dialogue_aborted", Asset->GetName());
+}
+```
+
+{% hint style="info" %}
+`OnAnyDialogueEnded` wird danach immer gefeuert — egal ob Completed oder Aborted. Wenn du beide bindest, erhältst du erst `OnAnyDialogueAborted`, dann `OnAnyDialogueEnded`.
+{% endhint %}
+
+---
 
 ### OnAnyDialogueStarted / OnAnyDialogueEnded
 
@@ -225,9 +257,13 @@ void AMyActor::EndPlay(const EEndPlayReason::Type Reason)
 
 ---
 
-## IMayDialogueBridge (für C++-Module)
+## IMayDialogueBridge (Blueprint oder C++)
 
-Externe C++-Module (z.B. eigene Plugins) können MayDialogue über das `IMayDialogueBridge`-Interface konsumieren, ohne eine harte Abhängigkeit auf das `MayDialogue`-Modul zu brauchen. Das Subsystem implementiert dieses Interface vollständig.
+`IMayDialogueBridge` ist jetzt vollständig **Blueprintable** — alle 14 Methoden sind `BlueprintNativeEvent` mit C++-Defaults. Du kannst das Interface sowohl in Blueprint als auch in C++ implementieren.
+
+**Blueprint-Weg:** Blueprint-Klasse anlegen → Class Settings → Implemented Interfaces → `MayDialogueBridge` hinzufügen → gewünschte Methoden overriden. Alle Methoden erscheinen im My-Blueprint-Panel unter Interfaces. Details: [Bridge-Implementation](../extension/bridge-implementation.md).
+
+**C++-Weg:** Externe C++-Module (z.B. eigene Plugins) können MayDialogue über das Interface konsumieren, ohne eine harte Abhängigkeit auf das `MayDialogue`-Modul zu brauchen. Das Subsystem implementiert dieses Interface vollständig.
 
 ```cpp
 // Nur MayDialogueBridge.h importieren, nicht MayDialogueSubsystem.h

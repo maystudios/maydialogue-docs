@@ -14,6 +14,8 @@ Die Library ist ein reiner Convenience-Layer. Sie hat keinen eigenen State und d
 
 ## Methoden im Überblick
 
+### Basis-Library (`UMayDialogueLibrary`)
+
 | Funktion | Art | Wann nutzen |
 |---|---|---|
 | `Start Dialogue` | Callable | Dialog mit bestimmtem Asset starten. Liefert Instance oder `nullptr`. |
@@ -22,6 +24,54 @@ Die Library ist ein reiner Convenience-Layer. Sie hat keinen eigenen State und d
 | `Get Active Dialogue` | Pure | Aktive Instance lesen (z.B. um Variablen abzufragen). |
 | `Is Any Dialogue Active` | Pure | Prüfen ob gerade ein Dialog läuft. |
 | `Get Dialogue Subsystem` | Callable | Subsystem-Referenz holen (z.B. für Delegate-Binding). |
+| `Get All Participants` | Pure | Alle aktiven `UMayDialogueParticipant`s in der Welt. |
+| `Find Participant By Tag` | Pure | Participant anhand eines `FGameplayTag` suchen. |
+
+#### TaskResult Make-Helpers (Kategorie `MayDialogue|Task Result`)
+
+Für den Return-Wert von `ExecuteNode`-Overrides in Custom-Node-Blueprints:
+
+| Make-Node | Bedeutung |
+|---|---|
+| `Make Advance` | Normales Weiterschalten (mit optionalem NextNodeGuid-Override) |
+| `Make Abort` | Dialog abbrechen |
+| `Make Wait` | Dialog pausieren (Async-Nodes) |
+| `Make Pause And Present Choices` | Choice-Screen öffnen |
+| `Make Advance With Choice` | Choice + direktes Advance |
+| `Make Return To Start` | An den Anfang des Graphen zurückspringen |
+| `Make Return To Last` | Zum letzten besuchten Node zurück |
+| `Make Return To Current` | Aktuellen Node wiederholen |
+
+---
+
+### GAS-Library (`UMayDialogueGASLibrary`, Modul `MayDialogueGAS`)
+
+| Funktion | Art | Beschreibung |
+|---|---|---|
+| `Is Dialogue Server Authoritative` | Pure | Ob der aktuelle Dialogue-Context server-autoritativ ist |
+| `Get ASC From Context` | Pure | `UAbilitySystemComponent*` aus `FMayDialogueContext` — kein manueller Cast |
+| `Trigger Cue On Context` | Callable | Gameplay Cue direkt aus einem Context feuern |
+
+---
+
+### Async-Library (`UMayDialogueAsyncLibrary`, Modul `MayDialogue`)
+
+| Funktion | Art | Beschreibung |
+|---|---|---|
+| `Request Node Advance` | Callable | Async-Node-Transition auslösen — BP-Wrapper um `ForceTransitionToNode` mit Null-Guard |
+| `Evaluate All Requirements` | Pure | Alle Requirements eines Arrays evaluieren und aggregiertes Ergebnis liefern |
+| `Execute All Side Effects` | Callable | Server-seitige SideEffects eines Arrays ausführen |
+| `Execute All Client Side Effects` | Callable | Client-seitige (kosmetische) SideEffects eines Arrays ausführen |
+
+---
+
+### Variables-Library (`UMayDialogueVariablesLibrary`, Modul `MayDialogue`)
+
+| Funktion | Art | Beschreibung |
+|---|---|---|
+| `Get Dialogue Variable` | Callable | Variable aus einem `FMayDialogueVariables`-Container lesen |
+| `Set Dialogue Variable` | Callable | Variable in einen `FMayDialogueVariables`-Container schreiben |
+| `Copy Dialogue Variables` | Callable | Variablen zwischen zwei Containern kopieren (gibt `false` zurück — noch als Stub implementiert) |
 
 ---
 

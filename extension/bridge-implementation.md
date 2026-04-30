@@ -1,19 +1,20 @@
 ---
-description: Dialog-Events in externe Systeme leiten — Quest, Achievement, Analytics per Subsystem-Delegates.
+description: Dialog-Events in externe Systeme leiten — Quest, Achievement, Analytics per Subsystem-Delegates oder per Bridge-Interface in Blueprint oder C++.
 ---
 
 # Bridge-Implementation
 
-Wenn ein externes System (Quest-System, Achievement-System, Analytics, eigener Scripting-Layer) auf Dialog-Events reagieren soll, bindet es sich an die Delegates des `UMayDialogueSubsystem`. Dafür ist kein direkter Modul-Link auf Dialog-Internas nötig.
+Wenn ein externes System (Quest-System, Achievement-System, Analytics, eigener Scripting-Layer) auf Dialog-Events reagieren soll, gibt es drei Integrationswege — alle drei funktionieren jetzt vollständig in Blueprint.
 
 ---
 
-## Zwei Integrationswege
+## Drei Integrationswege
 
 | Weg | Wann |
 | --- | --- |
 | **Subsystem-Delegates binden** | Dein System reagiert auf Dialog-Start, -Ende, Choice, Variablen-Änderung |
-| **Bridge-Interface lesen/schreiben** | Dein System liest Dialog-Variablen oder setzt sie (z.B. Hint-Text basierend auf Quest-State) |
+| **Bridge-Interface in Blueprint implementieren** | Dein System liest Dialog-Variablen oder setzt sie — als Blueprint-Klasse, keine C++-Kenntnisse nötig |
+| **Bridge-Interface in C++ implementieren** | Wie oben, aber mit voller IDE-Unterstützung und komplexer Subsystem-Logik |
 
 ---
 
@@ -29,12 +30,13 @@ Verfügbare Subsystem-Delegates:
 | Delegate | Wann gefeuert |
 | --- | --- |
 | `OnAnyDialogueStarted` | Irgendein Dialog startet in der Welt |
-| `OnAnyDialogueEnded` | Irgendein Dialog endet |
+| `OnAnyDialogueEnded` | Irgendein Dialog endet (Completed oder Aborted) |
+| `OnAnyDialogueAborted` | Irgendein Dialog wird abgebrochen — feuert **vor** `OnAnyDialogueEnded` |
 | `OnChoiceMade` | Spieler wählt eine Choice (per Instance) |
 | `OnVariableChanged` | Eine Dialog-Variable oder Participant-Variable ändert sich |
 
 > 📸 **Bild-Platzhalter:** `bridge-step1-events-list.png` — MayDialogueSubsystem im Blueprint-Detail-Panel, Delegates aufgeklappt.
-> *Setup:* Im Blueprint-Editor, Subsystem-Variable ausgewählt. Details-Panel rechts zeigt alle `BlueprintAssignable`-Delegates des Subsystems: `OnAnyDialogueStarted`, `OnAnyDialogueEnded`. Beide Einträge sichtbar, Bind-Button für jeden hervorgehoben.
+> *Setup:* Im Blueprint-Editor, Subsystem-Variable ausgewählt. Details-Panel rechts zeigt alle `BlueprintAssignable`-Delegates des Subsystems: `OnAnyDialogueStarted`, `OnAnyDialogueEnded`, `OnAnyDialogueAborted`. Alle Einträge sichtbar, Bind-Button für jeden hervorgehoben.
 
 ---
 
@@ -86,9 +88,73 @@ Custom Event: OnChoiceMade (ChoiceIndex, ChoiceText, Instance)
 
 ---
 
-## Schritt 4 — Dialog-Variablen lesen und schreiben (Bridge-Interface)
+## Bridge-Interface in Blueprint implementieren (BP-First-Weg)
 
-Das `UMayDialogueSubsystem` implementiert `IMayDialogueBridge`. Damit kannst du aus externen Systemen Dialog-Variablen lesen und setzen — ohne direkten Import auf Dialog-Internas.
+`IMayDialogueBridge` ist jetzt vollständig `Blueprintable`. Du kannst eine eigene Blueprint-Klasse anlegen, die das Interface implementiert, und gezielt nur die Methoden überschreiben, die dein System braucht. Alle 14 Methoden haben C++-Defaults — du musst nur das überschreiben, was du anpassen willst.
+
+### Anwendungsfall: Quest-Bridge
+
+Ziel: Eine Blueprint-Klasse `BP_QuestBridge`, die reagiert wenn ein Dialog startet, und den aktuellen Quest-Hint in die Dialog-Variable `QuestHint` schreibt.
+
+**Schritt A — Blueprint-Klasse anlegen:**
+
+1. Content Browser → Rechtsklick → **Blueprint Class**
+2. Im Klassen-Picker **All Classes** öffnen
+3. `MayDialogueSubsystem` suchen (die Subsystem-Klasse implementiert `IMayDialogueBridge` als Default) — **oder** du leitest von `UObject` ab und implementierst das Interface manuell über **Class Settings → Implemented Interfaces → Add → MayDialogueBridge**
+4. Benennen: `BP_QuestBridge`
+
+> 📸 **Bild-Platzhalter:** `bridge-bp-interface-add.png` — Class Settings im BP-Editor, "Implemented Interfaces"-Panel mit MayDialogueBridge in der Liste.
+> *Setup:* BP-Editor offen (`BP_QuestBridge`). Oben: `Class Settings`. Rechts: `Interfaces`-Panel. `Implemented Interfaces`-Liste zeigt `MayDialogueBridge` als Eintrag. `Add`-Button darunter sichtbar.
+
+**Schritt B — `On Dialogue Started` überschreiben:**
+
+Im **My Blueprint**-Panel unter Interfaces → `On Dialogue Started` → Doppelklick um den Override-Graphen zu öffnen.
+
+```text
+Event On Dialogue Started (Asset, Instigator, Target)
+  │
+  ├─ Quest System: Mark dialogue "in progress" (Asset.Tag)
+  │
+  └─ Set Dialogue Variable
+       Name: "QuestHint"
+       Type: String
+       Value: Get Current Quest Hint (from Quest Subsystem)
+```
+
+> 📸 **Bild-Platzhalter:** `bridge-bp-ondialoguestarted.png` — Override-Graph von On Dialogue Started mit Quest-Update und Set Dialogue Variable.
+> *Setup:* BP-Graph, `Event On Dialogue Started (Asset, Instigator, Target)`. Zwei parallele Pfade: 1. `Get Quest Subsystem → Mark Dialogue In Progress (Asset.Tag)`. 2. `Get Quest Hint From Quest Subsystem` → `Set Dialogue Variable` (Name="QuestHint", Type=String, Value=Quest-Hint-String). Alle Pins verbunden.
+
+**Schritt C — Weitere Methoden überschreiben (optional):**
+
+Alle 14 Methoden des Interface sind im My Blueprint-Panel sichtbar. Override nur was du brauchst:
+
+| Methode (Blueprint-Name) | Typischer Einsatz |
+| --- | --- |
+| `On Dialogue Started` | Quest-Tracking, Analytics-Start |
+| `On Dialogue Ended` | Quest-Advance, Achievement-Unlock |
+| `Is Dialogue Active` | Status aus eigenem System lesen |
+| `Abort Dialogue` | Dialog von außen abbrechen |
+| `Can Start Dialogue` | Eigene Start-Precondition einbauen |
+| `Get Active Dialogue Asset` | Asset von außen lesen |
+| `Get Current Node GUID` | Node-Tracking für Analytics |
+| `Get Active Participants` | Participant-Array lesen |
+| `Get Dialogue Variable` | Variable lesen |
+| `Get Participant Variable` | Participant-Variable lesen |
+| `Get Pending Choices` | Choices von außen lesen |
+| `Set Dialogue Variable` | Variable setzen (z.B. Quest-Hint) |
+| `Set Participant Variable` | Participant-Variable setzen |
+| `Select Choice` | Choice programmatisch auswählen |
+| `Force Advance` | Advance überspringen |
+
+{% hint style="info" %}
+**Alle Methoden haben C++-Defaults.** Du überschreibst nur, was du brauchst. Methoden die du nicht overridest, delegieren automatisch an die Basisimplementierung des Subsystems.
+{% endhint %}
+
+---
+
+## Schritt 4 — Dialog-Variablen lesen und schreiben
+
+Das `UMayDialogueSubsystem` implementiert `IMayDialogueBridge`. Damit kannst du aus externen Systemen Dialog-Variablen lesen und setzen — direkt aus Blueprint ohne C++-Code.
 
 ```text
 [Dein Quest-System möchte einen Hint-Text setzen]
@@ -127,6 +193,7 @@ Das `UMayDialogueSubsystem` implementiert `IMayDialogueBridge`. Damit kannst du 
   │
   ├─ Bind OnAnyDialogueStarted  → HandleStart
   ├─ Bind OnAnyDialogueEnded    → HandleEnd
+  ├─ Bind OnAnyDialogueAborted  → HandleAbort
   └─ (Instance-Events on HandleStart)
 
 [HandleStart (Asset, Instigator, Target)]
@@ -134,6 +201,11 @@ Das `UMayDialogueSubsystem` implementiert `IMayDialogueBridge`. Damit kannst du 
   ├─ Log Analytics: dialogue_started (Asset.Name)
   ├─ Bind Instance.OnChoiceMade → HandleChoice
   └─ Quest: Mark this dialogue as "in progress" (Asset.Tag)
+
+[HandleAbort (Asset, ExitStatus, Duration, Instigator, Target)]
+  │
+  ├─ Log Analytics: dialogue_aborted (Asset.Name)
+  └─ Quest: Mark dialogue as interrupted
 
 [HandleEnd (Asset, Outcome, Instigator, Target)]
   │
@@ -149,8 +221,8 @@ Das `UMayDialogueSubsystem` implementiert `IMayDialogueBridge`. Damit kannst du 
   └─ Log Analytics: dialogue_choice (ChoiceText.ToString())
 ```
 
-> 📸 **Bild-Platzhalter:** `bridge-full-example-bp.png` — Überblick: drei Custom-Events (HandleStart, HandleEnd, HandleChoice) nebeneinander im BP-Graph.
-> *Setup:* BP-Graph-Übersicht mit drei Custom-Event-Blöcken nebeneinander. `HandleStart` links (drei ausgehende Aktionen: Analytics Log, Instance-Bind, Quest-Mark). `HandleEnd` Mitte (Branch auf Outcome, zwei Pfade). `HandleChoice` rechts (ein Analytics-Log). Kommentar-Boxen beschriften jeden Block. Gesamtüberblick des Integration-Patterns sichtbar.
+> 📸 **Bild-Platzhalter:** `bridge-full-example-bp.png` — Überblick: vier Custom-Events (HandleStart, HandleAbort, HandleEnd, HandleChoice) nebeneinander im BP-Graph.
+> *Setup:* BP-Graph-Übersicht mit vier Custom-Event-Blöcken nebeneinander. `HandleStart` links (drei ausgehende Aktionen: Analytics Log, Instance-Bind, Quest-Mark). `HandleAbort` (Analytics + Quest-Mark). `HandleEnd` Mitte (Branch auf Outcome, zwei Pfade). `HandleChoice` rechts (ein Analytics-Log). Kommentar-Boxen beschriften jeden Block. Gesamtüberblick des Integration-Patterns sichtbar.
 
 ---
 
@@ -167,6 +239,7 @@ void UMyQuestManager::Initialize(FSubsystemCollectionBase& Collection)
     {
         DlgSub->OnAnyDialogueStarted.AddDynamic(this, &UMyQuestManager::HandleDialogueStart);
         DlgSub->OnAnyDialogueEnded.AddDynamic(this, &UMyQuestManager::HandleDialogueEnd);
+        DlgSub->OnAnyDialogueAborted.AddDynamic(this, &UMyQuestManager::HandleDialogueAbort);
     }
 }
 
@@ -221,6 +294,8 @@ if (Bridge->IsDialogueActive())
 
 ## Anmerkungen
 
+* **Blueprint-First seit BP-Wave 2026-04.** `IMayDialogueBridge` ist jetzt `Blueprintable`, alle 14 Methoden sind `BlueprintNativeEvent`. Der BP-Weg ist gleichwertig zum C++-Weg.
+* **`OnAnyDialogueAborted` feuert vor `OnAnyDialogueEnded`.** Wenn du beide bindest, erhältst du zuerst `Aborted`, dann immer `Ended`. Das entspricht dem Epic-CommonConversation-Pattern.
 * **String-basierte Variable-API ist gewollt.** `SetDialogueVariable` und `GetDialogueVariable` nutzen Strings, damit externe Systeme keine compile-time Typen kennen müssen.
 * **Bridge-Methoden sind nicht repliziert.** Für Multiplayer kommunizierst du zwischen Systemen über eigene RPCs — die Bridge ist ein lokaler In-Process-Aufruf.
 * **Delegates nicht in Destructors vergessen.** Beim Destroy deines Systems die Delegates wieder ausbinden: `DlgSub->OnAnyDialogueStarted.RemoveDynamic(this, &ThisClass::HandleDialogueStart)`.

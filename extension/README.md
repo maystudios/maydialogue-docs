@@ -13,7 +13,8 @@ MayDialogue ist darauf ausgelegt, dass du projekt-spezifische Logik direkt ins P
 | **Eigene Node-Typen** | Blueprint-Subklasse von `UMayDialogueNode_Base` | Projekt-spezifische Graph-Schritte (z.B. "Notify Quest System") |
 | **Eigene Requirements** | Blueprint-Subklasse von `UMayDialogueRequirement` | Projekt-spezifische Bedingungen (z.B. "Quest abgeschlossen", "Item vorhanden") |
 | **Eigene SideEffects** | Blueprint-Subklasse von `UMayDialogueSideEffect` | Projekt-spezifische Aktionen (z.B. "Achievement freischalten", "Quest-Progress +1") |
-| **Bridge-Events binden** | Delegates des Subsystems abonnieren | Externes System auf Dialog-Events reagieren lassen |
+| **Bridge-Interface** | Blueprint- **oder** C++-Implementierung von `IMayDialogueBridge` | Dialog-Events in externe Systeme leiten, Variablen lesen/schreiben |
+| **Bridge-Events binden** | Delegates des Subsystems abonnieren | Globaler Listener auf Dialog-Start, -Ende, -Abort |
 
 ## Wie Discovery funktioniert
 
@@ -22,6 +23,7 @@ UE's Reflection-System scannt alle `UClass`-Subklassen zur Laufzeit. Sobald eine
 * In den **Requirement-Pickern** jeder Choice, jedes Branch, jeder SayLine.
 * In den **SideEffect-Arrays** jedes Nodes.
 * Im **Kontext-Menü** des Dialog-Graphen (für eigene Nodes).
+* Im **Interface-Picker** wenn du eine BP-Klasse erstellt, die `IMayDialogueBridge` implementiert — das Subsystem erkennt deine Implementierung automatisch.
 
 Du registrierst nichts manuell.
 
@@ -46,7 +48,7 @@ Jede Seite dieses Abschnitts zeigt zuerst den Blueprint-Weg, dann eine C++-Varia
 * [C++-Erweiterung — Grundlagen](cpp-fundamentals.md) — Build.cs, BlueprintNativeEvent, Module-Reload, Live-Coding-Caveats.
 
 > 📸 **Bild-Platzhalter:** `ext-overview-architecture.png` — Diagramm: Basisklassen-Hierarchie mit Blueprint-Subklassen als Erweiterungspunkte.
-> *Setup:* Einfaches UML-ähnliches Diagramm. Vier Basisklassen-Boxen: `UMayDialogueNode_Base`, `UMayDialogueRequirement`, `UMayDialogueSideEffect`, `IMayDialogueBridge`. Darunter jeweils Beispiel-Subklassen als gestrichelte Boxen: `BP_DN_NotifyQuest`, `BP_Req_QuestCompleted`, `BP_SE_QuestProgress`, `UMyQuestBridgeConsumer`. Pfeile von Subklassen zu Basisklassen.
+> *Setup:* Einfaches UML-ähnliches Diagramm. Vier Basisklassen-Boxen: `UMayDialogueNode_Base`, `UMayDialogueRequirement`, `UMayDialogueSideEffect`, `IMayDialogueBridge`. Darunter jeweils Beispiel-Subklassen als gestrichelte Boxen: `BP_DN_NotifyQuest`, `BP_Req_QuestCompleted`, `BP_SE_QuestProgress`, `BP_QuestBridge` (Blueprint). Alle vier Basisklassen haben das Label "Blueprintable". Pfeile von Subklassen zu Basisklassen.
 
 ## Best Practices — kurz
 

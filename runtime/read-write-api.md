@@ -146,6 +146,28 @@ Das Parsing übernimmt das Subsystem — du gibst nur den Typ-Enum mit an.
 
 ---
 
+## UMayDialogueVariablesLibrary — Container-Zugriff
+
+Wenn du direkt auf einen `FMayDialogueVariables`-Container (z.B. aus einer gespeicherten Instance oder einem Custom-Node-State) zugreifen willst, ohne den String-basierten Subsystem-Pfad zu nutzen, steht `UMayDialogueVariablesLibrary` bereit:
+
+| Funktion | Art | Beschreibung |
+|---|---|---|
+| `Get Dialogue Variable` | Callable | Variable nach Name aus einem Container lesen |
+| `Set Dialogue Variable` | Callable | Variable in einen Container schreiben |
+| `Copy Dialogue Variables` | Callable | Variablen zwischen zwei Containern kopieren |
+
+```text
+[Get Dialogue Variable]   (Kategorie: MayDialogue|Variables)
+  ├─ Container: (FMayDialogueVariables-Referenz)
+  ├─ Name:      "AngerLevel"
+  ├─ Type:      Int
+  └─ Out Value As String → (weiterverarbeiten)
+```
+
+> **Hinweis:** `Copy Dialogue Variables` gibt aktuell `false` zurück (Stub-Implementierung). Nutze stattdessen `Get`+`Set` in einer Schleife, wenn du Variablen portieren willst.
+
+---
+
 ## Auf der Instance direkt (typisiert)
 
 Wenn du bereits eine Instance-Referenz hast, kannst du typisierte Getter/Setter direkt nutzen — ohne String-Konvertierung:

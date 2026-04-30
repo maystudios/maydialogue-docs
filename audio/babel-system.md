@@ -71,12 +71,18 @@ Babel-Profil am Sprecher setzen: Speakers-Panel → Sprecher aufklappen → `Bab
 
 ## Babel-Profile anlegen
 
-Ein Babel-Profil ist ein DataAsset:
+Ein Babel-Profil ist ein DataAsset. Du kannst es als normales DataAsset anlegen **oder** als Blueprint-Subklasse — `UMayDialogueBabelProfile` ist jetzt `Blueprintable`, d.h. du kannst prozedurale Profile bauen, die zur Laufzeit ihre Parameter ändern (z.B. Affections-Level → Pitch):
 
+**Als DataAsset (Standard):**
 1. Content Browser → Rechtsklick → **DataAsset**
 2. Parent-Class: `UMayDialogueBabelProfile`
 3. Benennen (z.B. `BP_Babel_Ghost`)
 4. Öffnen und Parameter setzen
+
+**Als Blueprint-Subklasse (procedural):**
+1. Content Browser → Rechtsklick → **Blueprint Class**
+2. Parent-Class: `UMayDialogueBabelProfile`
+3. Properties in `Construction Script` oder `Event BeginPlay` setzen
 
 > 📸 **Bild-Platzhalter:** `babel-profile-asset-open.png` — Geöffnetes BabelProfile-Asset im Details-Panel mit ausgefüllten Werten.
 > *Setup:* Content Browser → DataAsset `BP_Babel_Ghost` doppelklicken. Details-Panel zeigt alle Properties: `BabelMode = PhonemeBase`, `SyncMode = Continuous`, `PhonemeBaseFrequency = 120`, `PhonemeFrequencyRange = 40`, `PhonemeDuration = 0.12`, `bApplyProsody = true`, `Volume = 0.5`. Roter Pfeil auf `BabelMode`.
@@ -86,6 +92,21 @@ Details zu allen Properties: [Babel-Profile](babel-profiles.md).
 ## Preview-Runner
 
 Im Preview-Runner wird Babel automatisch **2D** gespielt – korrekt für den Editor-Test ohne Level-Setup. Im PIE mit einem Sprecher-Actor spielt Babel 3D (sofern kein `Force2D`-Override aktiv ist).
+
+## BabelSynth — BP-Callable Methoden
+
+`UMayDialogueBabelSynth` stellt jetzt folgende Methoden direkt in Blueprint bereit (Kategorie `MayDialogue|Audio`):
+
+| Methode | Art | Beschreibung |
+| --- | --- | --- |
+| `Is Active` | Pure | Prüft ob der Synth gerade spielt |
+| `Stop Speech` | Callable | Aktuell laufende Babel-Ausgabe abbrechen |
+| `Set External Volume Multiplier` | Callable | Lautstärke von außen skalieren (z.B. für Audio-Ducking) |
+| `Set External Pitch Multiplier` | Callable | Tonhöhe von außen skalieren (z.B. für Stress-Effekte) |
+
+Diese Methoden sind nützlich wenn du Babel-Ausgabe aus einem anderen System heraus steuerst — z.B. Babel stumm schalten wenn ein Cutscene startet, oder Pitch für einen betäubten Sprecher absenken.
+
+---
 
 ## Widget-Integration
 

@@ -38,6 +38,10 @@ Variables-Panel:
 
 Functions-Panel → **Override** → `Execute Side Effect`.
 
+Den `Context`-Eingang öffnest du via Helper-Knoten aus der `MayDialogueLibrary` (siehe Tabelle in [Custom Requirements §3](custom-requirements.md#schritt-3--isrequirementsatisfied-überschreiben)) oder direkt — alle drei Context-Felder sind seit v1.0 `BlueprintReadOnly`.
+
+Für GAS-bezogene SideEffects (z.B. Attribute ändern, Cues feuern) steht `UMayDialogueGASLibrary` bereit — insbesondere `Get ASC From Context` erspart den manuellen Cast auf `UAbilitySystemComponent`.
+
 Pseudo-Graph:
 
 ```text
@@ -46,9 +50,7 @@ Event Execute Side Effect (Context)
   ├─ Is QuestID valid? (None-Check)
   │     └─ false → Return (früh abbrechen)
   │
-  ├─ Get World (Context → DialogueInstance → Get World)
-  │
-  ├─ Get Quest Subsystem
+  ├─ Get World From Context  →  Get Quest Subsystem
   │
   └─ Add Quest Progress (QuestID, ProgressDelta)
 ```
@@ -215,6 +217,19 @@ Im Singleplayer-Build laufen beide auf derselben Maschine — kein Unterschied. 
 ### C++ + Blueprint mischen
 
 Same Pattern wie bei Requirements: C++-Basis (z.B. `UMySE_QuestActionBase` mit gemeinsamem Quest-Subsystem-Resolution) + BP-Subclasses (`BP_SE_QuestProgress`, `BP_SE_QuestComplete`, `BP_SE_QuestFail`). Designer iterieren in BP, das teure Plumbing ist einmal in C++.
+
+---
+
+## Mehrere SideEffects in einem Custom-Node-Workflow ausführen
+
+Wenn du in einem Custom-Workflow (z.B. einem Async-Node oder einem externen Manager-Script) alle SideEffects einer Node-Kollektion korrekt ausführen willst, nutze `UMayDialogueAsyncLibrary`:
+
+| Funktion | Wann |
+| --- | --- |
+| `Execute All Side Effects (Context, SideEffects)` | Server-seitige Ausführung aller SideEffects in einem Array |
+| `Execute All Client Side Effects (Context, SideEffects)` | Client-seitige (kosmetische) Ausführung |
+
+Diese Wrapper respektieren die Server/Client-Trennung und sind direkt BP-Callable. Normalerweise rufst du `Execute Side Effects (Context)` auf `Self` (dem Node) — diese Library-Helpers sind für fortgeschrittene Fälle gedacht, z.B. wenn du SideEffect-Arrays aus mehreren Quellen kombinierst.
 
 ---
 

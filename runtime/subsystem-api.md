@@ -14,6 +14,8 @@ description: Alle Funktionen des MayDialogueSubsystem mit Use-Case und Beispiel.
 [Get MayDialogue Subsystem]   ← Suche nach "MayDialogue" in der Node-Palette
 ```
 
+`UMayDialogueSubsystem` ist `BlueprintType` — du kannst eine Variable vom Typ `MayDialogue Subsystem Object Reference` anlegen, die Referenz darin speichern und typsicher für Delegate-Binding nutzen.
+
 > 📸 **Bild-Platzhalter:** `subsystem-access-bp.png` — BP-Graph mit Subsystem-Zugriff und gecachter Variable.
 > *Setup:* Beliebiges Blueprint. `Event BeginPlay` → `Get MayDialogue Subsystem` → lokale Variable `DialogueSubsystem` (Typ: MayDialogue Subsystem Object Reference). Darunter ein zweiter Bereich mit `Is Valid` auf der Variable.
 
@@ -108,6 +110,37 @@ Die Subsystem-Delegates feuern **für jeden Dialog** — ideal für globale List
 |---|---|---|
 | `OnAnyDialogueStarted` | Direkt nachdem eine neue Instance startet | `UMayDialogueInstance*` |
 | `OnAnyDialogueEnded` | Direkt nachdem eine Instance endet (egal ob Completed/Aborted) | `UMayDialogueInstance*` |
+| `OnAnyDialogueAborted` | Wenn eine Instance abgebrochen wird — feuert **vor** `OnAnyDialogueEnded` | `UMayDialogueAsset*, EMayDialogueExitStatus, float, AActor*, AActor*` |
+
+### `FireDialogueEvent` — Event per Tag auslösen
+
+Feuert ein benanntes Dialogue-Event in der aktuell laufenden Instance (entspricht einem FireEvent-Node im Graphen, aber aus externem Code):
+
+```text
+[Get MayDialogue Subsystem]
+    │
+    ▼
+[Fire Dialogue Event]
+  ├─ World Context: Self
+  └─ Event Tag:     Dialogue.Event.LightsOut
+```
+
+```cpp
+UMayDialogueLibrary::FireDialogueEvent(this, TAG_Dialogue_Event_LightsOut);
+// oder direkt am Subsystem:
+Sub->FireDialogueEvent(this, TAG_Dialogue_Event_LightsOut);
+```
+
+### Participant-Lookups
+
+| Funktion | Art | Rückgabe |
+|---|---|---|
+| `Get All Participants` | Pure | `TArray<UMayDialogueParticipant*>` aller aktiven Participants in der Welt |
+| `Find Participant By Tag` | Pure | `UMayDialogueParticipant*` für einen bestimmten `FGameplayTag`, oder `nullptr` |
+
+Beide sind in der `UMayDialogueLibrary` als `BlueprintPure` verfügbar (kein Subsystem-Zugriff nötig).
+
+---
 
 ### Blueprint: Event binden
 

@@ -38,23 +38,34 @@ Im Variables-Panel:
 
 Im Functions-Panel → **Override** → `Execute Node`.
 
+Den `Context`-Eingang öffnest du via Helper-Knoten aus der `MayDialogueLibrary` (siehe Tabelle in [Custom Requirements §3](custom-requirements.md#schritt-3--isrequirementsatisfied-überschreiben)) oder direkt — alle drei Context-Felder sind seit v1.0 `BlueprintReadOnly`.
+
 Pseudo-Graph:
 
 ```text
 Event Execute Node (Context)
   │
-  ├─ Get World from Context (Context → DialogueInstance → Get World)
-  │
-  ├─ Get Quest Subsystem (World)
+  ├─ Get World From Context  →  Get Quest Subsystem
   │
   ├─ Report Quest Step Reached (QuestStepName)
   │
   ├─ Execute Side Effects (Context)    ← wichtig: SideEffects der Sub-Nodes ausführen
   │
-  └─ Return: Advance to First Valid Output
+  └─ Return: [Make Advance] (Get First Valid Output)
 ```
 
-`Execute Side Effects` und `Get First Valid Output` sind Blueprint-Callable-Methoden von `UMayDialogueNode_Base` — du rufst sie auf `Self` auf.
+`Execute Side Effects` und `Get First Valid Output` sind Blueprint-Callable-Methoden von `UMayDialogueNode_Base` — du rufst sie auf `Self` auf. Für den Return-Wert nutze die **Make-\***-Nodes aus `UMayDialogueLibrary` (Kategorie `MayDialogue|Task Result`):
+
+| Make-Node | Wann |
+| --- | --- |
+| `Make Advance` | Normales Weiterschalten zum nächsten Node |
+| `Make Abort` | Dialog abbrechen |
+| `Make Wait` | Dialog pausieren (Async-Nodes) |
+| `Make Pause And Present Choices` | Choice-Screen öffnen |
+| `Make Advance With Choice` | Choice + direktes Advance |
+| `Make Return To Start` | An den Anfang des Graphen zurückspringen |
+| `Make Return To Last` | Zum letzten besuchten Node zurück |
+| `Make Return To Current` | Aktuellen Node wiederholen |
 
 > 📸 **Bild-Platzhalter:** `cnode-step3-graph.png` — Vollständiger Execute-Node-Graph mit Quest-Aufruf und Return.
 > *Setup:* Blueprint-Editor, `ExecuteNode`-Funktion offen. Von links: `Event Execute Node (Context)` → `Get World` (aus Context.DialogueInstance) → `Get Quest Subsystem` → `Report Step Reached (QuestStepName-Variable)` → `Execute Side Effects (Context, Self)` → `Get First Valid Output (Context, Self)` → `Return Node` mit dem Rückgabewert. Alle Verbindungen sichtbar, keine offenen Pins.
@@ -92,23 +103,26 @@ In **Class Settings** (oben rechts im Blueprint-Editor):
 
 ## Async-Nodes (fortgeschritten)
 
-Wenn dein Node auf ein äußeres Event warten soll (z.B. eine Animation, einen Timer, ein Netzwerk-Ergebnis):
+Wenn dein Node auf ein äußeres Event warten soll (z.B. eine Animation, einen Timer, ein Netzwerk-Ergebnis), gibt er `Make Wait` zurück und löst später den Advance aus. **Das funktioniert jetzt vollständig in Blueprint** via `UMayDialogueAsyncLibrary`:
 
 ```text
 Event Execute Node (Context)
   │
-  ├─ Register as Async Node (Context.DialogueInstance, Self)
-  │
-  ├─ Merke NextNodeGuid = GetFirstValidOutput(Context)
+  ├─ Merke NextNodeGuid = Get First Valid Output (Self, Context)
   │
   ├─ Starte Timer / binde Event
   │
-  └─ Return: (kein direktes Advance — Dialog wartet)
+  └─ Return: [Make Wait]
 
 [Beim Timer-Ablauf / Event-Trigger]
   │
-  └─ Force Transition To Node (Context.DialogueInstance, NextNodeGuid)
+  └─ Request Node Advance (Context.DialogueInstance, NextNodeGuid)
+       ↑ aus UMayDialogueAsyncLibrary — BP-Callable, null-guarded
 ```
+
+`Request Node Advance` (Kategorie `MayDialogue|Async`) ist ein dünner BP-Wrapper um `Instance->ForceTransitionToNode`. Er fügt einen Null-Guard hinzu und ist über den Discovery-Namen in der Node-Palette leicht auffindbar.
+
+Für Multiplayer-Projekte: wenn du mehrere SideEffects auf einem Async-Node kombinieren willst, nutze `Execute All Side Effects` und `Execute All Client Side Effects` aus `UMayDialogueAsyncLibrary`, um die Client/Server-Aufteilung korrekt zu halten.
 
 ---
 
@@ -176,6 +190,9 @@ FMayDialogueTaskResult UMyDN_NotifyQuest::ExecuteNode_Implementation(
 
     // FailBehavior wird in der Engine über die Pre-Execution-Requirements-Evaluation
     // gehandhabt — du gibst hier nur den Erfolgs-Pfad zurück.
+    // FMayDialogueTaskResult::Advance / Abort / Wait / PauseAndPresentChoices etc.
+    // sind die C++-Static-Factories. In Blueprint sind diese als Make Advance / Make Abort /
+    // Make Wait / Make Pause And Present Choices etc. in UMayDialogueLibrary verfügbar.
     return FMayDialogueTaskResult::Advance(GetFirstValidOutput(Context));
 }
 

@@ -38,6 +38,24 @@ Variables-Panel → neue Variable:
 
 Functions-Panel → **Override** → `Is Requirement Satisfied`.
 
+Den `Context`-Eingang öffnest du im Blueprint-Graphen entweder direkt (alle drei Felder — `Dialogue Instance`, `Instigator`, `Target` — sind seit v1.0 `BlueprintReadOnly`) oder via Helper-Knoten aus der `MayDialogueLibrary`:
+
+| Helper-Knoten (BP) | Was er liefert |
+| --- | --- |
+| `Get Dialogue Instance (Context)` | `UMayDialogueInstance*` |
+| `Get World From Context` | `UWorld*` (gleichbedeutend mit Context.GetWorld()) |
+| `Get Dialogue Asset (Context)` | `UMayDialogueAsset*` (Context → Instance → Asset) |
+| `Resolve Instigator ASC (Context)` | `UObject*` — auf BP-Seite nach `AbilitySystemComponent` casten |
+| `Get Dialogue Variable (Bool/Int/Float/String/Tag)` | direkter Variable-Read mit Default-Fallback |
+
+Für GAS-bezogene Requirements steht `UMayDialogueGASLibrary` (Kategorie `MayDialogue|GAS`) bereit:
+
+| GAS-Helper (BP) | Was er liefert |
+| --- | --- |
+| `Get ASC From Context` | `UAbilitySystemComponent*` direkt aus dem Context — kein manueller Cast nötig |
+| `Is Dialogue Server Authoritative` | `bool` — ob der aktuelle Kontext server-autoritativ ist (Multiplayer-Weichen) |
+| `Trigger Cue On Context` | Gameplay Cue direkt aus einem Requirement-Override feuern |
+
 Pseudo-Graph:
 
 ```text
@@ -46,13 +64,11 @@ Event Is Requirement Satisfied (Context)
   ├─ Is QuestID valid? (None-Check)
   │     └─ true → Return Passed  (keine Quest = immer bestanden)
   │
-  ├─ Get Quest Subsystem (Context → DialogueInstance → Get World)
+  ├─ Get World From Context  →  Get Quest Subsystem
   │
   ├─ Is Quest Completed? (QuestID, RequiredStage)
   │     ├─ true  → Return Passed
-  │     └─ false → Branch: bHideOnFail?
-  │                   ├─ true  → Return FailedAndHidden
-  │                   └─ false → Return FailedButVisible
+  │     └─ false → Get Fail Result (Self)  →  Return  (Hidden vs Visible aus Basisklasse)
 ```
 
 > 📸 **Bild-Platzhalter:** `creq-step3-graph.png` — Vollständiger Is-Requirement-Satisfied-Graph.

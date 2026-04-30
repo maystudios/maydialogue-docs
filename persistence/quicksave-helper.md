@@ -6,7 +6,7 @@ description: Participant-Memory speichern und laden ohne eigenes SaveGame-System
 
 Für Projekte ohne eigenes SaveGame-System liefert MayDialogue `UMayDialogueSaveHelper` — eine Blueprint Function Library mit vier Funktionen. Damit speicherst und lädst du die PersistentMemory aller Participants mit einem einzigen Funktionsaufruf.
 
-## Die vier Funktionen
+## Die Kernfunktionen
 
 | Funktion | Was sie tut |
 | --- | --- |
@@ -15,7 +15,33 @@ Für Projekte ohne eigenes SaveGame-System liefert MayDialogue `UMayDialogueSave
 | `DeleteSlot(SlotName, UserIndex)` | Löscht einen Slot. |
 | `DoesSlotExist(SlotName, UserIndex)` | Prüft ob ein Slot vorhanden ist (vor Load aufrufen). |
 
-Alle vier sind in Blueprint verfügbar (Kategorie `MayDialogue|Persistence`).
+Alle sind in Blueprint verfügbar (Kategorie `MayDialogue|Persistence`).
+
+## GlobalMemory-Helfer
+
+Für projekt-weite Flags (z.B. "Hat der Spieler das Intro gesehen?") stehen einfache Getter/Setter auf dem `GlobalMemory`-Feld bereit — ohne direkten Zugriff auf den `FInstancedPropertyBag`-Container:
+
+| Funktion | Typ | Beschreibung |
+| --- | --- | --- |
+| `GetGlobalBool(SlotName, Key, Default)` | `bool` | Bool-Flag lesen |
+| `SetGlobalBool(SlotName, Key, Value)` | — | Bool-Flag schreiben |
+| `GetGlobalInt(SlotName, Key, Default)` | `int32` | Integer-Wert lesen |
+| `SetGlobalInt(SlotName, Key, Value)` | — | Integer-Wert schreiben |
+| `GetGlobalFloat(SlotName, Key, Default)` | `float` | Float-Wert lesen |
+| `SetGlobalFloat(SlotName, Key, Value)` | — | Float-Wert schreiben |
+| `GetGlobalString(SlotName, Key, Default)` | `FString` | String-Wert lesen |
+| `SetGlobalString(SlotName, Key, Value)` | — | String-Wert schreiben |
+
+Alle GlobalMemory-Helfer sind Blueprint-Callable (Kategorie `MayDialogue|Persistence|Global`).
+
+```text
+[Set Global Float]   (z.B. beim Companion-Dialog-Ende)
+  ├─ Slot Name: "AutoSave"
+  ├─ Key:       "CompanionAffection"
+  └─ Value:     0.75
+```
+
+> **Hinweis:** `ParticipantMemory` und `GlobalMemory` sind auf dem `UMayDialogueSaveGame`-Objekt selbst nicht direkt BP-zugänglich (`FInstancedPropertyBag`-Limitation). Die GlobalMemory-Helfer und `GetSavedParticipantTags()` decken die üblichen BP-Zugriffspfade ab.
 
 > 📸 **Bild-Platzhalter:** `quicksave-blueprint-save.png` — Blueprint-Graph: Level-Exit-Event → QuickSaveToSlot.
 > *Setup:* BP-Graph im Level-Blueprint. `Event Level Exit` → `Does Slot Exist` (SlotName="AutoSave") → `Quick Save To Slot` (WorldContextObject=Self, SlotName="AutoSave", UserIndex=0) → `Print String "Gespeichert"`. Alle Nodes verbunden, Rückgabewert (bool) ignoriert via Dummy-Branch.
@@ -69,19 +95,15 @@ Alle vier sind in Blueprint verfügbar (Kategorie `MayDialogue|Persistence`).
 | Kleines Indie-Projekt ohne komplexen State | QuickSave-Helper als Start, migrieren wenn nötig |
 | Projekt mit Inventar, Weltstate, Quests | Eigenes SaveGame-System, `PersistentMemory` per `ArIsSaveGame` einbetten (→ [SaveGame-Integration](save-integration.md)) |
 
-## GlobalMemory
+## Gespeicherte Participant-Tags lesen
 
-`UMayDialogueSaveGame` hat ein `GlobalMemory`-Feld (`FInstancedPropertyBag`), das du für Projekt-weite Flags nutzen kannst — z.B. *"Hat der Spieler das Intro-Gespräch gesehen?"*. Der QuickSave-Helper befüllt `GlobalMemory` standardmäßig nicht. Du kannst es aber manuell lesen und schreiben:
+Mit `GetSavedParticipantTags(SlotName, UserIndex)` (BlueprintPure) kannst du aus einem Slot die Liste aller gespeicherten Participant-Tags abrufen — nützlich für Slot-Preview-UIs (z.B. "Wieviele NPCs wurden schon gesprochen?"):
 
-```cpp
-// Per C++:
-UMayDialogueSaveGame* SaveObj = Cast<UMayDialogueSaveGame>(
-    UGameplayStatics::LoadGameFromSlot("AutoSave", 0));
-if (SaveObj)
-{
-    // GlobalMemory lesen/schreiben, dann erneut speichern
-    UGameplayStatics::SaveGameToSlot(SaveObj, "AutoSave", 0);
-}
+```text
+[Get Saved Participant Tags]
+  ├─ Slot Name: "AutoSave"
+  ├─ User Index: 0
+  └─ Return: TArray<FGameplayTag>
 ```
 
 > 📸 **Bild-Platzhalter:** `quicksave-slot-naming.png` — Blueprint-Graph: dynamischer SlotName aus "Save_" + CurrentLevel.

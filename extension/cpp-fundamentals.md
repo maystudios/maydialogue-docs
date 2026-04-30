@@ -146,7 +146,23 @@ FText UMyReq_QuestCompleted::GetDisplayDescription_Implementation() const
 
 ---
 
-## 5. Module-Reload und Editor-Sichtbarkeit
+## 5. BP-Designer-Libraries (Überblick)
+
+Für Blueprint-Designer stehen drei fertige Function Libraries bereit, die den Einstieg ohne C++-Modul-Link ermöglichen:
+
+| Library | Modul | Methoden |
+| --- | --- | --- |
+| `UMayDialogueGASLibrary` | `MayDialogueGAS` | `Is Dialogue Server Authoritative`, `Get ASC From Context`, `Trigger Cue On Context` — GAS-Helpers ohne manuellen ASC-Cast |
+| `UMayDialogueAsyncLibrary` | `MayDialogue` | `Request Node Advance` (BP-Async-Pattern), `Evaluate All Requirements`, `Execute All Side Effects`, `Execute All Client Side Effects` |
+| `UMayDialogueVariablesLibrary` | `MayDialogue` | `Get Dialogue Variable`, `Set Dialogue Variable`, `Copy Dialogue Variables` — Wrapper auf `FMayDialogueVariables`-Container |
+
+Zusätzlich auf `UMayDialogueLibrary` (bestehende Library): acht `Make *`-Nodes für `FMayDialogueTaskResult` — `Make Advance`, `Make Abort`, `Make Wait`, `Make Pause And Present Choices`, `Make Advance With Choice`, `Make Return To Start`, `Make Return To Last`, `Make Return To Current`. Diese Make-Nodes sind der empfohlene Weg um `ExecuteNode` in einem Custom-Node-Blueprint zu returnen.
+
+C++-Entwickler verwenden die statischen Factories direkt (`FMayDialogueTaskResult::Advance(...)` usw.) — die Libraries sind ein reiner BP-Convenience-Layer.
+
+---
+
+## 6. Module-Reload und Editor-Sichtbarkeit
 
 Nach dem Bauen erscheint deine C++-Klasse **automatisch** im Editor-Class-Picker:
 
@@ -159,7 +175,7 @@ Für komplett neue Node-Typen (`MayDialogueNode_Base`-Subclasses) gilt analog: R
 
 ---
 
-## 6. Live-Coding-Caveats
+## 7. Live-Coding-Caveats
 
 Live Coding (Strg+Alt+F11) funktioniert für **Methoden-Bodies**. Es funktioniert NICHT für:
 
@@ -172,7 +188,7 @@ Für solche Änderungen: **Editor schließen → Build → Editor neu öffnen**.
 
 ---
 
-## 7. Wann Blueprint, wann C++?
+## 8. Wann Blueprint, wann C++?
 
 | Kriterium | Blueprint | C++ |
 | --- | --- | --- |
