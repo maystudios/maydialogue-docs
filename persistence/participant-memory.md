@@ -86,4 +86,9 @@ Die Komponente sendet `OnVariableChanged` jedes Mal, wenn eine Persistent-Variab
 
 ## Komplexere Daten
 
-Die PropertyBag unterstützt nur die fünf Grundtypen. Für komplexere Strukturen (z.B. ein Dictionary von Item-IDs) legst du eine **Blueprint-Subklasse von `UMayDialogueParticipant`** an, fügst eigene `UPROPERTY(SaveGame)`-Felder hinzu und nutzt das als Participant-Klasse deines Actors. Diese Felder werden vom UE-Standard-SaveGame-Archiv automatisch mitgespeichert.
+Die PropertyBag unterstützt nur die fünf Grundtypen. Für komplexere Strukturen (z.B. ein Dictionary von Item-IDs) legst du eine **Blueprint-Subklasse von `UMayDialogueParticipant`** an und erweiterst sie um eigene Variablen:
+
+- **Im Blueprint:** Lege eigene Variablen in der Variable-Detail-Ansicht an und aktiviere für jede die `Save Game`-Checkbox. Diese Variablen werden automatisch vom UE-Standard-SaveGame-Archiv mitgespeichert.
+- **In C++:** Füge eigene `UPROPERTY(SaveGame)`-Felder in der Subklasse hinzu — das Ergebnis ist dasselbe.
+
+Setze diese Subklasse dann als Participant-Klasse deines Actors.

@@ -6,9 +6,8 @@ description: Alle Methoden von UMayDialogueLibrary — Signaturen, Parameter, R�
 
 Blueprint Function Library mit statischen Methoden. Convenience-Layer über dem Subsystem — kein eigener State, keine eigenen Delegates.
 
-- **Header**: `Source/MayDialogue/Public/MayDialogueLibrary.h`
+- **Blueprint-Kategorie**: Im Blueprint-Editor unter Kategorie *MayDialogue*.
 - **Modul**: `MayDialogue`
-- **Blueprint-Kategorie**: `MayDialogue`
 
 > 📸 **Bild-Platzhalter:** `library-node-palette.png` — Blueprint-Node-Palette mit allen Library-Nodes.
 > *Setup:* Beliebiges Blueprint öffnen, Rechtsklick im Graphen, Suchbegriff "MayDialogue" eingeben. Screenshot der Palette mit allen sichtbaren Nodes: Start Dialogue, Stop Dialogue, Stop All Dialogues, Get Active Dialogue, Is Any Dialogue Active, Get Dialogue Subsystem. Kategorie-Header "MayDialogue" sichtbar.

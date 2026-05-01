@@ -259,7 +259,11 @@ void AMyActor::EndPlay(const EEndPlayReason::Type Reason)
 
 ## IMayDialogueBridge (Blueprint oder C++)
 
-`IMayDialogueBridge` ist jetzt vollständig **Blueprintable** — alle 14 Methoden sind `BlueprintNativeEvent` mit C++-Defaults. Du kannst das Interface sowohl in Blueprint als auch in C++ implementieren.
+### Wofür ist das Bridge-Interface?
+
+`IMayDialogueBridge` ist die generische Schnittstelle für externe Systeme — Quest-Manager, Analytics, Cheat-Menüs, MayFlowGraph — die MayDialogue steuern oder abfragen wollen, ohne eine direkte Abhängigkeit auf das Subsystem zu haben. Das Subsystem implementiert das Interface vollständig. Die nützlichsten Methoden sind `StartDialogueFromBridge`, `IsDialogueActive`, `AbortDialogue`, `GetDialogueVariable` / `SetDialogueVariable`, `GetPendingChoices` und `SelectChoice`. Die vollständige Methodenübersicht findest du unter [Read/Write-API](read-write-api.md).
+
+Das Interface ist vollständig **Blueprintable** — alle Methoden sind `BlueprintNativeEvent` mit C++-Defaults. Du kannst es sowohl in Blueprint als auch in C++ implementieren.
 
 **Blueprint-Weg:** Blueprint-Klasse anlegen → Class Settings → Implemented Interfaces → `MayDialogueBridge` hinzufügen → gewünschte Methoden overriden. Alle Methoden erscheinen im My-Blueprint-Panel unter Interfaces. Details: [Bridge-Implementation](../extension/bridge-implementation.md).
 

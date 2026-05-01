@@ -81,5 +81,5 @@ Für **one-shot Effekte** nutze `GameplayCueNotify_Static` als Cue-Klasse (kein 
 {% endhint %}
 
 - Der Cue läuft am **Target-Actor-Ursprung**, nicht im Kamera-Space — Partikel erscheinen am NPC, nicht vor der Kamera.
-- Der Node erfordert das **MayDialogueGAS-Modul** — ohne dieses Modul ist der Node nicht verfügbar.
+- Diese Aktion ist Teil der GAS-Integration und ohne Zusatzschritte nutzbar. Sie greift auf das Gameplay Ability System zu — stelle sicher, dass deine Charaktere eine `AbilitySystemComponent` haben.
 - Ziel muss einen `UAbilitySystemComponent` haben — sonst No-Op + Log-Warning.

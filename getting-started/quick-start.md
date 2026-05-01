@@ -136,7 +136,9 @@ Falls der Validator Fehler meldet, behebe sie im **Compiler Results**-Panel:
 
 ---
 
-## Schritt 8 — NPC ins Level setzen
+## Schritt 8 — NPC und Spieler-Pawn mit Participant-Komponente versehen
+
+**Wächter-Actor:**
 
 1. Level öffnen.
 2. Beliebigen Actor als Wächter-Platzhalter ins Level setzen (z.B. einen Character Blueprint oder einen StaticMesh-Actor).
@@ -146,25 +148,37 @@ Falls der Validator Fehler meldet, behebe sie im **Compiler Results**-Panel:
    * `DisplayName`: `Wächter`
    * `DefaultDialogue`: `DA_Greeting_Simple`
 
-{% hint style="info" %}
-Dein **Spieler-Pawn** braucht ebenfalls eine `MayDialogueParticipant`-Komponente mit `ParticipantTag = Dialogue.Speaker.Player`. Auch wenn der Spieler im Quick Start keine eigenen SayLines hat, muss das Plugin wissen, wer der Instigator ist.
-{% endhint %}
+**Spieler-Pawn:**
+
+1. Öffne dein Spieler-Pawn-Blueprint (z.B. `BP_ThirdPersonCharacter`) im Blueprint-Editor.
+2. Im **Components**-Panel oben links: **Add Component → MayDialogue Participant**.
+3. Komponente konfigurieren:
+   * `ParticipantTag`: `Player.Character`
+
+Das Plugin benötigt diese Komponente, um zu wissen, wer der Instigator des Dialogs ist — auch wenn der Spieler selbst im Quick Start keine eigenen SayLines hat.
 
 > 📸 **Bild-Platzhalter:** `quickstart-09-participant-component.png` — Details-Panel des Wächter-Actors mit MayDialogueParticipant-Komponente.
 > *Setup:* Details-Panel eines Level-Actors. In der Komponenten-Liste ist `MayDialogueParticipant` sichtbar (ausgewählt). Darunter die Properties: `ParticipantTag = Dialogue.Speaker.Guard`, `DisplayName = Wächter`, `DefaultDialogue = DA_Greeting_Simple`. Roter Pfeil auf `DefaultDialogue`.
 
 ---
 
-## Schritt 9 — Dialog auslösen (Blueprint)
+## Schritt 9 — Dialog auslösen
+
+{% hint style="success" %}
+**Empfohlener Weg für Blueprint-Nutzer: Variante A**
+{% endhint %}
+
+**Variante A — direkt über den Participant (empfohlen):**
 
 Im Blueprint-Graph deines Trigger-Actors oder deiner Spieler-Logik:
-
-**Variante A — direkt über den Participant:**
 
 1. Referenz zum Wächter-Actor holen.
 2. **Get Component by Class: MayDialogueParticipant** aufrufen.
 3. Auf dem Participant: **Start Default Dialogue** aufrufen.
 4. `Other`-Parameter: Referenz zur Spieler-Participant-Komponente.
+
+> 📸 **Bild-Platzhalter:** `quickstart-10-blueprint-trigger.png` — Blueprint-Graph eines Trigger-Actors mit dem StartDialogue-Aufruf.
+> *Setup:* BP-Graph eines Box-Trigger-Actors. Event `OnComponentBeginOverlap` → `Get Component by Class (MayDialogueParticipant)` auf dem Wächter-Actor → `Start Default Dialogue` mit `Other` = Spieler-Participant-Referenz. Alle Pins beschriftet, Ausführungspfeile sichtbar.
 
 **Variante B — über die Library-Funktion:**
 
@@ -176,21 +190,19 @@ MayDialogueLibrary → StartDialogue
   Target       = GuardActor
 ```
 
-> 📸 **Bild-Platzhalter:** `quickstart-10-blueprint-trigger.png` — Blueprint-Graph eines Trigger-Actors mit dem StartDialogue-Aufruf.
-> *Setup:* BP-Graph eines Box-Trigger-Actors. Event `OnComponentBeginOverlap` → `Get Component by Class (MayDialogueParticipant)` auf dem Wächter-Actor → `Start Default Dialogue` mit `Other` = Spieler-Participant-Referenz. Alle Pins beschriftet, Ausführungspfeile sichtbar.
-
-{% hint style="info" %}
-**Variante für C++:**
+<details>
+<summary>Für C++-Nutzer</summary>
 
 ```cpp
-UMayDialogueParticipantComponent* GuardParticipant =
-    Guard->FindComponentByClass<UMayDialogueParticipantComponent>();
+UMayDialogueParticipant* GuardParticipant =
+    Guard->FindComponentByClass<UMayDialogueParticipant>();
 if (GuardParticipant)
 {
-    GuardParticipant->StartDefaultDialogue(PlayerParticipant);
+    GuardParticipant->StartDefaultDialogue(Player);
 }
 ```
-{% endhint %}
+
+</details>
 
 ---
 

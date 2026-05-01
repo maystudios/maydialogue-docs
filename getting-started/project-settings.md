@@ -72,8 +72,8 @@ Details zur Architektur: [UI → UMG-Architektur](../ui/umg-architecture.md).
 | `bSwitchToUIInputDuringDialogue` | bool | `true` | Setzt Input-Mode auf `Game+UI`, damit Cursor und UI-Interaktion funktionieren. |
 | `bShowMouseCursorDuringDialogue` | bool | `true` | Zeigt den Cursor für Choice-Buttons. Nur aktiv, wenn `bSwitchToUIInputDuringDialogue = true`. |
 
-{% hint style="warning" %}
-**Input-Mode nach Dialog-Ende** wird aktuell hartkodiert auf `GameOnly` zurückgesetzt. Wenn dein Spiel einen anderen Modus (`UIOnly`, `GameAndUI`) vor dem Dialog hatte, musst du den Restore nach `OnDialogueEnded` manuell setzen. Siehe [Known Issues](../troubleshooting/known-issues.md).
+{% hint style="info" %}
+**Hinweis (für fortgeschrittene Setups mit eigenen Input-Modi):** Der Input-Mode wird nach Dialog-Ende hartkodiert auf `GameOnly` zurückgesetzt. Wenn dein Spiel vor dem Dialog einen anderen Modus verwendet (`UIOnly`, `GameAndUI`), musst du den Restore nach `OnDialogueEnded` manuell setzen. Für die meisten Projekte ist das Standardverhalten korrekt. Siehe [Known Issues](../troubleshooting/known-issues.md).
 {% endhint %}
 
 ### Audio

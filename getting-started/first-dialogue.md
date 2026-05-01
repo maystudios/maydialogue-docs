@@ -6,6 +6,16 @@ description: Variablen, Choice-Requirements und SideEffect-Aktionen — ein voll
 
 Der [Quick Start](quick-start.md) hat gezeigt, wie du in fünf Minuten einen spielbaren Dialog baust. Dieser Walkthrough geht eine Stufe weiter. Du baust ein realistisches NPC-Gespräch, das Variablen nutzt, Choices an GAS-Tags und Attribute knüpft und SideEffect-Aktionen auslöst.
 
+{% hint style="warning" %}
+**Voraussetzungen für Schritte 6–7 (GAS-Attribut und ApplyEffect):**
+
+- Das **Gameplay Ability System** (GAS) muss in deinem Projekt aktiviert sein.
+- Du benötigst ein eigenes `UAttributeSet` mit dem Attribut `Reputation.Guards` auf dem Spieler-ASC.
+- Du benötigst einen GameplayEffect `GE_GuardTrust`, der dieses Attribut erhöht.
+
+**Kein GAS in deinem Projekt?** Überspringe Schritt 6 (Requirement auf Choice 1) und Schritt 7 (ApplyEffect) und ersetze sie durch einfache Variable-Checks bzw. SetVariable-SideEffects aus dem Dialogue-Scope. Eine nicht-GAS-Variante findest du im Abschnitt [Optional: Variablen-Variante ohne GAS](#optional-variablen-variante-ohne-gas) am Ende dieses Walkthroughs.
+{% endhint %}
+
 ## Das Szenario
 
 Du triffst einen Wächter vor einer Festung. Drei Dinge bestimmen, was passiert:
@@ -241,5 +251,21 @@ Die SayLine "Du bist also wieder hier." wird nach dem dritten Besuch langweilig.
 * [Rezepte](../recipes/README.md) — weitere Beispiele für häufige Patterns
 
 {% hint style="info" %}
-**Eigene Requirement-Typen bauen:** Lege eine Blueprint-Klasse mit Parent `UMayDialogueRequirement` an. In der `IsRequirementSatisfied`-Funktion gibst du `Passed`, `FailedButVisible` oder `FailedAndHidden` zurück. Der neue Typ erscheint sofort in der Sub-Node-Palette.
+**Eigene Requirement-Typen bauen:** Lege eine Blueprint-Klasse mit Parent `UMayDialogueRequirement` an. In der `IsRequirementSatisfied`-Funktion gibst du `Passed`, `FailedButVisible` oder `FailedAndHidden` zurück. Der neue Typ erscheint sofort in der Sub-Node-Palette. Siehe [Eigene Requirements](../extension/custom-requirements.md).
 {% endhint %}
+
+---
+
+## Optional: Variablen-Variante ohne GAS
+
+Falls GAS in deinem Projekt nicht aktiv ist, kannst du Schritte 6 und 7 durch variable-basierte Alternativen ersetzen:
+
+**Statt Schritt 6 (CheckAttribute-Requirement auf Choice 1):**
+
+Lege im Variables-Panel eine Dialogue-Variable `Reputation` (Typ: `Int`, Default: `0`) an. Verwende als Requirement **CheckDialogueVariable** mit `VariableName = Reputation`, `ComparisonOp = >=`, `ComparisonValue = 50`.
+
+**Statt Schritt 7 (ApplyEffect):**
+
+Ersetze den Apply-Effect-Node durch einen **Set Variable**-Node: `VariableName = Reputation`, `NewValue = Reputation + 50`. Da direkte Rechenoperationen im Graph nicht verfügbar sind, kannst du hierfür einen kleinen Blueprint-SideEffect anlegen (siehe [Variablen & Scopes](../concepts/variables-scopes.md)).
+
+Die Testmatrix und der restliche Walkthrough bleiben identisch.

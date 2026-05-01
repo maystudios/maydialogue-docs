@@ -42,11 +42,12 @@ Verfügbare Subsystem-Delegates:
 
 ## Schritt 2 — Event-Handler implementieren
 
-Für jedes Delegate legst du einen Custom-Event an:
+Für jedes Delegate legst du einen Custom-Event an. Die Subsystem-Delegates `OnAnyDialogueStarted` und `OnAnyDialogueEnded` übergeben nur die **Instance** — Asset, Instigator und Target liest du bei Bedarf von der Instance ab:
 
 ```text
-Custom Event: OnDialogueStarted (Asset, Instigator, Target)
+Custom Event: OnDialogueStarted (Instance)
   │
+  ├─ Get Dialogue Asset von Instance
   ├─ Is Asset's Tag equal to DA_QuestCritical_Meeting?
   │     └─ true → Quest System: Mark Meeting as Started
   │
@@ -54,16 +55,17 @@ Custom Event: OnDialogueStarted (Asset, Instigator, Target)
 ```
 
 ```text
-Custom Event: OnDialogueEnded (Asset, Outcome, Instigator, Target)
+Custom Event: OnDialogueEnded (Instance)
   │
-  ├─ Is Outcome == Completed?
+  ├─ Get Exit Status von Instance
+  ├─ Is Exit Status == Completed?
   │     └─ true → Quest System: Advance Quest
   │
-  └─ Analytics: Log Event "dialogue_ended" (Asset.Name, Outcome)
+  └─ Analytics: Log Event "dialogue_ended" (Instance.GetDialogueAsset.Name)
 ```
 
 > 📸 **Bild-Platzhalter:** `bridge-step2-handler-graph.png` — Custom-Event OnDialogueEnded mit Quest-Advance und Analytics-Log.
-> *Setup:* BP-Graph, Custom-Event `OnDialogueEnded (Asset, Outcome, Instigator, Target)`. Von links: Event-Node → `Branch: Outcome == Completed`. True-Pfad: `Get Quest Subsystem → Advance Quest (QuestID="MainStory_MeetNPC")`. False-Pfad: (leer). Nach dem Branch: `Analytics Log (Event="dialogue_ended", Value=Asset.Name)`. Alle Verbindungen sichtbar, klarer Pfad.
+> *Setup:* BP-Graph, Custom-Event `OnDialogueEnded (Instance)`. Von links: Event-Node → `Get Dialogue Asset` → `Branch: ExitStatus == Completed`. True-Pfad: `Get Quest Subsystem → Advance Quest`. False-Pfad: (leer). Nach dem Branch: `Analytics Log`. Alle Verbindungen sichtbar.
 
 ---
 
@@ -90,7 +92,7 @@ Custom Event: OnChoiceMade (ChoiceIndex, ChoiceText, Instance)
 
 ## Bridge-Interface in Blueprint implementieren (BP-First-Weg)
 
-`IMayDialogueBridge` ist jetzt vollständig `Blueprintable`. Du kannst eine eigene Blueprint-Klasse anlegen, die das Interface implementiert, und gezielt nur die Methoden überschreiben, die dein System braucht. Alle 14 Methoden haben C++-Defaults — du musst nur das überschreiben, was du anpassen willst.
+`IMayDialogueBridge` ist vollständig `Blueprintable`. Du kannst eine eigene Blueprint-Klasse anlegen, die das Interface implementiert, und gezielt nur die Methoden überschreiben, die dein System braucht. Alle Methoden sind `BlueprintNativeEvent` mit C++-Defaults — du musst nur das überschreiben, was du anpassen willst.
 
 ### Anwendungsfall: Quest-Bridge
 
@@ -126,7 +128,7 @@ Event On Dialogue Started (Asset, Instigator, Target)
 
 **Schritt C — Weitere Methoden überschreiben (optional):**
 
-Alle 14 Methoden des Interface sind im My Blueprint-Panel sichtbar. Override nur was du brauchst:
+Alle Methoden des Interface sind im My Blueprint-Panel sichtbar. Override nur was du brauchst:
 
 | Methode (Blueprint-Name) | Typischer Einsatz |
 | --- | --- |
@@ -196,24 +198,24 @@ Das `UMayDialogueSubsystem` implementiert `IMayDialogueBridge`. Damit kannst du 
   ├─ Bind OnAnyDialogueAborted  → HandleAbort
   └─ (Instance-Events on HandleStart)
 
-[HandleStart (Asset, Instigator, Target)]
+[HandleStart (Instance)]
   │
-  ├─ Log Analytics: dialogue_started (Asset.Name)
+  ├─ Log Analytics: dialogue_started (Instance.Asset.Name)
   ├─ Bind Instance.OnChoiceMade → HandleChoice
-  └─ Quest: Mark this dialogue as "in progress" (Asset.Tag)
+  └─ Quest: Mark this dialogue as "in progress" (Instance.Asset.Tag)
 
-[HandleAbort (Asset, ExitStatus, Duration, Instigator, Target)]
+[HandleAbort (Instance)]
   │
-  ├─ Log Analytics: dialogue_aborted (Asset.Name)
+  ├─ Log Analytics: dialogue_aborted (Instance.Asset.Name)
   └─ Quest: Mark dialogue as interrupted
 
-[HandleEnd (Asset, Outcome, Instigator, Target)]
+[HandleEnd (Instance)]
   │
-  ├─ Log Analytics: dialogue_ended (Asset.Name, Outcome)
-  ├─ If Outcome == Completed:
-  │     Quest: Advance (QuestID from Asset.Tag)
+  ├─ Get ExitStatus von Instance
+  ├─ If ExitStatus == Completed:
+  │     Quest: Advance (QuestID from Instance.Asset.Tag)
   │     Achievement: Check if Achievement unlocks
-  └─ If Outcome == Failed:
+  └─ If ExitStatus == Failed:
         Quest: Mark dialogue as failed
 
 [HandleChoice (ChoiceIndex, ChoiceText)]
@@ -239,26 +241,26 @@ void UMyQuestManager::Initialize(FSubsystemCollectionBase& Collection)
     {
         DlgSub->OnAnyDialogueStarted.AddDynamic(this, &UMyQuestManager::HandleDialogueStart);
         DlgSub->OnAnyDialogueEnded.AddDynamic(this, &UMyQuestManager::HandleDialogueEnd);
-        DlgSub->OnAnyDialogueAborted.AddDynamic(this, &UMyQuestManager::HandleDialogueAbort);
     }
 }
 
-void UMyQuestManager::HandleDialogueStart(
-    UMayDialogueAsset* Asset, AActor* Instigator, AActor* Target)
+// OnAnyDialogueStarted / OnAnyDialogueEnded: Signatur ist (UMayDialogueInstance* Instance)
+void UMyQuestManager::HandleDialogueStart(UMayDialogueInstance* Instance)
 {
-    UAnalyticsLibrary::LogEvent("dialogue_started", Asset->GetName());
-}
-
-void UMyQuestManager::HandleDialogueEnd(
-    UMayDialogueAsset* Asset, EMayDialogueOutcome Outcome,
-    AActor* Instigator, AActor* Target)
-{
-    if (Outcome == EMayDialogueOutcome::Completed)
+    if (Instance && Instance->GetDialogueAsset())
     {
-        AdvanceQuestForDialogue(Asset);
-        CheckAchievements(Asset);
+        UAnalyticsLibrary::LogEvent("dialogue_started", Instance->GetDialogueAsset()->GetName());
     }
-    UAnalyticsLibrary::LogEvent("dialogue_ended", Asset->GetName());
+}
+
+void UMyQuestManager::HandleDialogueEnd(UMayDialogueInstance* Instance)
+{
+    if (Instance && Instance->GetDialogueAsset())
+    {
+        AdvanceQuestForDialogue(Instance->GetDialogueAsset());
+        CheckAchievements(Instance->GetDialogueAsset());
+        UAnalyticsLibrary::LogEvent("dialogue_ended", Instance->GetDialogueAsset()->GetName());
+    }
 }
 ```
 
@@ -294,8 +296,8 @@ if (Bridge->IsDialogueActive())
 
 ## Anmerkungen
 
-* **Blueprint-First seit BP-Wave 2026-04.** `IMayDialogueBridge` ist jetzt `Blueprintable`, alle 14 Methoden sind `BlueprintNativeEvent`. Der BP-Weg ist gleichwertig zum C++-Weg.
-* **`OnAnyDialogueAborted` feuert vor `OnAnyDialogueEnded`.** Wenn du beide bindest, erhältst du zuerst `Aborted`, dann immer `Ended`. Das entspricht dem Epic-CommonConversation-Pattern.
+* **Blueprint und C++ gleichwertig.** `IMayDialogueBridge` ist `Blueprintable`, alle Methoden sind `BlueprintNativeEvent`. Wähle den Weg, der zu deinem Projekt passt.
+* **`OnAnyDialogueAborted` feuert vor `OnAnyDialogueEnded`.** Wenn du beide bindest, erhältst du zuerst `Aborted`, dann immer `Ended`.
 * **String-basierte Variable-API ist gewollt.** `SetDialogueVariable` und `GetDialogueVariable` nutzen Strings, damit externe Systeme keine compile-time Typen kennen müssen.
 * **Bridge-Methoden sind nicht repliziert.** Für Multiplayer kommunizierst du zwischen Systemen über eigene RPCs — die Bridge ist ein lokaler In-Process-Aufruf.
 * **Delegates nicht in Destructors vergessen.** Beim Destroy deines Systems die Delegates wieder ausbinden: `DlgSub->OnAnyDialogueStarted.RemoveDynamic(this, &ThisClass::HandleDialogueStart)`.

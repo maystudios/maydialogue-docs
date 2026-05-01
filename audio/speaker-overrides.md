@@ -80,6 +80,8 @@ Speaker-Overrides leben **im Dialog-Asset**, nicht global. Das bedeutet: wenn du
 
 {% hint style="info" %}
 **Tipp:** Halte eine DataTable mit Speaker-Templates (SoundClass, Attenuation, Pitch, Volume, BabelProfile pro Charakter). Copy-Paste die Zeile in neue Dialog-Assets. So bleibt die Klang-Identität konsistent, ohne sie von Hand nachzutippen.
+
+So legst du die DataTable an: Content Browser → Rechtsklick → Miscellaneous → Data Table → Row-Struct `FMayDialogueSpeaker` wählen. Jede Zeile entspricht einem Charakter-Audio-Profil.
 {% endhint %}
 
 > 📸 **Bild-Platzhalter:** `speaker-overrides-datatable.png` — DataTable mit Speaker-Audio-Templates im Content Browser.

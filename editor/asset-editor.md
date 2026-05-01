@@ -114,7 +114,7 @@ Zeigt die bearbeitbaren Properties des aktuell selektierten Nodes. Bei SayLine-N
 | Empty Text | Error | SayLine oder Choice ohne Text |
 | Unreachable Nodes | Warning | Nodes die vom Entry aus nicht erreichbar sind |
 | Missing Speaker | Error | SayLine ohne gültigen Speaker-Tag |
-| Deadlocks | Error | Erreichbarer Node ohne Pfad zum Exit |
+| Sackgasse | Error | Erreichbarer Node ohne Pfad zum Exit |
 | Variable Type Mismatch | Error | Derselbe Variable-Name mit widersprüchlichen Typen |
 
 Weiter: [Graph-Panel →](graph-panel.md)

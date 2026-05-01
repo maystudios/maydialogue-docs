@@ -14,37 +14,31 @@ Wenn du einen Punkt priorisiert haben möchtest: Lege ein Issue im Tracker deine
 
 ## Kurzfristig: Offene Lücken schließen
 
-### Bug-Fixes (v1.0 wave, verified 2026-04-29)
+### In v1.0 behoben
 
-The following issues from the [Known-Issues list](../troubleshooting/known-issues.md) have been resolved:
+Folgende Punkte aus der [Known-Issues-Liste](../troubleshooting/known-issues.md) wurden in v1.0 geschlossen:
 
-- ~~**Widget-Lifetime**~~: ✅ Fixed — Subsystem Deinitialize tears down Slate and UMG auto-widgets.
-- ~~**Wait-Node Abort-Cleanup**~~: ✅ Fixed — `AsyncState_Wait::Cleanup` stops all timers; `AbortDialogue` calls `CleanupPendingAsyncNodes`.
-- ~~**PlayAnimation Abort-Cleanup**~~: ✅ Fixed — `AsyncState_PlayAnimation::Cleanup` replaces Montage end-delegate with empty lambda.
-- ~~**Input-Mode-Restore (Slate)**~~: ✅ Fixed for Slate path — `CachedPreviousInputMode` switch in `SMayDialogueWidget`. **UMG path still open.**
-- ~~**FailBehavior in ExecuteNode**~~: ✅ Fixed — `Node_Base.cpp` and `Instance::ContinueToNode` both honor FailBehavior.
+- ~~**Widget-Lifetime**~~: ✅ Behoben — Subsystem räumt Slate- und UMG-Auto-Widgets beim Deinitialize auf.
+- ~~**Wait-Node Abort-Cleanup**~~: ✅ Behoben — `AsyncState_Wait::Cleanup` stoppt alle Timer; Abort ruft `CleanupPendingAsyncNodes` auf.
+- ~~**PlayAnimation Abort-Cleanup**~~: ✅ Behoben — `AsyncState_PlayAnimation::Cleanup` überschreibt den Montage-End-Delegate sauber.
+- ~~**Input-Mode-Restore (Slate)**~~: ✅ Behoben für den Slate-Pfad — `CachedPreviousInputMode` im Widget gecacht.
+- ~~**FailBehavior in ExecuteNode**~~: ✅ Behoben — Node-Base und `Instance::ContinueToNode` werten `FailBehavior` konsequent aus.
+- ~~**`bOverride2D` auf SayLine / PlaySound**~~: ✅ Ersetzt durch den Tri-State `NodeAudioMode` auf beiden Node-Typen.
+- ~~**SayLine `VolumeMultiplier` / `PitchMultiplier`**~~: ✅ Beide Felder sind jetzt auf SayLine verfügbar.
+- ~~**SetVariable Tag-Typ**~~: ✅ Tag-Typ-Variablen werden in SetVariable unterstützt.
+- ~~**SetVariable Participant-Scope**~~: ✅ `Scope = Participant` + `TargetParticipantTag` implementiert.
+- ~~**Wait-Node Condition-Modus**~~: ✅ `WaitCondition` + `ConditionCheckInterval` implementiert und im AsyncState gepollt.
+- ~~**QuickSave-Helper**~~: ✅ `MayDialogueSaveHelper` bietet QuickSaveToSlot / QuickLoadFromSlot / DeleteSlot / DoesSlotExist.
+- ~~**Dialog-Events → GameplayCues**~~: ✅ `LifecycleCueBindings` in den Settings, Subsystem leitet weiter.
+- ~~**Choice-Tag-Binding extern**~~: ✅ `OnChoiceMade` enthält `ChoiceIndex` und `ChoiceTags`.
+- ~~**Bridge Read/Write API**~~: ✅ Vollständige API auf `IMayDialogueBridge` und Blueprint-Wrapper am Subsystem.
 
-**Still open:**
-- **Input-Mode-Restore (UMG path)**: `UMayDialogueWidget` has no `ApplyDialogueInputMode` / `RestoreGameInputMode` yet.
+### Noch offen
 
-### Feature-Lücken (v1.0 wave)
-
-The following feature gaps have been resolved:
-
-- ~~**`bOverride2D` on SayLine / PlaySound**~~: ✅ Superseded by tri-state `NodeAudioMode` on both nodes.
-- ~~**SayLine `VolumeMultiplier` / `PitchMultiplier`**~~: ✅ `SayLine.h` exposes both.
-- ~~**SetVariable Tag-Typ**~~: ✅ `SetVariable.h::TagValue` implemented.
-- ~~**SetVariable Participant-Scope**~~: ✅ `Scope = Dialogue|Participant` + `TargetParticipantTag` implemented.
-- ~~**Wait-Node Condition-Modus**~~: ✅ `WaitCondition` + `ConditionCheckInterval` implemented and polled in AsyncState.
-- ~~**QuickSave-Helper**~~: ✅ `MayDialogueSaveHelper.h` exposes QuickSaveToSlot / QuickLoadFromSlot / DeleteSlot / DoesSlotExist.
-- ~~**Dialogue-Events → GameplayCues**~~: ✅ `LifecycleCueBindings` in Settings + Subsystem bridging.
-- ~~**Choice-Tag-Binding external**~~: ✅ `OnChoiceMade` is 2-param (`ChoiceIndex`, `ChoiceTags`).
-- ~~**Bridge Read/Write API**~~: ✅ Full API on `IMayDialogueBridge` and K2_* Blueprint mirrors on Subsystem.
-
-**Still open:**
-- **Live-Requirement-Pills im Preview**: Choice- und Branch-Pills im Preview-Runner in Echtzeit einfärben.
+- **Input-Mode-Restore (UMG-Pfad)**: `UMayDialogueWidget` besitzt noch kein `ApplyDialogueInputMode` / `RestoreGameInputMode`.
+- **Live-Requirement-Pills im Preview**: Choice- und Branch-Pills im Preview-Runner sollen Requirement-Status in Echtzeit einfärben.
 - **Cross-Asset Step-Into im Debugger**: Debugger folgt dem Flow in verlinkte Assets.
-- **Subsystem-level `OnAnyVariableChanged`**: Per-instance binding works; global forward still missing.
+- **Subsystem-level `OnAnyVariableChanged`**: Per-Instance-Binding funktioniert; globale Weiterleitung fehlt noch.
 
 ---
 
@@ -52,7 +46,7 @@ The following feature gaps have been resolved:
 
 ### UMG Starter-Themes (v1.1)
 
-Three ready-to-use widget template sets — **not shipping in v1.0**, planned for v1.1 as a separate content add-on:
+Drei fertige Widget-Template-Sets — nicht in v1.0 enthalten, geplant für v1.1 als separates Content-Add-on:
 
 - **Horror**: Dunkles Layout, rote Akzente, pixeliger Font-Stil.
 - **Visual Novel**: Großer Portrait-Bereich, weiche Ein-/Ausblend-Animation.

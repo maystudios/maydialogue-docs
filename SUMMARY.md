@@ -164,5 +164,5 @@
 
 ## Anhang
 
-* [Glossar](appendix/glossary.md)
 * [Roadmap](appendix/roadmap.md)
+* [Glossar](appendix/glossary.md)

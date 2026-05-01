@@ -79,7 +79,7 @@ Für Story-Flags wie "hat mich gegrüßt", "kennt mein Geheimnis" ist LooseTag d
 `AddLooseGameplayTag` ist **idempotent** — mehrmaliges Hinzufügen desselben Tags hat keinen Stack-Effekt. Der Tag ist entweder vorhanden oder nicht. Wenn du einen Stack-basierten Zähler brauchst, nutze stattdessen ein Int-Attribut via `Apply Effect`.
 {% endhint %}
 
-- Der Node erfordert das **MayDialogueGAS-Modul** — ohne dieses Modul ist der Node nicht verfügbar.
+- Diese Aktion ist Teil der GAS-Integration und ohne Zusatzschritte nutzbar. Sie greift auf das Gameplay Ability System zu — stelle sicher, dass deine Charaktere eine `AbilitySystemComponent` haben.
 - Ziel (Instigator oder Target-NPC) muss einen `UAbilitySystemComponent` haben, sonst No-Op + Log-Warning.
 - LooseTags werden bei Replikation auf `Minimal`-Modus nicht automatisch auf andere Clients repliziert — für Multiplayer-State lieber `Apply Effect` mit Tag-Grant verwenden.
 - Partner-Node: [Remove Tag](remove-tag.md).

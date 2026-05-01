@@ -110,14 +110,26 @@ Diese Methoden sind nützlich wenn du Babel-Ausgabe aus einem anderen System her
 
 ## Widget-Integration
 
-**Monolithisches Widget (Legacy):** `BabelSynth::OnCharacterRevealed` wird automatisch aus dem Typewriter-Text gefeuert – kein Setup nötig.
+**SMayDialogueWidget (Slate-Debug-Widget, Standard):** Das eingebaute Slate-Widget verdrahtet `BabelSynth::OnCharacterRevealed` automatisch mit dem Typewriter — kein manuelles Setup nötig. Dieses Widget ist der Standard-Fallback, wenn kein UMG-Widget konfiguriert ist. Mehr dazu: [Slate-Debug-Widget](slate-debug-widget.md).
 
-**UMG-Komponenten-Pfad:** Im Blueprint musst du `TextWidget->OnCharacterRevealed` manuell an `BabelSynth->OnCharacterRevealed` binden. Sieh dazu [UI-Architektur](../ui/umg-architecture.md).
+**UMG-Komponenten-Pfad:** Im Blueprint musst du die Typewriter-Events deines Text-Widgets selbst an den Synth weitergeben. Sieh dazu [UI-Architektur](../ui/umg-architecture.md).
 
 {% hint style="info" %}
 **Qualitäts-Anspruch:** Babel ist nicht nur ein Debug-Platzhalter. Mit eigenen BlipSounds, PitchVariation und PunctuationPause kann das Ergebnis so gut klingen, dass du es im fertigen Spiel behalten willst.
 {% endhint %}
 
 {% hint style="warning" %}
-**Continuous Mode im Komponenten-Pfad:** `Tick` läuft nicht automatisch – du musst es im Blueprint deines Widgets manuell aufrufen. Im SayLine-Fallback-Pfad (ohne Widget) tickt Babel selbst.
+**Continuous Mode im UMG-Pfad:** Der Synth tickt automatisch über Unreal Engines Tick-System (`FTickableGameObject`) — du musst nichts selbst aufrufen. Im TypewriterSync-Modus musst du jedoch jeden aufgedeckten Buchstaben über C++ an `OnCharacterRevealed` weiterleiten. Im Blueprint kannst du den Synth über die verfügbaren Nodes steuern:
+
+```text
+[Event On Character Revealed]  ← Typewriter-Event deines Text-Widgets
+    │ Char (int32), CharIndex, TotalChars
+    ▼
+[Is Active]  ← BabelSynth | MayDialogue|Babel
+    │ True
+    ▼
+[Stop Speech]  ← BabelSynth bei Bedarf (z.B. Skip-Button)
+```
+
+Für einfache Projekte ist der SayLine-Fallback-Pfad (ohne Widget) die empfohlene Option — dort startet und stoppt Babel vollautomatisch.
 {% endhint %}

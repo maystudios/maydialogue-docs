@@ -41,7 +41,7 @@ Alle GlobalMemory-Helfer sind Blueprint-Callable (Kategorie `MayDialogue|Persist
   └─ Value:     0.75
 ```
 
-> **Hinweis:** `ParticipantMemory` und `GlobalMemory` sind auf dem `UMayDialogueSaveGame`-Objekt selbst nicht direkt BP-zugänglich (`FInstancedPropertyBag`-Limitation). Die GlobalMemory-Helfer und `GetSavedParticipantTags()` decken die üblichen BP-Zugriffspfade ab.
+> **Hinweis:** Die globale und Participant-spezifische Memory-Daten lassen sich nicht direkt im Blueprint inspizieren — nutze stattdessen die `Get Persistent ...` / `Set Persistent ...`-Funktionen am Participant sowie die `Get Global ...` / `Set Global ...`-Nodes der SaveHelper-Library.
 
 > 📸 **Bild-Platzhalter:** `quicksave-blueprint-save.png` — Blueprint-Graph: Level-Exit-Event → QuickSaveToSlot.
 > *Setup:* BP-Graph im Level-Blueprint. `Event Level Exit` → `Does Slot Exist` (SlotName="AutoSave") → `Quick Save To Slot` (WorldContextObject=Self, SlotName="AutoSave", UserIndex=0) → `Print String "Gespeichert"`. Alle Nodes verbunden, Rückgabewert (bool) ignoriert via Dummy-Branch.

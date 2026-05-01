@@ -85,20 +85,7 @@ Subsystem
 
 Die Events sind **Multicast-Delegates** — beliebig viele Systeme können gleichzeitig lauschen, ohne sich gegenseitig zu stören.
 
-## Module im Überblick
-
-Das Plugin besteht aus drei Modulen — für dich als Nutzer ist der Unterschied meistens unsichtbar:
-
-| Modul | Wofür | Sichtbar in |
-| --- | --- | --- |
-| `MayDialogue` | Laufzeit: Assets, Instanzen, Nodes, UI, Audio | Game-Code, Blueprints |
-| `MayDialogueEditor` | Editor: Graph, Compiler, Preview, Debugger | Nur im Editor, nicht im Build |
-| `MayDialogueGAS` | GAS-Requirements & -SideEffects | Wenn GAS aktiv ist |
-
-Der Editor-Code ist strikt vom Spiel-Build getrennt. `MayDialogueGAS` lädt nur, wenn du GAS im Projekt aktiv hast — das Core-Modul selbst hat keine GAS-Abhängigkeit.
-
-> 📸 **Bild-Platzhalter:** `modules-plugin-settings.png` — Plugin-Settings im Editor.
-> *Setup:* Edit → Plugins → MayDialogue. Alle drei Module (MayDialogue, MayDialogueEditor, MayDialogueGAS) sind als enabled markiert. Details-Panel rechts zeigt die Plugin-Beschreibung. Kein weiterer Content.
+MayDialogue ist nach Installation ohne weitere Einrichtung einsatzbereit. GAS-Funktionen sind direkt verfügbar, wenn dein Projekt das Gameplay Ability System nutzt.
 
 ## Zusammenfassung
 

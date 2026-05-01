@@ -44,7 +44,7 @@ Für den Return-Wert von `ExecuteNode`-Overrides in Custom-Node-Blueprints:
 
 ---
 
-### GAS-Library (`UMayDialogueGASLibrary`, Modul `MayDialogueGAS`)
+### GAS-Library (Kategorie `MayDialogue|GAS`)
 
 | Funktion | Art | Beschreibung |
 |---|---|---|
@@ -54,7 +54,7 @@ Für den Return-Wert von `ExecuteNode`-Overrides in Custom-Node-Blueprints:
 
 ---
 
-### Async-Library (`UMayDialogueAsyncLibrary`, Modul `MayDialogue`)
+### Async-Library (Kategorie `MayDialogue|Async`)
 
 | Funktion | Art | Beschreibung |
 |---|---|---|
@@ -65,13 +65,13 @@ Für den Return-Wert von `ExecuteNode`-Overrides in Custom-Node-Blueprints:
 
 ---
 
-### Variables-Library (`UMayDialogueVariablesLibrary`, Modul `MayDialogue`)
+### Variables-Library (Kategorie `MayDialogue|Variables`)
 
 | Funktion | Art | Beschreibung |
 |---|---|---|
 | `Get Dialogue Variable` | Callable | Variable aus einem `FMayDialogueVariables`-Container lesen |
 | `Set Dialogue Variable` | Callable | Variable in einen `FMayDialogueVariables`-Container schreiben |
-| `Copy Dialogue Variables` | Callable | Variablen zwischen zwei Containern kopieren (gibt `false` zurück — noch als Stub implementiert) |
+| `Copy Dialogue Variables` | Callable | **Geplant** — noch nicht verfügbar. |
 
 ---
 

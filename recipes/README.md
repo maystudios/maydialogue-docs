@@ -64,13 +64,7 @@ Fortgeschritten (nach Bedarf):
 
 ## Voraussetzungen
 
-Vor dem ersten Rezept solltest du:
-
-1. Das [Quick-Start-Tutorial](../getting-started/quick-start.md) absolviert haben.
-2. Die drei Konzeptseiten gelesen haben:
-   - [Instance & Lifecycle](../concepts/instance-lifecycle.md)
-   - [Participants & Sprecher](../concepts/participants-speakers.md)
-   - [Variablen & Scopes](../concepts/variables-scopes.md)
+Die Rezepte sind so geschrieben, dass du direkt einsteigen kannst. Wenn ein Konzept unklar ist, sind die relevanten Konzept-Seiten in jedem Rezept verlinkt.
 
 {% hint style="info" %}
 Alle Rezepte gehen davon aus, dass du das Plugin laut [Installation](../getting-started/installation.md) integriert hast und in den [Projekt-Einstellungen](../getting-started/project-settings.md) ein Dialog-Widget konfiguriert ist.

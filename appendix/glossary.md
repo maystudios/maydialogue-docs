@@ -44,9 +44,9 @@ Siehe auch: [FailedAndHidden](#failedandhidden), [FailedButVisible](#failedbut-v
 
 ---
 
-### Cue
+### Cue (MayDialogue Lifecycle Cue)
 
-Ein kurzes Ereignis, das während eines Dialogs ausgelöst wird — z. B. ein Gameplay-Tag-Event, ein Sound, eine Kamera-Shake. Cues sind nicht mit dem GAS-Gameplay-Cue-System zu verwechseln; im MayDialogue-Kontext ist ein Cue ein generisches Signal an externe Systeme.
+Wird über die Plugin-Settings als GameplayCue-Tag pro Lifecycle-Event (Started/Ended/NodeReached/...) ausgelöst. Der `TriggerCue`-Action-Node feuert ebenfalls einen frei wählbaren GameplayCue. In beiden Fällen läuft das über das echte GAS-GameplayCue-System.
 
 ---
 

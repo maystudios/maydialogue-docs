@@ -71,5 +71,5 @@ Wenn dein UMG-Widget fertig ist:
 Das Slate-Widget ist damit aus dem Workflow.
 
 {% hint style="warning" %}
-**Level-Travel:** Das Slate-Widget bindet sich nach einem Level-Wechsel nicht automatisch neu. Rufe vor dem Travel `Subsystem->StopAllDialogues()` auf oder entferne das Widget manuell vom Viewport.
+**Level-Travel:** Das Slate-Widget bindet sich nach einem Level-Wechsel nicht automatisch neu. Rufe vor dem Travel `Subsystem->StopAllDialogues()` auf oder entferne das Widget manuell vom Viewport. Im Blueprint steht dafür der Node `Stop All Dialogues` auf dem MayDialogue-Subsystem bereit.
 {% endhint %}

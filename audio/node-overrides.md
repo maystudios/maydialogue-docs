@@ -19,15 +19,11 @@ Alles, das **nur für diese eine Zeile gilt**, gehört auf den Node. Alles, das 
 > 📸 **Bild-Platzhalter:** `node-overrides-sayline-details.png` — Details-Panel einer SayLine mit NodeAudioMode = Force2D.
 > *Setup:* SayLine-Node im Graph-Editor auswählen. Details-Panel rechts zeigt: `NodeAudioMode = Force2D` (Dropdown, ausgewählt). Darüber `SpeakerTag`, `DialogueText`, darunter weitere SayLine-Properties. Roter Pfeil auf `NodeAudioMode`.
 
-| Property | Typ | Verfügbar | Wirkung |
-|---|---|---|---|
-| `NodeAudioMode` | Enum | Ja | `Default` / `Spatial3D` / `Force2D` für diese Zeile |
-| `VolumeMultiplier` | float | Derzeit nicht (geplant) | — |
-| `PitchMultiplier` | float | Derzeit nicht (geplant) | — |
+| Property | Typ | Wirkung |
+|---|---|---|
+| `NodeAudioMode` | Enum | `Default` / `Spatial3D` / `Force2D` für diese Zeile |
 
-{% hint style="info" %}
-Volume- und Pitch-Overrides pro SayLine sind noch in Arbeit. Workaround: Lege einen eigenen Sprecher-Eintrag an (z.B. `Dialogue.Speaker.InnerVoice`) mit den gewünschten Werten und nutze diesen Sprecher für die betreffenden Zeilen.
-{% endhint %}
+Volume- und Pitch-Overrides existieren auf der Speaker-Ebene. Wenn du einzelne Zeilen lauter oder leiser machen willst, lege einen eigenen Sprecher-Eintrag an (z.B. `Dialogue.Speaker.InnerVoice`) und setze dort `VolumeMultiplier` / `PitchMultiplier`.
 
 ## Overrides auf PlaySound
 

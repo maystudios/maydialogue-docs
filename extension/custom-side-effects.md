@@ -38,7 +38,7 @@ Variables-Panel:
 
 Functions-Panel → **Override** → `Execute Side Effect`.
 
-Den `Context`-Eingang öffnest du via Helper-Knoten aus der `MayDialogueLibrary` (siehe Tabelle in [Custom Requirements §3](custom-requirements.md#schritt-3--isrequirementsatisfied-überschreiben)) oder direkt — alle drei Context-Felder sind seit v1.0 `BlueprintReadOnly`.
+Den `Context`-Eingang öffnest du via Helper-Knoten aus der `MayDialogueLibrary` (siehe [Custom Requirements](custom-requirements.md)) oder direkt — alle drei Context-Felder sind seit v1.0 `BlueprintReadOnly`.
 
 Für GAS-bezogene SideEffects (z.B. Attribute ändern, Cues feuern) steht `UMayDialogueGASLibrary` bereit — insbesondere `Get ASC From Context` erspart den manuellen Cast auf `UAbilitySystemComponent`.
 

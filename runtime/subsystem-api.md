@@ -188,19 +188,3 @@ Das Subsystem stellt alle Lese- und Schreib-Methoden der aktiven Instance als Bl
 
 Vollständige Beschreibung: [Read/Write-API](read-write-api.md).
 
----
-
-## Automatisches Tick-Management
-
-Das Subsystem läuft automatisch jeden Frame und kümmert sich um:
-
-- Auto-Advance-Timer (AdvanceMode `Timer`)
-- Choice-Timeouts
-- Camera-Blend-Fortschritt
-- Cleanup beendeter Instances am Frame-Ende
-
-Du musst nichts selbst ticken.
-
-{% hint style="info" %}
-Beim Level-Travel wird das Subsystem zerstört. Es ruft dabei automatisch `StopAllDialogues()` auf — alle offenen Dialoge werden sauber beendet.
-{% endhint %}

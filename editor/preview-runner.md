@@ -65,7 +65,7 @@ Das Preview-Panel ist in drei Bereiche geteilt:
 | Link / SubGraph | Funktioniert wie in Produktion |
 | Set Variable | Schreibt in den Preview-State |
 | Fire Event | Wird geloggt (kein echter Blueprint-Call) |
-| Camera / Animation / Apply Effect | Geloggt, **nicht echt ausgeführt** (keine Welt vorhanden) |
+| Camera / Animation / Apply Effect | Geloggt, **nicht echt ausgeführt** |
 
 ## GAS-State simulieren
 

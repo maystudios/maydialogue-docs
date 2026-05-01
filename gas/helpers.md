@@ -4,11 +4,11 @@ description: ASC-Auflösung, Target-Resolution — Utilities, die alle GAS-Klass
 
 # GAS-Helpers
 
-Der Namespace `MayDialogueGAS` in `MayDialogueGASHelpers.h` enthält Hilfsfunktionen für die ASC-Auflösung. Alle vordefinierten GAS-Requirements und -SideEffects nutzen sie intern — damit du beim Schreiben eigener Klassen nicht dasselbe Boilerplate neu schreiben musst.
+{% hint style="info" %}
+**Diese Seite richtet sich an C++-Erweiterer.** Als Blueprint-Nutzer brauchst du diese Helfer nicht. Die Properties `bCheckOnInstigator` / `bAddToInstigator` etc. an jedem Node reichen — das Plugin löst den richtigen ASC intern auf.
+{% endhint %}
 
-## Für Blueprint-Nutzer
-
-Als Blueprint-Autor brauchst du diese Funktionen nicht direkt aufzurufen. Die Properties `bCheckOnInstigator` / `bAddToInstigator` etc. an jedem Node reichen — das Plugin löst den richtigen ASC intern auf. Die Helpers interessieren dich nur, wenn du eigene GAS-Klassen in C++ schreibst.
+Der Namespace `MayDialogueGAS` in `MayDialogueGASHelpers.h` enthält Hilfsfunktionen für die ASC-Auflösung. Alle vordefinierten GAS-Requirements und -SideEffects nutzen sie intern — damit du beim Schreiben eigener C++-Klassen nicht dasselbe Boilerplate neu schreiben musst.
 
 ---
 

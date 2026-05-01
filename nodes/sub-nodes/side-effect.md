@@ -16,7 +16,9 @@ Ein SideEffect ist eine Inline-Aktion, die ausgeführt wird, sobald der Eltern-N
 | --- | --- | --- | --- |
 | `Description` | `FText` | leer | Editor-Label der Pill im Graph. Wird auch im Details-Panel angezeigt. |
 
-## Standard-SideEffects (MayDialogueGAS-Modul)
+## Standard-SideEffects (GAS-Integration)
+
+Diese SideEffects sind direkt verfügbar — keine zusätzliche Einrichtung nötig. Sie greifen auf das Gameplay Ability System zu, wenn dein Projekt es verwendet.
 
 | Klasse | Aktion | Wichtige Properties |
 | --- | --- | --- |

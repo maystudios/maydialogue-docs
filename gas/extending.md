@@ -145,7 +145,8 @@ EMayDialogueRequirementResult UMyReq_QuestCompleted::IsRequirementSatisfied_Impl
 {
     if (QuestID == NAME_None) return EMayDialogueRequirementResult::Passed;
 
-    auto* Quest = UQuestSubsystem::Get(Context.DialogueInstance->GetWorld());
+    UWorld* World = Context.DialogueInstance ? Context.DialogueInstance->GetWorld() : nullptr;
+    auto* Quest = World ? UQuestSubsystem::Get(World) : nullptr;
     if (!Quest) return EMayDialogueRequirementResult::Passed;
 
     return Quest->IsCompleted(QuestID)

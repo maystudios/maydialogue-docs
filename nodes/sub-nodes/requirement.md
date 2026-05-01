@@ -25,10 +25,12 @@ Ein Requirement ist ein Bedingungscheck, der drei Ergebnisse liefern kann: besta
 | `FailResult` | `EMayDialogueRequirementFailResult` | `FailedButVisible` | Was passiert bei Nicht-Erfüllung: `FailedButVisible` oder `FailedAndHidden`. |
 
 {% hint style="warning" %}
-`bHideOnFail` ist deprecated — nutze stattdessen `FailResult = FailedAndHidden`. Bestehende Assets mit `bHideOnFail = true` verhalten sich weiterhin korrekt, werden aber beim nächsten Speichern migriert.
+`bHideOnFail` ist veraltet — nutze stattdessen das `EMayDialogueRequirementResult`-Feld `FailResult = FailedAndHidden`.
 {% endhint %}
 
-## Standard-Requirements (MayDialogueGAS-Modul)
+## Standard-Requirements (GAS-Integration)
+
+Diese Requirements sind direkt verfügbar — keine zusätzliche Einrichtung nötig. Sie greifen auf das Gameplay Ability System zu, wenn dein Projekt es verwendet.
 
 | Klasse | Prüft | Wichtige Properties |
 | --- | --- | --- |

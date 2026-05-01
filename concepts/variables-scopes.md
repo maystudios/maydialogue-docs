@@ -126,7 +126,17 @@ void AQuestDirector::HandleVarChanged(FName VarName, EMayDialogueVariableScope S
 ## Bekannte Einschränkungen
 
 {% hint style="warning" %}
-**SetVariable aus dem Graph schreibt aktuell nur in den Dialogue-Scope.** Für Participant-Scope aus dem Graph: ein Blueprint-SideEffect, der `SetPersistentXxx` direkt auf der Komponente aufruft.
+**SetVariable aus dem Graph schreibt aktuell nur in den Dialogue-Scope.** Für Participant-Scope aus dem Graph: Lege einen eigenen Blueprint-SideEffect an.
+
+**Kurzanleitung:**
+
+1. Content Browser → Rechtsklick → **Blueprint Class**, Parent Class: `UMayDialogueSideEffect`.
+2. Die Funktion **Execute Side Effect** überschreiben (Event, nicht Pure).
+3. Im Event-Body: aus dem `Context`-Pin **Get Instigator** oder **Get Target** aufrufen, um den gewünschten Actor zu holen.
+4. Auf dem Actor **Get Component by Class → MayDialogueParticipant** aufrufen.
+5. Auf der Participant-Komponente **Set Persistent Bool** (bzw. `Set Persistent Int`, `Set Persistent Float`, `Set Persistent String`, `Set Persistent Tag`) aufrufen.
+
+Diesen SideEffect-Blueprint anschließend als Sub-Node an deiner SayLine oder deinem Action-Node hinzufügen.
 {% endhint %}
 
 {% hint style="info" %}

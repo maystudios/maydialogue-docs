@@ -6,7 +6,7 @@ description: Alle public Methoden und Delegates von UMayDialogueSubsystem.
 
 Zentraler Orchestrator. Ein `UWorldSubsystem`, pro Welt genau eine Instanz. Implementiert außerdem `FTickableGameObject` (für Auto-Advance/Watchdog) und `IMayDialogueBridge` (für externe Konsumenten).
 
-- **Header**: `Source/MayDialogue/Public/MayDialogueSubsystem.h`
+- **Blueprint-Zugriff**: Im Blueprint-Editor unter Kategorie *MayDialogue|Subsystem*.
 - **Modul**: `MayDialogue`
 - **Base**: `UWorldSubsystem`
 
@@ -104,6 +104,7 @@ bool IsAnyDialogueActive() const;
 |---|---|---|
 | `OnAnyDialogueStarted` | `FOnAnyDialogueEvent` | Direkt nachdem eine Instance startet. |
 | `OnAnyDialogueEnded` | `FOnAnyDialogueEvent` | Direkt nachdem eine Instance endet. |
+| `OnAnyDialogueAborted` | `FOnMayDialogueAborted` | Irgendein Dialog wird abgebrochen — feuert vor `OnAnyDialogueEnded`. |
 
 ```cpp
 UPROPERTY(BlueprintAssignable, Category = "MayDialogue|Events")
@@ -111,6 +112,9 @@ FOnAnyDialogueEvent OnAnyDialogueStarted;
 
 UPROPERTY(BlueprintAssignable, Category = "MayDialogue|Events")
 FOnAnyDialogueEvent OnAnyDialogueEnded;
+
+UPROPERTY(BlueprintAssignable, Category = "MayDialogue|Events")
+FOnMayDialogueAborted OnAnyDialogueAborted;
 ```
 
 `FOnAnyDialogueEvent` = `DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAnyDialogueEvent, UMayDialogueInstance*, Instance)`

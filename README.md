@@ -105,10 +105,9 @@ Such dir den Pfad, der zu dir passt:
 | Engine | Unreal Engine 5.7 |
 | Plugin-Version | 0.1.0 (Beta) |
 | Letzte Aktualisierung | 2026-04-27 |
-| Module | `MayDialogue` (Runtime) · `MayDialogueEditor` (UncookedOnly) · `MayDialogueGAS` (Runtime) |
 | Dependencies | `GameplayAbilities`, `GameplayTags`, `StructUtils`, `EnhancedInput` |
 
-Aktuelle Limitierungen und geplante Features findest du unter [Bekannte Issues](troubleshooting/known-issues.md) und [Roadmap](appendix/roadmap.md).
+Aktuelle Limitierungen findest du unter [Bekannte Issues](troubleshooting/known-issues.md). Neu hier? Fang mit dem [Quick Start](getting-started/quick-start.md) an.
 
 ---
 

@@ -67,6 +67,6 @@ Wenn das Entfernen des Tags der **semantische Hauptpunkt** des Schrittes ist (de
 Dieser Node entfernt **nur LooseTags**. Tags die durch einen `UGameplayEffect` gegraanted wurden, bleiben bestehen. Um GE-Tags zu entfernen, muss der Effect selbst entfernt werden (z.B. via `Apply Effect` mit einer `GE_Remove`-Klasse oder durch Ablauf).
 {% endhint %}
 
-- Der Node erfordert das **MayDialogueGAS-Modul** — ohne dieses Modul ist der Node nicht verfügbar.
+- Diese Aktion ist Teil der GAS-Integration und ohne Zusatzschritte nutzbar. Sie greift auf das Gameplay Ability System zu — stelle sicher, dass deine Charaktere eine `AbilitySystemComponent` haben.
 - Ziel muss einen `UAbilitySystemComponent` haben — sonst No-Op + Log-Warning.
 - Partner-Node: [Add Tag](add-tag.md).

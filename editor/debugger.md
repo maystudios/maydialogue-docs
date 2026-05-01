@@ -129,7 +129,7 @@ Typischer Ablauf: 90% der Arbeit im Preview-Runner, abschließende Validierung i
 
 ## Bekannte Grenzen
 
-- **Cross-Asset Step-Into:** Wenn ein Link-Node in ein anderes Asset springt, öffnet der Editor das Ziel-Asset nicht automatisch. Workaround: Ziel-Asset manuell öffnen, dort Breakpoint setzen.
+- **Cross-Asset Step-Into:** Wenn ein Link-Node in ein anderes Asset springt, öffnet der Editor das Ziel-Asset nicht automatisch. Workaround: Ziel-Asset manuell öffnen, dort Breakpoint setzen. Den Link-Target findest du im Details-Panel des Link-Nodes im Quell-Asset (Property `TargetAsset`).
 - **Async-Nodes:** Wait- und PlayAnimation-Nodes pausieren erst, wenn sie beendet sind – nicht mittendrin.
 
 Weiter: [Komfort-Features →](comfort-features.md)

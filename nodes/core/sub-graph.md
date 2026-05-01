@@ -15,7 +15,6 @@ Der SubGraph-Node klappt einen eingebetteten Teil-Graphen innerhalb desselben As
 | --- | --- | --- | --- |
 | `SubGraphName` | `FText` | leer | Anzeigename des Sub-Graphs im Nodes-Körper, z.B. `"Combat Reaction"`. |
 | `bReturnAfterSubGraph` | `bool` | `true` | `true` = nach Exit des Sub-Graphs zurück zum nächsten Node; `false` = Sub-Graph ist terminal, kein Return. |
-| `SubGraphEntryGuid` | `FGuid` | (Compiler) | Zeigt auf den Entry-Node des Sub-Graphs. Wird vom Compiler gesetzt — nicht manuell bearbeiten. |
 
 {% hint style="info" %}
 **Öffnen:** Doppelklick auf den SubGraph-Node öffnet den eingebetteten Graphen als eigenen Tab mit Breadcrumb-Pfad. Zurück mit dem Breadcrumb oder der Tab-Liste.

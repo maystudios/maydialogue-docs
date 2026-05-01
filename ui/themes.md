@@ -15,6 +15,10 @@ MayDialogue liefert das Widget-Framework. Die **visuellen Themes** baust du als 
 
 ## Welche Themes gibt es?
 
+{% hint style="danger" %}
+**Themes sind ein separates Add-on und nicht Teil von MayDialogue v1.0.** Die folgenden Beschreibungen sind eine Vorschau der geplanten Starter-Themes. In v1.0 stehen nur die Basis-Widget-Klassen bereit — nutze den Abschnitt "Eigenes Theme bauen" um sofort loszulegen.
+{% endhint %}
+
 | Theme | Stil | Genre |
 |---|---|---|
 | **Horror** | Dunkel, blutrote Akzente, grober Rahmen, nervöser Typewriter | Horror, Mystery |
@@ -160,12 +164,6 @@ DefaultDialogueWidgetClass = /Game/UI/Themes/YourTheme/WBP_MayDialogue_Theme.WBP
 ## Mehrere Themes im selben Projekt
 
 Für unterschiedliche Dialog-Kontexte (Haupt-Story vs. Tutorial vs. Cutscene) tauschst du das Widget vor dem Dialog-Start:
-
-```cpp
-// Vor dem Dialog-Start in deinem Game-Code:
-// Project Settings programmatisch überschreiben oder
-// über einen eigenen Manager die Widget-Klasse pro Kontext setzen.
-```
 
 {% hint style="info" %}
 Ein dedizierter API-Hook für Widget-Swap pro Dialog ist in Planung. Aktuell: Widget-Klasse in den Settings vor dem Dialog-Start setzen oder einen eigenen Widget-Manager bauen, der das Widget beim Dialog-Start tauscht.

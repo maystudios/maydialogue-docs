@@ -68,5 +68,5 @@ Der Node ist ein **stiller No-Op** wenn `EffectClass` leer ist oder kein `Abilit
 **Instigator ist immer der Source des Effects** — auch bei `bApplyToInstigator=false`. Das ist relevant wenn dein `UGameplayEffect` eine `MMC_*`-Berechnung verwendet, die Source-Attribute ausliest (z.B. `Source.Strength`).
 {% endhint %}
 
-- Der Node erfordert das **MayDialogueGAS-Modul** — ohne dieses Modul ist der Node nicht verfügbar.
+- Diese Aktion ist Teil der GAS-Integration und ohne Zusatzschritte nutzbar. Sie greift auf das Gameplay Ability System zu — stelle sicher, dass deine Charaktere eine `AbilitySystemComponent` haben.
 - GE-Level `0.0` ist möglich, führt aber bei vielen Standard-Magnitude-Formeln zu einem Nullwert-Effect.

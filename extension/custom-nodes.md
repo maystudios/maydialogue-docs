@@ -38,7 +38,7 @@ Im Variables-Panel:
 
 Im Functions-Panel → **Override** → `Execute Node`.
 
-Den `Context`-Eingang öffnest du via Helper-Knoten aus der `MayDialogueLibrary` (siehe Tabelle in [Custom Requirements §3](custom-requirements.md#schritt-3--isrequirementsatisfied-überschreiben)) oder direkt — alle drei Context-Felder sind seit v1.0 `BlueprintReadOnly`.
+Den `Context`-Eingang öffnest du via Helper-Knoten aus der `MayDialogueLibrary` (siehe [Custom Requirements](custom-requirements.md)) oder direkt — alle drei Context-Felder sind seit v1.0 `BlueprintReadOnly`.
 
 Pseudo-Graph:
 
@@ -224,7 +224,7 @@ FLinearColor UMyDN_NotifyQuest::GetNodeColor_Implementation() const
 
 ### Async Custom-Node (Wait-on-Event-Pattern)
 
-Wenn dein Node auf etwas wartet (Animation, Timer, externe API), gib `Wait()` zurück und löse später per `Instance->ContinueToNode(...)` aus:
+Wenn dein Node auf etwas wartet (Animation, Timer, externe API), gib `Wait()` zurück und löse später per `UMayDialogueAsyncLibrary::RequestNodeAdvance(...)` aus:
 
 ```cpp
 FMayDialogueTaskResult UMyDN_AwaitWebhook::ExecuteNode_Implementation(
@@ -240,10 +240,10 @@ FMayDialogueTaskResult UMyDN_AwaitWebhook::ExecuteNode_Implementation(
     State->NextNodeGuid = NextNode;
     State->BindCompletionDelegate([Instance, NextNode]()
     {
-        if (IsValid(Instance))
-        {
-            Instance->ContinueToNode(NextNode);
-        }
+        // UMayDialogueAsyncLibrary::RequestNodeAdvance ist der öffentliche
+        // BP-callable Wrapper (Kategorie "MayDialogue|Async"). Er enthält
+        // einen Null-Guard und ist der empfohlene Weg auch aus C++.
+        UMayDialogueAsyncLibrary::RequestNodeAdvance(Instance, NextNode);
     });
 
     return FMayDialogueTaskResult::Wait();

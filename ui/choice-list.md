@@ -21,12 +21,7 @@ Der Container spawnt und verwaltet alle ChoiceButtons. Du bindest einen Panel-Co
 
 ### Property
 
-```cpp
-// Welche ChoiceButton-Subklasse soll gespawnt werden?
-TSubclassOf<UMayDialogueWidget_ChoiceButton> ChoiceButtonClass;
-```
-
-Setze `ChoiceButtonClass` in den Blueprint-Defaults deiner ChoiceList-Subklasse.
+**`ChoiceButtonClass`** — Eine Subklasse von `MayDialogueWidget_ChoiceButton` (per Class-Picker im Editor wählbar). Setze diesen Wert in den Blueprint-Defaults deiner ChoiceList-Subklasse, um einen eigenen Button-Style zu verwenden.
 
 ### Blueprint Event
 
