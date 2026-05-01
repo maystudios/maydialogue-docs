@@ -2,12 +2,12 @@
 description: Variables, choice requirements, and SideEffect actions — a complete dialogue.
 ---
 
-# Walkthrough — A Complete Dialogue
+# Walkthrough: A Complete Dialogue
 
 The [Quick Start](quick-start.md) showed you how to build a playable dialogue in five minutes. This walkthrough goes one step further. You will build a realistic NPC conversation that uses variables, ties choices to GAS tags and attributes, and triggers SideEffect actions.
 
 {% hint style="warning" %}
-**Prerequisites for steps 6–7 (GAS attribute and ApplyEffect):**
+**Prerequisites for steps 6 and 7 (GAS attribute and ApplyEffect):**
 
 - The **Gameplay Ability System** (GAS) must be enabled in your project.
 - You need a custom `UAttributeSet` with the attribute `Reputation.Guards` on the player's ASC.
@@ -20,13 +20,13 @@ The [Quick Start](quick-start.md) showed you how to build a playable dialogue in
 
 You meet a guard in front of a fortress. Three things determine what happens:
 
-1. **Have you met him before?** — a participant variable `HasMet` (Bool).
-2. **Have you heard the password?** — a GameplayTag `Story.Secret.HeardPassword` on the player.
-3. **What is your reputation?** — a GAS attribute `Reputation.Guards` on the player.
+1. **Have you met him before?** A participant variable `HasMet` (Bool).
+2. **Have you heard the password?** A GameplayTag `Story.Secret.HeardPassword` on the player.
+3. **What is your reputation?** A GAS attribute `Reputation.Guards` on the player.
 
 ---
 
-## Step 1 — Create a new dialogue asset
+## Step 1: Create a new dialogue asset
 
 1. Content Browser → `Content/Dialogues/` → Right-click → **May Dialogue → Dialogue Asset**.
 2. Name it: `DA_Gate_Guardian`.
@@ -48,14 +48,14 @@ In the **Variables panel** (sidebar):
 1. Click **Add Variable**.
 2. Name: `HasMet`, Type: `Bool`, Scope: `Participant`, Default: `false`.
 
-Participant scope means: the variable belongs to the guard actor and persists between dialogue starts (as long as the actor lives in the level).
+Participant scope means the variable belongs to the guard actor and persists between dialogue starts as long as the actor lives in the level.
 
 > 📸 **Image placeholder:** `walkthrough-01-variables-panel.png` — Variables panel with the HasMet variable.
 > *Setup:* Variables panel in the asset editor, one entry visible: `HasMet`, type `Bool`, scope `Participant`, default `false`. Red arrow on the scope dropdown.
 
 ---
 
-## Step 2 — Greeting with Branch
+## Step 2: Greeting with Branch
 
 The entry point asks: has the player met the guard before?
 
@@ -71,18 +71,18 @@ The entry point asks: has the player met the guard before?
 **False output** → **SayLine** "Halt! Who are you?"
 
 > 📸 **Image placeholder:** `walkthrough-02-branch-node.png` — Branch node with CheckParticipantVariable Sub-Node in the graph.
-> *Setup:* Graph shows: `Entry` → `Branch` (diamond shape with True, False, and Fallback pins). In the Branch node body the Sub-Node "CheckParticipantVariable: HasMet == true" is visible as a pill. From the True pin an arrow goes to SayLine "So you're back again." (dark red), from the False pin to SayLine "Halt! Who are you?" (dark red). Fallback pin not connected (shows empty pin).
+> *Setup:* Graph shows: `Entry` → `Branch` (diamond shape with True, False, and Fallback pins). In the Branch node body the Sub-Node "CheckParticipantVariable: HasMet == true" is visible as a pill. From the True pin an arrow goes to SayLine "So you're back again." (dark red), from the False pin to SayLine "Halt! Who are you?" (dark red). Fallback pin not connected.
 
 > 📸 **Image placeholder:** `walkthrough-03-branch-subnodes.png` — Details panel of the CheckParticipantVariable requirement.
 > *Setup:* Branch node selected, in the Details panel the embedded requirement is visible: `VariableName = HasMet`, `ExpectedValue = true`, `CheckTarget = Target`. Red arrow on `CheckTarget`.
 
 ---
 
-## Step 3 — Set HasMet via SideEffect
+## Step 3: Set HasMet via SideEffect
 
-Each greeting SayLine (True and False path) should set `HasMet = true` when entered — regardless of which variant is played.
+Each greeting SayLine (True and False path) should set `HasMet = true` when entered, regardless of which variant plays.
 
-**On both greeting SayLines**, do each of the following:
+**On both greeting SayLines**, do the following:
 
 1. Select the SayLine.
 2. In the Sub-Nodes area: **Add SideEffect → SetVariable**.
@@ -95,7 +95,7 @@ The SideEffect appears as a pill in the SayLine's node body — visible but unob
 
 ---
 
-## Step 4 — PlayerChoice with three options
+## Step 4: PlayerChoice with three options
 
 Both greeting SayLines feed into the same **PlayerChoice** node:
 
@@ -111,7 +111,7 @@ Both greeting SayLines feed into the same **PlayerChoice** node:
 
 ---
 
-## Step 5 — Requirement on Choice 0 (password)
+## Step 5: Requirement on Choice 0 (password)
 
 Choice 0 should only appear if the player has the tag `Story.Secret.HeardPassword`.
 
@@ -119,16 +119,16 @@ Choice 0 should only appear if the player has the tag `Story.Secret.HeardPasswor
 2. **Add Requirement → HasTag**.
 3. `RequiredTag`: `Story.Secret.HeardPassword`.
 4. `CheckOnInstigator`: `true` (the player is the instigator).
-5. `FailureResult`: `FailedAndHidden` — the choice disappears entirely if the condition is not met.
+5. `FailureResult`: `FailedAndHidden`. The choice disappears entirely if the condition is not met.
 
 > 📸 **Image placeholder:** `walkthrough-06-requirement-hastag.png` — Details panel of the HasTag requirement on Choice 0.
 > *Setup:* Choice 0 of the PlayerChoice node selected. Details panel shows: `RequiredTag = Story.Secret.HeardPassword`, `CheckOnInstigator = true`, `FailureResult = FailedAndHidden`. Red arrow on `FailureResult`.
 
-This produces the classic RPG pattern: you only see the password option if you have actually heard the password.
+This is the classic RPG pattern: you only see the password option if you have actually heard the password.
 
 ---
 
-## Step 6 — Requirement on Choice 1 (reputation)
+## Step 6: Requirement on Choice 1 (reputation)
 
 Choice 1 should be visible but not selectable if reputation is too low.
 
@@ -138,7 +138,7 @@ Choice 1 should be visible but not selectable if reputation is too low.
 4. `ComparisonOp`: `>=`.
 5. `ComparisonValue`: `50`.
 6. `CheckOnInstigator`: `true`.
-7. `FailureResult`: `FailedButVisible` — the choice appears greyed out but cannot be selected.
+7. `FailureResult`: `FailedButVisible`. The choice appears greyed out but cannot be selected.
 8. `UnavailableReason`: `Your reputation with the guards is too low.` (shown as a tooltip).
 
 > 📸 **Image placeholder:** `walkthrough-07-requirement-attribute.png` — Details panel of the CheckAttribute requirement on Choice 1.
@@ -149,7 +149,7 @@ Choice 1 should be visible but not selectable if reputation is too low.
 
 ---
 
-## Step 7 — Consequences: Choice 0 with ApplyEffect
+## Step 7: Consequences — Choice 0 with ApplyEffect
 
 **Path for Choice 0 (password):**
 
@@ -169,7 +169,7 @@ Connections: `PlayerChoice OutputPin[0]` → `ApplyEffect` → `SayLine "Pass in
 
 ---
 
-## Step 8 — Consequences: Choice 1 and Choice 2
+## Step 8: Consequences — Choice 1 and Choice 2
 
 **Path for Choice 1 (king):**
 
@@ -190,9 +190,9 @@ Connections: `PlayerChoice OutputPin[2]` → `AddTag` → `CameraShake` → `Say
 
 ---
 
-## Step 9 — RandomLine for repeated visits
+## Step 9: RandomLine for repeated visits
 
-The SayLine "So you're back again." becomes repetitive after the third visit. Replace it with a **Random Line** node:
+The SayLine "So you're back again." gets repetitive after a few visits. Replace it with a **Random Line** node:
 
 1. Delete the SayLine "So you're back again."
 2. Right-click → place **Random Line**.
@@ -200,7 +200,7 @@ The SayLine "So you're back again." becomes repetitive after the third visit. Re
    * `So you're back again. What do you want?`
    * `Back? Hope you have a good reason.`
    * `Again. What is it this time?`
-4. `bRememberSelection`: `true` — prevents two identical lines playing in a row.
+4. `bRememberSelection`: `true`. This prevents two identical lines playing in a row.
 5. Connect True path of Branch → RandomLine input.
 6. Connect RandomLine output → PlayerChoice input (as before).
 
@@ -209,7 +209,7 @@ The SayLine "So you're back again." becomes repetitive after the third visit. Re
 
 ---
 
-## Step 10 — Compile and test
+## Step 10: Compile and test
 
 1. Click **Toolbar → Compile**. No errors in the Compiler Results panel?
 2. Start PIE.
@@ -221,7 +221,7 @@ The SayLine "So you're back again." becomes repetitive after the third visit. Re
 | First visit, no password, reputation < 50 | Greeting "Halt!"; Choice 0 missing; Choice 1 greyed; only Choice 2 selectable |
 | First visit, password heard, reputation >= 50 | All three choices visible and selectable |
 | Second visit | RandomLine greeting instead of "Halt!" |
-| Choice 0 selected | ApplyEffect increases reputation; guard bids you farewell kindly |
+| Choice 0 selected | ApplyEffect increases reputation; guard bids farewell kindly |
 | Choice 2 selected | `Story.Guard.Hostile` tag set; CameraShake; guard throws you out |
 
 > 📸 **Image placeholder:** `walkthrough-12-full-graph-overview.png` — Overview of the complete graph DA_Gate_Guardian.
@@ -268,4 +268,4 @@ Create a dialogue variable `Reputation` (Type: `Int`, Default: `0`) in the Varia
 
 Replace the Apply Effect node with a **Set Variable** node: `VariableName = Reputation`, `NewValue = Reputation + 50`. Since arithmetic operations are not available directly in the graph, you can create a small Blueprint SideEffect for this (see [Variables & Scopes](../concepts/variables-scopes.md)).
 
-The test matrix and the rest of the walkthrough remain identical.
+The test matrix and the rest of the walkthrough stay identical.

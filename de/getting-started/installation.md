@@ -14,14 +14,14 @@ MayDialogue ist ein UE-Plugin mit drei Modulen. Die Installation läuft in fünf
 | Visual Studio 2022 | 17.9+ | Nur wenn dein Projekt ein C++-Modul hat |
 | JetBrains Rider | 2024.3+ | Optional |
 
-**Plugin-Dependencies** (werden automatisch mitaktiviert, du musst nichts manuell aktivieren):
+**Plugin-Dependencies** (werden automatisch mitaktiviert, keine manuelle Aktivierung nötig):
 
 * `GameplayAbilities`
 * `GameplayTagsEditor`
 * `StructUtils`
 * `EnhancedInput`
 
-## Schritt 1 — Plugin-Ordner kopieren
+## Schritt 1: Plugin-Ordner kopieren
 
 1. Schließe den Unreal-Editor, falls er läuft.
 2. Navigiere in deinem Projekt-Ordner zu `Plugins/`. Falls der Ordner nicht existiert, lege ihn an.
@@ -45,7 +45,7 @@ MeinProjekt/
 > 📸 **Bild-Platzhalter:** `installation-folder-structure.png` — Windows Explorer mit dem geöffneten `Plugins/`-Ordner des Projekts.
 > *Setup:* Explorer-Fenster zeigt `Plugins/MayDialogue/` mit den Unterordnern `Source/`, `Content/`, `Resources/` und der Datei `MayDialogue.uplugin`. Roter Pfeil auf `MayDialogue.uplugin`.
 
-## Schritt 2 — Projekt-Dateien neu generieren
+## Schritt 2: Projekt-Dateien neu generieren
 
 Nur notwendig, wenn dein Projekt ein C++-Modul hat (`.uproject` enthält `"Modules"` mit mindestens einem Eintrag).
 
@@ -66,7 +66,7 @@ Rechtsklick auf `.uproject` → **Generate Visual Studio project files**, oder i
 {% endtab %}
 {% endtabs %}
 
-## Schritt 3 — Projekt bauen
+## Schritt 3: Projekt bauen
 
 Öffne die `.sln` in Rider oder Visual Studio und baue das **Editor-Target** (`MeinProjektEditor`, Development, Win64).
 
@@ -78,23 +78,23 @@ Alternativ per Batch:
 ```
 
 {% hint style="info" %}
-**Reine Blueprint-Projekte** können diesen Schritt überspringen. UE kompiliert beim ersten Editor-Start die notwendigen Binaries automatisch.
+**Reine Blueprint-Projekte** können diesen Schritt überspringen. UE kompiliert beim ersten Editor-Start die nötigen Binaries automatisch.
 {% endhint %}
 
-## Schritt 4 — Editor öffnen und Plugin prüfen
+## Schritt 4: Editor öffnen und Plugin prüfen
 
 1. Öffne das Projekt.
 2. **Edit → Plugins** aufrufen.
-3. Kategorie **Gameplay** wählen — der Eintrag **MayDialogue** muss sichtbar und aktiviert (Checkbox gesetzt) sein.
+3. Kategorie **Gameplay** wählen. Der Eintrag **MayDialogue** muss sichtbar und aktiviert sein (Checkbox gesetzt).
 
 > 📸 **Bild-Platzhalter:** `installation-plugin-dialog.png` — Der Plugins-Dialog mit dem MayDialogue-Eintrag.
 > *Setup:* Plugins-Fenster geöffnet, Kategorie "Gameplay" ausgewählt. MayDialogue-Eintrag sichtbar mit aktivierter Checkbox, dem Beta-Banner darunter und dem Plugin-Beschreibungstext. Roter Pfeil auf die aktivierte Checkbox.
 
 {% hint style="info" %}
-**Beta-Flag.** MayDialogue ist als `IsBetaVersion: true` markiert. UE zeigt einen Warn-Banner im Plugin-Dialog — du kannst ihn ignorieren.
+**Beta-Flag.** MayDialogue ist als `IsBetaVersion: true` markiert. UE zeigt einen Warn-Banner im Plugin-Dialog. Du kannst ihn ignorieren.
 {% endhint %}
 
-## Schritt 5 — Content-Pfad freigeben
+## Schritt 5: Content-Pfad freigeben
 
 MayDialogue liefert ein Content-Verzeichnis mit Default-Assets. Damit der Content-Browser es anzeigt:
 
@@ -104,7 +104,7 @@ MayDialogue liefert ein Content-Verzeichnis mit Default-Assets. Damit der Conten
 
 ## Installation prüfen
 
-Erstelle einen neuen Ordner `Content/Dialogues/` und klicke:
+Erstelle einen Ordner `Content/Dialogues/` und:
 
 1. Rechtsklick im Content Browser → **May Dialogue → Dialogue Asset**.
 2. Asset benennen: `DA_Test_Install`.

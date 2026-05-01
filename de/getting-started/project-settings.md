@@ -22,15 +22,15 @@ MayDialogue registriert zwei Einstellungsabschnitte:
 
 | Property | Typ | Default | Wann ändern |
 | --- | --- | --- | --- |
-| `DefaultDialogueWidgetClass` | `TSoftClassPtr<UMayDialogueWidget>` | *(keins)* | Wenn du dein eigenes UMG-Widget verwenden willst. Leer lassen → Slate-Debug-Widget. |
+| `DefaultDialogueWidgetClass` | `TSoftClassPtr<UMayDialogueWidget>` | *(keins)* | Wenn du dein eigenes UMG-Widget verwenden willst. Leer lassen zeigt das Slate-Debug-Widget. |
 | `bUseSlateDialogueWidget` | bool | `true` | Auf `false` setzen, sobald du `DefaultDialogueWidgetClass` gesetzt hast und das Debug-Widget nicht mehr brauchst. |
 | `PanelBlurStrength` | float | `10.0` | Blur-Stärke des Slate-Debug-Panels. Nur relevant, solange du das Debug-Widget nutzt. |
 
 {% hint style="info" %}
-**Schnellste Wahl für den Start:** Lass `DefaultDialogueWidgetClass` leer und `bUseSlateDialogueWidget = true`. Das Debug-Widget erscheint automatisch — kein Widget-Blueprint nötig. Tausche es gegen dein eigenes Widget aus, sobald das Design steht.
+**Schnellste Wahl für den Start:** Lass `DefaultDialogueWidgetClass` leer und `bUseSlateDialogueWidget = true`. Das Debug-Widget erscheint automatisch, kein Widget-Blueprint nötig. Tausche es gegen dein eigenes aus, sobald das Design steht.
 {% endhint %}
 
-### UI — Komponenten-Defaults
+### UI: Komponenten-Defaults
 
 Wenn du `DefaultDialogueWidgetClass` nutzt, aber nicht alle Sub-Widgets als `BindWidget` darin hardcodieren willst, kannst du Fallback-Klassen für jeden Slot setzen:
 
@@ -38,7 +38,7 @@ Wenn du `DefaultDialogueWidgetClass` nutzt, aber nicht alle Sub-Widgets als `Bin
 | --- | --- |
 | `DefaultDialogFrameClass` | Haupt-Container (Hintergrund, Position) |
 | `DefaultSpeakerWidgetClass` | Portrait + Sprecher-Name |
-| `DefaultTextWidgetClass` | Typewriter-Text-Feld |
+| `DefaultTextWidgetClass` | Typewriter-Textfeld |
 | `DefaultChoiceButtonClass` | Einzelner Choice-Button |
 | `DefaultChoiceListClass` | Container für alle Choice-Buttons |
 | `DefaultSkipButtonClass` | "Weiter / Skip"-Button |
@@ -73,14 +73,14 @@ Details zur Architektur: [UI → UMG-Architektur](../ui/umg-architecture.md).
 | `bShowMouseCursorDuringDialogue` | bool | `true` | Zeigt den Cursor für Choice-Buttons. Nur aktiv, wenn `bSwitchToUIInputDuringDialogue = true`. |
 
 {% hint style="info" %}
-**Hinweis (für fortgeschrittene Setups mit eigenen Input-Modi):** Der Input-Mode wird nach Dialog-Ende hartkodiert auf `GameOnly` zurückgesetzt. Wenn dein Spiel vor dem Dialog einen anderen Modus verwendet (`UIOnly`, `GameAndUI`), musst du den Restore nach `OnDialogueEnded` manuell setzen. Für die meisten Projekte ist das Standardverhalten korrekt. Siehe [Known Issues](../troubleshooting/known-issues.md).
+**Hinweis für fortgeschrittene Setups mit eigenen Input-Modi:** Der Input-Mode wird nach Dialog-Ende hart auf `GameOnly` zurückgesetzt. Wenn dein Spiel vor dem Dialog einen anderen Modus nutzt (`UIOnly`, `GameAndUI`), musst du den Restore nach `OnDialogueEnded` manuell setzen. Für die meisten Projekte ist das Standardverhalten korrekt. Siehe [Known Issues](../troubleshooting/known-issues.md).
 {% endhint %}
 
 ### Audio
 
 | Property | Typ | Default | Bedeutung |
 | --- | --- | --- | --- |
-| `DefaultSoundClass` | `TSoftObjectPtr<USoundClass>` | *(keins)* | SoundClass für alle Dialog-Voices, wenn kein Sprecher-Override greift. Sollte auf deine Projekt-eigene "Voice"-SoundClass zeigen. |
+| `DefaultSoundClass` | `TSoftObjectPtr<USoundClass>` | *(keins)* | SoundClass für alle Dialog-Voices, wenn kein Sprecher-Override greift. Zeige hier auf deine Projekt-eigene "Voice"-SoundClass. |
 | `DefaultAttenuation` | `TSoftObjectPtr<USoundAttenuation>` | *(keins)* | 3D-Attenuation für Voices. Zeige hier auf dein Basis-Attenuation-Asset. |
 | `bForce2D` | bool | `false` | Alle Dialog-Voices in 2D abspielen (Visual-Novel-Modus). |
 
@@ -88,7 +88,7 @@ Details zur Architektur: [UI → UMG-Architektur](../ui/umg-architecture.md).
 
 | Property | Typ | Default | Bedeutung |
 | --- | --- | --- | --- |
-| `bEnableBabelVoice` | bool | `false` | Aktiviert prozedurale Nonsense-Stimmen für SayLines ohne Voice-Asset. |
+| `bEnableBabelVoice` | bool | `false` | Aktiviert prozedurale Platzhalter-Stimmen für SayLines ohne Voice-Asset. |
 | `DefaultBabelProfile` | `TSoftObjectPtr<UMayDialogueBabelProfile>` | *(Plugin-Default)* | Fallback-Profil für Sprecher ohne eigenes Babel-Profil. |
 
 Details: [Audio → Babel-System](../audio/babel-system.md).
@@ -100,11 +100,11 @@ Details: [Audio → Babel-System](../audio/babel-system.md).
 | `bAutoFocusSpeaker` | bool | `false` | Kamera schwenkt automatisch auf den aktuellen Sprecher, ohne dass du einen CameraFocus-Node setzen musst. |
 | `DefaultCameraBlendTime` | float | `0.5` | Blend-Dauer in Sekunden, wenn ein CameraFocus-Node keine eigene Zeit angibt. |
 
-### GAS — Lifecycle Cue Bindings
+### GAS: Lifecycle Cue Bindings
 
 | Property | Typ | Bedeutung |
 | --- | --- | --- |
-| `LifecycleCueBindings` | `TArray<FMayDialogueCueLifecycleBinding>` | Deklarative Tabelle: "Wenn Dialog-Event X eintritt, feuere Gameplay Cue Y auf dem Instigator-ASC." |
+| `LifecycleCueBindings` | `TArray<FMayDialogueCueLifecycleBinding>` | Deklarative Tabelle: wenn Dialog-Event X eintritt, feuere Gameplay Cue Y auf dem Instigator-ASC. |
 
 Jeder Eintrag (`FMayDialogueCueLifecycleBinding`) hat:
 
@@ -115,10 +115,10 @@ Jeder Eintrag (`FMayDialogueCueLifecycleBinding`) hat:
 | `CueTag` | Der GameplayCue-Tag (muss unter `GameplayCue`-Hierarchie liegen) |
 | `Mode` | `Execute` (One-Shot), `Add` (persistent), `Remove` |
 
-Damit kannst du z.B. einen Blur-Cue feuern, wenn ein Dialog startet, ohne Blueprint-Code schreiben zu müssen.
+Damit kannst du zum Beispiel einen Blur-Cue feuern, wenn ein Dialog startet, ohne Blueprint-Code schreiben zu müssen.
 
 > 📸 **Bild-Platzhalter:** `settings-runtime-panel.png` — Project Settings mit dem ausgefüllten MayDialogue-Panel.
-> *Setup:* Project Settings → MayDialogue. Sichtbar: Abschnitte "UI", "Dialogue Defaults", "Typewriter", "Input", "Audio", "Babel Voice", "Camera", "GAS Lifecycle Cues". Die wichtigsten Felder ausgefüllt: `DefaultSoundClass` und `DefaultAttenuation` mit Projekt-Assets belegt, `bEnableTypewriterEffect = true`, `DefaultAdvanceMode = Manual`.
+> *Setup:* Project Settings → MayDialogue. Sichtbar: Abschnitte "UI", "Dialogue Defaults", "Typewriter", "Input", "Audio", "Babel Voice", "Camera", "GAS Lifecycle Cues". Wichtigste Felder ausgefüllt: `DefaultSoundClass` und `DefaultAttenuation` mit Projekt-Assets, `bEnableTypewriterEffect = true`, `DefaultAdvanceMode = Manual`.
 
 ---
 
@@ -152,7 +152,7 @@ Sprecher-Farben werden **pro Dialog-Asset** im Speakers-Panel definiert und übe
 
 ## Empfohlene Mindestkonfiguration für ein neues Projekt
 
-Wenn du ein Projekt von Null aufbaust, reicht zunächst:
+Wenn du ein Projekt von Null aufbaust, reichen zunächst vier Einstellungen:
 
 1. **`DefaultSoundClass`** auf deine Projekt-eigene Voice-SoundClass zeigen lassen.
 2. **`DefaultAttenuation`** auf dein Basis-Attenuation-Asset zeigen lassen.
@@ -160,4 +160,4 @@ Wenn du ein Projekt von Null aufbaust, reicht zunächst:
 4. Alles andere kann bei den Defaults bleiben, bis du gezielt etwas anpassen musst.
 
 > 📸 **Bild-Platzhalter:** `settings-minimum-config.png` — Project Settings mit der Mindestkonfiguration für ein neues Projekt.
-> *Setup:* MayDialogue-Settings-Panel. Nur `DefaultSoundClass` und `DefaultAttenuation` sind mit Assets belegt (Pfeile zeigen auf Projekt-Assets). Alle anderen Felder sind leer oder auf Default-Wert. Roter Pfeil auf `DefaultSoundClass` und `DefaultAttenuation`.
+> *Setup:* MayDialogue-Settings-Panel. Nur `DefaultSoundClass` und `DefaultAttenuation` sind mit Assets belegt. Alle anderen Felder leer oder auf Default-Wert. Roter Pfeil auf `DefaultSoundClass` und `DefaultAttenuation`.

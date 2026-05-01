@@ -22,15 +22,15 @@ Open both under **Edit → Project Settings → Plugins**.
 
 | Property | Type | Default | When to change |
 | --- | --- | --- | --- |
-| `DefaultDialogueWidgetClass` | `TSoftClassPtr<UMayDialogueWidget>` | *(none)* | When you want to use your own UMG widget. Leave empty → Slate debug widget. |
+| `DefaultDialogueWidgetClass` | `TSoftClassPtr<UMayDialogueWidget>` | *(none)* | When you want to use your own UMG widget. Leave empty to get the Slate debug widget. |
 | `bUseSlateDialogueWidget` | bool | `true` | Set to `false` once you have set `DefaultDialogueWidgetClass` and no longer need the debug widget. |
 | `PanelBlurStrength` | float | `10.0` | Blur strength of the Slate debug panel. Only relevant while using the debug widget. |
 
 {% hint style="info" %}
-**Quickest choice to get started:** Leave `DefaultDialogueWidgetClass` empty and keep `bUseSlateDialogueWidget = true`. The debug widget appears automatically — no widget Blueprint needed. Swap it for your own widget once the design is ready.
+**Quickest choice to get started:** Leave `DefaultDialogueWidgetClass` empty and keep `bUseSlateDialogueWidget = true`. The debug widget appears automatically, no widget Blueprint needed. Swap it for your own widget once the design is ready.
 {% endhint %}
 
-### UI — Component Defaults
+### UI: Component Defaults
 
 If you use `DefaultDialogueWidgetClass` but don't want to hardcode all sub-widgets as `BindWidget` inside it, you can set fallback classes for each slot:
 
@@ -69,18 +69,18 @@ Architecture details: [UI → UMG Architecture](../ui/umg-architecture.md).
 | --- | --- | --- | --- |
 | `bAllowSkipTypewriter` | bool | `true` | Player input shows the full text immediately. |
 | `bAllowSkipVoiceLine` | bool | `true` | Player input stops the current voice playback and moves to the next node. |
-| `bSwitchToUIInputDuringDialogue` | bool | `true` | Sets input mode to `Game+UI` so that cursor and UI interaction work. |
+| `bSwitchToUIInputDuringDialogue` | bool | `true` | Sets input mode to `Game+UI` so cursor and UI interaction work. |
 | `bShowMouseCursorDuringDialogue` | bool | `true` | Shows the cursor for choice buttons. Only active when `bSwitchToUIInputDuringDialogue = true`. |
 
 {% hint style="info" %}
-**Note (for advanced setups with custom input modes):** The input mode is hard-coded back to `GameOnly` after the dialogue ends. If your game uses a different mode before the dialogue (`UIOnly`, `GameAndUI`), you need to restore it manually after `OnDialogueEnded`. For most projects the default behavior is correct. See [Known Issues](../troubleshooting/known-issues.md).
+**Note for advanced setups with custom input modes:** The input mode is hard-coded back to `GameOnly` after the dialogue ends. If your game uses a different mode before the dialogue (`UIOnly`, `GameAndUI`), you need to restore it manually after `OnDialogueEnded`. For most projects the default behavior is correct. See [Known Issues](../troubleshooting/known-issues.md).
 {% endhint %}
 
 ### Audio
 
 | Property | Type | Default | Meaning |
 | --- | --- | --- | --- |
-| `DefaultSoundClass` | `TSoftObjectPtr<USoundClass>` | *(none)* | SoundClass for all dialogue voices when no speaker override applies. Should point to your project's "Voice" SoundClass. |
+| `DefaultSoundClass` | `TSoftObjectPtr<USoundClass>` | *(none)* | SoundClass for all dialogue voices when no speaker override applies. Point this at your project's "Voice" SoundClass. |
 | `DefaultAttenuation` | `TSoftObjectPtr<USoundAttenuation>` | *(none)* | 3D attenuation for voices. Point this at your base attenuation asset. |
 | `bForce2D` | bool | `false` | Play all dialogue voices in 2D (visual novel mode). |
 
@@ -88,7 +88,7 @@ Architecture details: [UI → UMG Architecture](../ui/umg-architecture.md).
 
 | Property | Type | Default | Meaning |
 | --- | --- | --- | --- |
-| `bEnableBabelVoice` | bool | `false` | Enables procedural nonsense voices for SayLines without a voice asset. |
+| `bEnableBabelVoice` | bool | `false` | Enables procedural placeholder voices for SayLines without a voice asset. |
 | `DefaultBabelProfile` | `TSoftObjectPtr<UMayDialogueBabelProfile>` | *(plugin default)* | Fallback profile for speakers without their own BabelProfile. |
 
 Details: [Audio → Babel System](../audio/babel-system.md).
@@ -100,11 +100,11 @@ Details: [Audio → Babel System](../audio/babel-system.md).
 | `bAutoFocusSpeaker` | bool | `false` | Camera automatically pans to the current speaker without needing a CameraFocus node. |
 | `DefaultCameraBlendTime` | float | `0.5` | Blend duration in seconds when a CameraFocus node specifies no time of its own. |
 
-### GAS — Lifecycle Cue Bindings
+### GAS: Lifecycle Cue Bindings
 
 | Property | Type | Meaning |
 | --- | --- | --- |
-| `LifecycleCueBindings` | `TArray<FMayDialogueCueLifecycleBinding>` | Declarative table: "When dialogue event X occurs, fire GameplayCue Y on the instigator's ASC." |
+| `LifecycleCueBindings` | `TArray<FMayDialogueCueLifecycleBinding>` | Declarative table: when dialogue event X occurs, fire GameplayCue Y on the instigator's ASC. |
 
 Each entry (`FMayDialogueCueLifecycleBinding`) has:
 
@@ -152,12 +152,12 @@ Speaker colors are defined **per dialogue asset** in the Speakers panel and over
 
 ## Recommended minimum configuration for a new project
 
-When starting a project from scratch, the following is sufficient to begin with:
+When starting a project from scratch, these four settings are enough to begin:
 
 1. Point **`DefaultSoundClass`** at your project's voice SoundClass.
 2. Point **`DefaultAttenuation`** at your base attenuation asset.
 3. Point **`DefaultSpeakerWidgetClass`** and **`DefaultDialogFrameClass`** at your Blueprint subclasses once you have built initial UI widgets.
-4. Everything else can stay at defaults until you need to customize something specific.
+4. Everything else can stay at defaults until you need to change something specific.
 
 > 📸 **Image placeholder:** `settings-minimum-config.png` — Project Settings with the minimum configuration for a new project.
 > *Setup:* MayDialogue settings panel. Only `DefaultSoundClass` and `DefaultAttenuation` are populated with assets (arrows pointing at project assets). All other fields are empty or at default. Red arrows on `DefaultSoundClass` and `DefaultAttenuation`.
