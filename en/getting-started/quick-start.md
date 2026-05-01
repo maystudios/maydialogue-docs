@@ -137,7 +137,7 @@ In the asset editor, find the **Preview** panel (docked below the graph by defau
 * When a PlayerChoice node is reached, clickable choice buttons appear — select one to continue.
 * Click **Stop** (or let the dialogue reach the Exit node) to end the session.
 
-> 📸 **Image placeholder:** `quickstart-preview-runner.png` — Preview panel running the DA_Greeting_Simple dialogue in the editor.
+![Preview panel running the DA_Greeting_Simple dialogue in the editor with the active node highlighted in the graph](../../assets/quickstart-preview-runner.png)
 
 This is the fastest way to verify flow and text before touching the level. Requirements and side effects that depend on GAS or persistent variables are skipped in the preview, but the branching structure is fully testable.
 
@@ -183,8 +183,7 @@ In the Blueprint graph of your trigger actor or player logic:
 3. On the participant: call **Start Default Dialogue**.
 4. `Other` parameter: reference to the player's participant component.
 
-> 📸 **Image placeholder:** `quickstart-10-blueprint-trigger.png` — Blueprint graph of a trigger actor with the StartDialogue call.
-> *Setup:* BP graph of a box trigger actor. Event `OnComponentBeginOverlap` → `Get Component by Class (MayDialogueParticipant)` on the guard actor → `Start Default Dialogue` with `Other` = player participant reference. All pins labeled, execution arrows visible.
+![Blueprint graph of a trigger actor: OnComponentBeginOverlap → Get MayDialogueParticipant → Start Default Dialogue with player participant as Other](../../assets/quickstart-10-blueprint-trigger.png)
 
 **Option B — via the library function:**
 
@@ -224,8 +223,7 @@ What you see:
 * Two choice buttons appear.
 * Clicking a choice leads to the matching reaction, and the dialogue ends.
 
-> 📸 **Image placeholder:** `quickstart-11-ingame.png` — In-game screenshot of the running dialogue in PIE.
-> *Setup:* PIE active. In the viewport the Slate debug widget is visible: speaker name "Guard" at the top, text "Halt! Who are you?" below it, two choice buttons "A friend of the king." and "That's none of your business." at the bottom. The guard actor visible in the background.
+![In-game PIE screenshot showing the Slate debug widget with speaker name, dialogue text and two choice buttons](../../assets/quickstart-11-ingame.png)
 
 {% hint style="success" %}
 You now have a playable dialogue with no UMG setup, no audio configuration, and no input handling code.

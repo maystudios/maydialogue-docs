@@ -137,7 +137,7 @@ Suche im Asset-Editor das **Preview**-Panel (standardmäßig unterhalb des Graph
 * Sobald ein PlayerChoice-Node erreicht wird, erscheinen anklickbare Choice-Buttons — Klick auf eine Choice setzt den Ablauf fort.
 * Klicke **Stop** (oder lass den Dialog den Exit-Node erreichen), um die Session zu beenden.
 
-> 📸 **Bild-Platzhalter:** `quickstart-preview-runner.png` — Preview-Panel mit laufendem DA_Greeting_Simple-Dialog im Editor.
+![Preview-Panel mit laufendem DA_Greeting_Simple-Dialog im Editor, aktiver Node im Graphen hervorgehoben](../../assets/quickstart-preview-runner.png)
 
 Das ist der schnellste Weg, um Ablauf und Text zu prüfen, bevor du das Level anfasst. Requirements und Side Effects, die von GAS oder persistenten Variablen abhängen, werden im Preview übersprungen — die Verzweigungsstruktur ist aber vollständig testbar.
 
@@ -183,8 +183,7 @@ Im Blueprint-Graph deines Trigger-Actors oder deiner Spieler-Logik:
 3. Auf dem Participant: **Start Default Dialogue** aufrufen.
 4. `Other`-Parameter: Referenz zur Spieler-Participant-Komponente.
 
-> 📸 **Bild-Platzhalter:** `quickstart-10-blueprint-trigger.png` — Blueprint-Graph eines Trigger-Actors mit dem StartDialogue-Aufruf.
-> *Setup:* BP-Graph eines Box-Trigger-Actors. Event `OnComponentBeginOverlap` → `Get Component by Class (MayDialogueParticipant)` auf dem Wächter-Actor → `Start Default Dialogue` mit `Other` = Spieler-Participant-Referenz. Alle Pins beschriftet, Ausführungspfeile sichtbar.
+![Blueprint-Graph eines Trigger-Actors: OnComponentBeginOverlap → Get MayDialogueParticipant → Start Default Dialogue mit Spieler-Participant als Other](../../assets/quickstart-10-blueprint-trigger.png)
 
 **Variante B — über die Library-Funktion:**
 
@@ -224,8 +223,7 @@ Was du siehst:
 * Zwei Choice-Buttons erscheinen.
 * Klick auf eine Choice führt zur passenden Reaktion und der Dialog endet.
 
-> 📸 **Bild-Platzhalter:** `quickstart-11-ingame.png` — In-Game-Screenshot des laufenden Dialogs im PIE.
-> *Setup:* PIE aktiv. Im Viewport ist das Slate-Debug-Widget sichtbar: oben der Sprecher-Name "Wächter", darunter der Text "Halt! Wer bist du?", unten zwei Choice-Buttons "Ein Freund des Königs." und "Das geht dich nichts an.". Der Wächter-Actor im Hintergrund sichtbar.
+![In-Game PIE-Screenshot: Slate-Debug-Widget mit Sprecher-Name, Dialogtext und zwei Choice-Buttons im Viewport](../../assets/quickstart-11-ingame.png)
 
 {% hint style="success" %}
 Du hast einen spielbaren Dialog ohne UMG-Setup, ohne Audio-Konfiguration und ohne Input-Handling-Code.
