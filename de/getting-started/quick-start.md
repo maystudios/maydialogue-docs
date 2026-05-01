@@ -99,15 +99,6 @@ Verbinden:
 2. SayLine A Output-Pin → Exit Input-Pin verbinden.
 3. SayLine B Output-Pin → Exit Input-Pin verbinden (gleicher Exit-Node).
 
-Dein Graph sieht jetzt so aus:
-
-```
-[Entry] → [SayLine: "Halt!"] → [PlayerChoice]
-                                 ├─ Pin 0 → [SayLine: "Passiere"] ─┐
-                                 └─ Pin 1 → [SayLine: "Verzieh"]  ─┤
-                                                                  [Exit]
-```
-
 ![Fertiger DA_Greeting_Simple-Graph: Entry → SayLine → PlayerChoice → zwei Reaktions-SayLines → Exit](../../assets/quickstart-08-final-graph.png)
 
 ---
