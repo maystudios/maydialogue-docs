@@ -146,7 +146,7 @@ Falls der Validator Fehler meldet, behebe sie im **Compiler Results**-Panel:
 1. Öffne dein Spieler-Pawn-Blueprint (z.B. `BP_ThirdPersonCharacter`) im Blueprint-Editor.
 2. Im **Components**-Panel oben links: **Add Component → MayDialogue Participant**.
 3. Komponente konfigurieren:
-   * `ParticipantTag`: `Player.Character`
+   * `ParticipantTag`: `Dialogue.Speaker.Player`
 
 Das Plugin benötigt diese Komponente, um zu wissen, wer der Instigator des Dialogs ist — auch wenn der Spieler selbst im Quick Start keine eigenen SayLines hat.
 
@@ -174,6 +174,8 @@ Im Blueprint-Graph deines Trigger-Actors oder deiner Spieler-Logik:
 > *Setup:* BP-Graph eines Box-Trigger-Actors. Event `OnComponentBeginOverlap` → `Get Component by Class (MayDialogueParticipant)` auf dem Wächter-Actor → `Start Default Dialogue` mit `Other` = Spieler-Participant-Referenz. Alle Pins beschriftet, Ausführungspfeile sichtbar.
 
 **Variante B — über die Library-Funktion:**
+
+![Blueprint-Graph: StartDialogue am MayDialogue Subsystem mit DA_Greeting_Simple, Get Player Pawn als Instigator und Self als Target](../../assets/quickstart-10b-library-trigger.png)
 
 ```
 MayDialogueLibrary → StartDialogue

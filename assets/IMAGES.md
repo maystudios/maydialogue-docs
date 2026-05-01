@@ -34,6 +34,7 @@ Once a file is uploaded, the corresponding placeholder in the Markdown files can
 - [ ] `quickstart-08-final-graph.png`
 - [ ] `quickstart-09-participant-component.png`
 - [ ] `quickstart-10-blueprint-trigger.png`
+- [x] `quickstart-10b-library-trigger.png`
 - [ ] `quickstart-11-ingame.png`
 
 ### First Dialogue Walkthrough
