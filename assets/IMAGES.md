@@ -29,10 +29,10 @@ Once a file is uploaded, the corresponding placeholder in the Markdown files can
 - [x] `quickstart-03-speakers-panel.png`
 - [x] `quickstart-04-first-sayline.png`
 - ~~`quickstart-05-sayline-properties.png`~~ *(entfernt — 04 zeigt Details-Panel bereits)*
-- [ ] `quickstart-06-playerchoice.png`
-- [ ] `quickstart-07-reactions.png`
-- [ ] `quickstart-08-final-graph.png`
-- [ ] `quickstart-09-participant-component.png`
+- [x] `quickstart-06-playerchoice.png`
+- [x] `quickstart-07-reactions.png`
+- [x] `quickstart-08-final-graph.png`
+- [x] `quickstart-09-participant-component.png`
 - [ ] `quickstart-10-blueprint-trigger.png`
 - [x] `quickstart-10b-library-trigger.png`
 - [ ] `quickstart-11-ingame.png`

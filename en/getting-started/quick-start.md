@@ -69,8 +69,7 @@ The node's title bar automatically takes on the color of the selected speaker (d
    * Choice 0: Text `A friend of the king.`
    * Choice 1: Text `That's none of your business.`
 
-> 📸 **Image placeholder:** `quickstart-06-playerchoice.png` — PlayerChoice node with two choices in the graph.
-> *Setup:* Graph shows the chain `Entry → SayLine → PlayerChoice`. The PlayerChoice node is wider than the SayLine, and in the body two Choice Sub-Nodes are visible as pills: "A friend of the king." and "That's none of your business." Two output pins on the right of the node (Pin 0 and Pin 1).
+![PlayerChoice node with two choices in the graph, connected after the SayLine](../../assets/quickstart-06-playerchoice.png)
 
 ---
 
@@ -90,8 +89,7 @@ Connect:
 * PlayerChoice output pin 0 → SayLine A input pin.
 * PlayerChoice output pin 1 → SayLine B input pin.
 
-> 📸 **Image placeholder:** `quickstart-07-reactions.png` — Both reaction SayLines in the graph with connections from the PlayerChoice.
-> *Setup:* Graph shows `PlayerChoice` with two outgoing arrows: output pin 0 → SayLine A "Then pass in peace." (dark red); output pin 1 → SayLine B "Then get out of here!" (dark red). Both SayLines to the right of the PlayerChoice, connection lines clearly visible labeled "0" and "1".
+![Both reaction SayLines connected from PlayerChoice output pins 0 and 1](../../assets/quickstart-07-reactions.png)
 
 ---
 
@@ -110,8 +108,7 @@ Your graph now looks like this:
                                                                         [Exit]
 ```
 
-> 📸 **Image placeholder:** `quickstart-08-final-graph.png` — Finished graph with all nodes and connections.
-> *Setup:* Overview of the complete graph `DA_Greeting_Simple`. Left to right: `Entry` (green capsule) → `SayLine "Halt! Who are you?"` (dark red) → `PlayerChoice` (wide, 2 output pins) → top `SayLine "Then pass in peace"` (dark red) and bottom `SayLine "Then get out!"` (dark red) → both arrows meet at the shared `Exit` (red capsule). Horizontal layout, all connection arrows clearly visible.
+![Complete DA_Greeting_Simple graph: Entry → SayLine → PlayerChoice → two reaction SayLines → Exit](../../assets/quickstart-08-final-graph.png)
 
 ---
 
@@ -150,8 +147,7 @@ If the validator reports errors, fix them in the **Compiler Results** panel:
 
 The plugin needs this component to know who the instigator of the dialogue is — even if the player has no SayLines of their own in this Quick Start.
 
-> 📸 **Image placeholder:** `quickstart-09-participant-component.png` — Details panel of the guard actor with the MayDialogueParticipant component.
-> *Setup:* Details panel of a level actor. In the component list, `MayDialogueParticipant` is visible (selected). Below it the properties: `ParticipantTag = Dialogue.Speaker.Guard`, `DisplayName = Guard`, `DefaultDialogue = DA_Greeting_Simple`. Red arrow pointing at `DefaultDialogue`.
+![Details panel of the guard actor showing the MayDialogueParticipant component with ParticipantTag, DisplayName and DefaultDialogue filled in](../../assets/quickstart-09-participant-component.png)
 
 ---
 

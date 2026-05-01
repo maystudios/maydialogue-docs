@@ -69,8 +69,7 @@ Die Title-Bar des Nodes nimmt automatisch die Farbe des gewählten Sprechers an 
    * Choice 0: Text `Ein Freund des Königs.`
    * Choice 1: Text `Das geht dich nichts an.`
 
-> 📸 **Bild-Platzhalter:** `quickstart-06-playerchoice.png` — PlayerChoice-Node mit zwei Choices im Graph.
-> *Setup:* Graph zeigt die Kette `Entry → SayLine → PlayerChoice`. Der PlayerChoice-Node ist breiter als die SayLine, im Body sind zwei Choice-Sub-Nodes als Pills sichtbar: "Ein Freund des Königs." und "Das geht dich nichts an.". Rechts am Node zwei Output-Pins (Pin 0 und Pin 1).
+![PlayerChoice-Node mit zwei Choices im Graph, nach der SayLine verbunden](../../assets/quickstart-06-playerchoice.png)
 
 ---
 
@@ -90,8 +89,7 @@ Verbinden:
 * Output-Pin 0 des PlayerChoice → SayLine A Input-Pin.
 * Output-Pin 1 des PlayerChoice → SayLine B Input-Pin.
 
-> 📸 **Bild-Platzhalter:** `quickstart-07-reactions.png` — Beide Reaktions-SayLines im Graph mit Verbindungen vom PlayerChoice.
-> *Setup:* Graph zeigt `PlayerChoice` mit zwei abgehenden Pfeilen: Output-Pin 0 → SayLine A "Dann passiere in Frieden." (dunkelrot); Output-Pin 1 → SayLine B "Dann verzieh dich!" (dunkelrot). Beide SayLines rechts vom PlayerChoice, die Verbindungslinien deutlich sichtbar beschriftet mit "0" und "1".
+![Beide Reaktions-SayLines im Graph, verbunden mit Output-Pin 0 und 1 des PlayerChoice](../../assets/quickstart-07-reactions.png)
 
 ---
 
@@ -110,8 +108,7 @@ Dein Graph sieht jetzt so aus:
                                                                   [Exit]
 ```
 
-> 📸 **Bild-Platzhalter:** `quickstart-08-final-graph.png` — Fertiger Graph mit allen Nodes und Verbindungen.
-> *Setup:* Übersichtsfoto des gesamten Graphen `DA_Greeting_Simple`. Von links nach rechts: `Entry` (grüne Kapsel) → `SayLine "Halt! Wer bist du?"` (dunkelrot) → `PlayerChoice` (breit, 2 Output-Pins) → oben `SayLine "Dann passiere"` (dunkelrot) und unten `SayLine "Dann verzieh dich!"` (dunkelrot) → beide Pfeile treffen sich am gemeinsamen `Exit` (rote Kapsel). Layout horizontal, alle Verbindungspfeile klar sichtbar.
+![Fertiger DA_Greeting_Simple-Graph: Entry → SayLine → PlayerChoice → zwei Reaktions-SayLines → Exit](../../assets/quickstart-08-final-graph.png)
 
 ---
 
@@ -150,8 +147,7 @@ Falls der Validator Fehler meldet, behebe sie im **Compiler Results**-Panel:
 
 Das Plugin benötigt diese Komponente, um zu wissen, wer der Instigator des Dialogs ist — auch wenn der Spieler selbst im Quick Start keine eigenen SayLines hat.
 
-> 📸 **Bild-Platzhalter:** `quickstart-09-participant-component.png` — Details-Panel des Wächter-Actors mit MayDialogueParticipant-Komponente.
-> *Setup:* Details-Panel eines Level-Actors. In der Komponenten-Liste ist `MayDialogueParticipant` sichtbar (ausgewählt). Darunter die Properties: `ParticipantTag = Dialogue.Speaker.Guard`, `DisplayName = Wächter`, `DefaultDialogue = DA_Greeting_Simple`. Roter Pfeil auf `DefaultDialogue`.
+![Details-Panel des Wächter-Actors mit der MayDialogueParticipant-Komponente und ausgefüllten Properties ParticipantTag, DisplayName und DefaultDialogue](../../assets/quickstart-09-participant-component.png)
 
 ---
 
