@@ -20,11 +20,9 @@ Voraussetzung: Plugin installiert (siehe [Installation](installation.md)).
 
 Du siehst einen leeren Graph mit einem **Entry-Node** (grüne Kapsel). Der Entry-Node ist immer vorhanden und immer der Startpunkt des Dialogs.
 
-> 📸 **Bild-Platzhalter:** `quickstart-01-new-asset.png` — Content Browser mit dem neuen Asset `DA_Greeting_Simple`.
-> *Setup:* Content Browser, Ordner `Content/Dialogues/`, das neue Asset mit dem MayDialogue-Icon sichtbar. Roter Pfeil auf das Asset.
+![Content Browser mit dem neuen Dialogue Asset DA_Greeting_Simple](../../assets/quickstart-01-new-asset.png)
 
-> 📸 **Bild-Platzhalter:** `quickstart-02-empty-graph.png` — Leerer MayDialogue-Graph mit Entry-Node.
-> *Setup:* Graph-Editor geöffnet mit dem Asset `DA_Greeting_Simple`. Sichtbar: nur der Entry-Node (grüne kompakte Kapsel) in der Mitte des Graphen, sonst leere Canvas. Speakers-Panel rechts leer, Outline-Panel links leer.
+![Leerer MayDialogue-Graph mit Entry- und Exit-Node](../../assets/quickstart-02-empty-graph.png)
 
 ---
 
@@ -44,8 +42,7 @@ Im **Speakers-Panel** (Seitenleiste des Asset-Editors):
 3. DisplayName: `Du`.
 4. NodeColor: Grau.
 
-> 📸 **Bild-Platzhalter:** `quickstart-03-speakers-panel.png` — Speakers-Panel mit zwei konfigurierten Sprechern.
-> *Setup:* Das Speakers-Panel rechts im Asset-Editor. Zwei Einträge sichtbar: "Wächter" mit dunkelrotem Farb-Chip und Tag `Dialogue.Speaker.Guard`; "Du" mit grauem Farb-Chip und Tag `Dialogue.Speaker.Player`. Beide Einträge vollständig ausgeklappt, alle Felder sichtbar.
+![Speakers-Panel mit zwei konfigurierten Sprechern: You und Guard](../../assets/quickstart-03-speakers-panel.png)
 
 ---
 
@@ -59,11 +56,7 @@ Im **Speakers-Panel** (Seitenleiste des Asset-Editors):
 
 Die Title-Bar des Nodes nimmt automatisch die Farbe des gewählten Sprechers an (dunkelrot).
 
-> 📸 **Bild-Platzhalter:** `quickstart-04-first-sayline.png` — Graph mit Entry-Node und erster SayLine verbunden.
-> *Setup:* Graph zeigt von links nach rechts: `Entry`-Node (grüne Kapsel), Pfeil zum `SayLine`-Node (dunkelrote Title-Bar, Text "Halt! Wer bist du?" sichtbar im Node-Body, Sprecher: Wächter). Verbindungspfeil zwischen Entry-Output-Pin und SayLine-Input-Pin sichtbar.
-
-> 📸 **Bild-Platzhalter:** `quickstart-05-sayline-properties.png` — Details-Panel der ersten SayLine.
-> *Setup:* SayLine-Node ausgewählt. Details-Panel rechts zeigt: `SpeakerTag = Dialogue.Speaker.Guard`, `DialogueText = "Halt! Wer bist du?"`, `AdvanceModeOverride = (keiner)`. Rote Pfeile auf SpeakerTag und DialogueText.
+![Graph mit Entry-Node und erster verbundener SayLine](../../assets/quickstart-04-first-sayline.png)
 
 ---
 

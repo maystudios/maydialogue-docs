@@ -20,11 +20,9 @@ Prerequisite: Plugin installed (see [Installation](installation.md)).
 
 You will see an empty graph with an **Entry node** (green capsule). The Entry node is always present and is always the starting point of the dialogue.
 
-> 📸 **Image placeholder:** `quickstart-01-new-asset.png` — Content Browser showing the new asset `DA_Greeting_Simple`.
-> *Setup:* Content Browser, folder `Content/Dialogues/`, the new asset with the MayDialogue icon visible. Red arrow pointing at the asset.
+![Content Browser showing the new Dialogue Asset DA_Greeting_Simple](../../assets/quickstart-01-new-asset.png)
 
-> 📸 **Image placeholder:** `quickstart-02-empty-graph.png` — Empty MayDialogue graph with Entry node.
-> *Setup:* Graph editor open with asset `DA_Greeting_Simple`. Visible: only the Entry node (green compact capsule) in the center of the graph, otherwise empty canvas. Speakers panel on the right is empty, Outline panel on the left is empty.
+![Empty MayDialogue graph with Entry and Exit node](../../assets/quickstart-02-empty-graph.png)
 
 ---
 
@@ -44,8 +42,7 @@ In the **Speakers panel** (sidebar of the asset editor):
 3. DisplayName: `You`.
 4. NodeColor: Grey.
 
-> 📸 **Image placeholder:** `quickstart-03-speakers-panel.png` — Speakers panel with two configured speakers.
-> *Setup:* The Speakers panel on the right in the asset editor. Two entries visible: "Guard" with a dark red color chip and tag `Dialogue.Speaker.Guard`; "You" with a grey color chip and tag `Dialogue.Speaker.Player`. Both entries fully expanded, all fields visible.
+![Speakers panel with two configured speakers: You and Guard](../../assets/quickstart-03-speakers-panel.png)
 
 ---
 
@@ -59,11 +56,7 @@ In the **Speakers panel** (sidebar of the asset editor):
 
 The node's title bar automatically takes on the color of the selected speaker (dark red).
 
-> 📸 **Image placeholder:** `quickstart-04-first-sayline.png` — Graph with Entry node and first SayLine connected.
-> *Setup:* Graph shows left to right: `Entry` node (green capsule), arrow to `SayLine` node (dark red title bar, text "Halt! Who are you?" visible in the node body, speaker: Guard). Connection arrow between Entry output pin and SayLine input pin visible.
-
-> 📸 **Image placeholder:** `quickstart-05-sayline-properties.png` — Details panel of the first SayLine.
-> *Setup:* SayLine node selected. Details panel on the right shows: `SpeakerTag = Dialogue.Speaker.Guard`, `DialogueText = "Halt! Who are you?"`, `AdvanceModeOverride = (none)`. Red arrows pointing at SpeakerTag and DialogueText.
+![Graph with Entry node and first SayLine connected](../../assets/quickstart-04-first-sayline.png)
 
 ---
 
