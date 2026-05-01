@@ -9,9 +9,9 @@ Der [Quick Start](quick-start.md) hat gezeigt, wie du in fünf Minuten einen spi
 {% hint style="warning" %}
 **Voraussetzungen für Schritte 6 und 7 (GAS-Attribut und ApplyEffect):**
 
-- Das **Gameplay Ability System** (GAS) muss in deinem Projekt aktiviert sein.
-- Du benötigst ein eigenes `UAttributeSet` mit dem Attribut `Reputation.Guards` auf dem Spieler-ASC.
-- Du benötigst einen GameplayEffect `GE_GuardTrust`, der dieses Attribut erhöht.
+* Das **Gameplay Ability System** (GAS) muss in deinem Projekt aktiviert sein.
+* Du benötigst ein eigenes `UAttributeSet` mit dem Attribut `Reputation.Guards` auf dem Spieler-ASC.
+* Du benötigst einen GameplayEffect `GE_GuardTrust`, der dieses Attribut erhöht.
 
 **Kein GAS in deinem Projekt?** Überspringe Schritt 6 (Requirement auf Choice 1) und Schritt 7 (ApplyEffect) und ersetze sie durch einfache Variable-Checks bzw. SetVariable-SideEffects aus dem Dialogue-Scope. Eine nicht-GAS-Variante findest du im Abschnitt [Optional: Variablen-Variante ohne GAS](#optional-variablen-variante-ohne-gas) am Ende dieses Walkthroughs.
 {% endhint %}

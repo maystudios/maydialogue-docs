@@ -30,13 +30,13 @@ Du siehst einen leeren Graph mit einem **Entry-Node** (grüne Kapsel). Der Entry
 
 Im **Speakers-Panel** (Seitenleiste des Asset-Editors):
 
-**Sprecher 1: Wächter:**
+**Wächter (Sprecher 1):**
 1. **Add Speaker** klicken.
 2. Tag: `Dialogue.Speaker.Guard`.
 3. DisplayName: `Wächter`.
 4. NodeColor: Dunkelrot.
 
-**Sprecher 2: Spieler:**
+**Spieler (Sprecher 2):**
 1. **Add Speaker** klicken.
 2. Tag: `Dialogue.Speaker.Player`.
 3. DisplayName: `Du`.

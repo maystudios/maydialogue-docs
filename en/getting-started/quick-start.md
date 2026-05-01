@@ -30,13 +30,13 @@ You will see an empty graph with an **Entry node** (green capsule). The Entry no
 
 In the **Speakers panel** (sidebar of the asset editor):
 
-**Speaker 1: Guard:**
+**Guard (Speaker 1):**
 1. Click **Add Speaker**.
 2. Tag: `Dialogue.Speaker.Guard`.
 3. DisplayName: `Guard`.
 4. NodeColor: Dark red.
 
-**Speaker 2: Player:**
+**Player (Speaker 2):**
 1. Click **Add Speaker**.
 2. Tag: `Dialogue.Speaker.Player`.
 3. DisplayName: `You`.

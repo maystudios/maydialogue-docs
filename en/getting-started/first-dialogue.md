@@ -9,9 +9,9 @@ The [Quick Start](quick-start.md) showed you how to build a playable dialogue in
 {% hint style="warning" %}
 **Prerequisites for steps 6 and 7 (GAS attribute and ApplyEffect):**
 
-- The **Gameplay Ability System** (GAS) must be enabled in your project.
-- You need a custom `UAttributeSet` with the attribute `Reputation.Guards` on the player's ASC.
-- You need a GameplayEffect `GE_GuardTrust` that increases this attribute.
+* The **Gameplay Ability System** (GAS) must be enabled in your project.
+* You need a custom `UAttributeSet` with the attribute `Reputation.Guards` on the player's ASC.
+* You need a GameplayEffect `GE_GuardTrust` that increases this attribute.
 
 **No GAS in your project?** Skip step 6 (requirement on Choice 1) and step 7 (ApplyEffect) and replace them with simple variable checks or SetVariable SideEffects from the dialogue scope. A non-GAS variant is described in the [Optional: Variable Variant Without GAS](#optional-variable-variant-without-gas) section at the end of this walkthrough.
 {% endhint %}
