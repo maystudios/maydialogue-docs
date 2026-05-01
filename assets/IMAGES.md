@@ -36,6 +36,7 @@ Once a file is uploaded, the corresponding placeholder in the Markdown files can
 - [ ] `quickstart-10-blueprint-trigger.png`
 - [x] `quickstart-10b-library-trigger.png`
 - [ ] `quickstart-11-ingame.png`
+- [ ] `quickstart-preview-runner.png`
 
 ### First Dialogue Walkthrough
 

@@ -126,6 +126,23 @@ Falls der Validator Fehler meldet, behebe sie im **Compiler Results**-Panel:
 
 ---
 
+## Optional: Schnelltest im Editor — Preview Runner
+
+Bevor du einen einzigen Level-Actor platzierst, kannst du den gesamten Dialog-Ablauf direkt im Asset-Editor durchspielen — ohne PIE.
+
+Suche im Asset-Editor das **Preview**-Panel (standardmäßig unterhalb des Graphen angedockt). Klicke auf **Play**, um zu starten:
+
+* Das Preview markiert den aktuell aktiven Node im Graphen in Echtzeit.
+* Sprecher-Name und Dialogtext erscheinen im Preview-Panel.
+* Sobald ein PlayerChoice-Node erreicht wird, erscheinen anklickbare Choice-Buttons — Klick auf eine Choice setzt den Ablauf fort.
+* Klicke **Stop** (oder lass den Dialog den Exit-Node erreichen), um die Session zu beenden.
+
+> 📸 **Bild-Platzhalter:** `quickstart-preview-runner.png` — Preview-Panel mit laufendem DA_Greeting_Simple-Dialog im Editor.
+
+Das ist der schnellste Weg, um Ablauf und Text zu prüfen, bevor du das Level anfasst. Requirements und Side Effects, die von GAS oder persistenten Variablen abhängen, werden im Preview übersprungen — die Verzweigungsstruktur ist aber vollständig testbar.
+
+---
+
 ## Schritt 8 — NPC und Spieler-Pawn mit Participant-Komponente versehen
 
 **Wächter-Actor:**

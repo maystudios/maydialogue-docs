@@ -126,6 +126,23 @@ If the validator reports errors, fix them in the **Compiler Results** panel:
 
 ---
 
+## Optional: Quick test in the editor — Preview Runner
+
+Before placing any level actors you can already walk through the entire dialogue flow right inside the asset editor — no PIE required.
+
+In the asset editor, find the **Preview** panel (docked below the graph by default). Click the **Play** button to start:
+
+* The preview highlights the active node in the graph as it advances.
+* Speaker name and dialogue text appear in the Preview panel.
+* When a PlayerChoice node is reached, clickable choice buttons appear — select one to continue.
+* Click **Stop** (or let the dialogue reach the Exit node) to end the session.
+
+> 📸 **Image placeholder:** `quickstart-preview-runner.png` — Preview panel running the DA_Greeting_Simple dialogue in the editor.
+
+This is the fastest way to verify flow and text before touching the level. Requirements and side effects that depend on GAS or persistent variables are skipped in the preview, but the branching structure is fully testable.
+
+---
+
 ## Step 8 — Add the Participant component to the NPC and player pawn
 
 **Guard actor:**
