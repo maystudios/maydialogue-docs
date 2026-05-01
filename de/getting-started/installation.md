@@ -1,5 +1,5 @@
----
-description: Plugin in dein Projekt einbinden — Schritt für Schritt.
+﻿---
+description: Plugin in dein Projekt einbinden: Schritt für Schritt.
 ---
 
 # Installation
@@ -42,7 +42,7 @@ MeinProjekt/
         └── Resources/
 ```
 
-> 📸 **Bild-Platzhalter:** `installation-folder-structure.png` — Windows Explorer mit dem geöffneten `Plugins/`-Ordner des Projekts.
+> 📸 **Bild-Platzhalter:** `installation-folder-structure.png`: Windows Explorer mit dem geöffneten `Plugins/`-Ordner des Projekts.
 > *Setup:* Explorer-Fenster zeigt `Plugins/MayDialogue/` mit den Unterordnern `Source/`, `Content/`, `Resources/` und der Datei `MayDialogue.uplugin`. Roter Pfeil auf `MayDialogue.uplugin`.
 
 ## Schritt 2: Projekt-Dateien neu generieren
@@ -87,7 +87,7 @@ Alternativ per Batch:
 2. **Edit → Plugins** aufrufen.
 3. Kategorie **Gameplay** wählen. Der Eintrag **MayDialogue** muss sichtbar und aktiviert sein (Checkbox gesetzt).
 
-> 📸 **Bild-Platzhalter:** `installation-plugin-dialog.png` — Der Plugins-Dialog mit dem MayDialogue-Eintrag.
+> 📸 **Bild-Platzhalter:** `installation-plugin-dialog.png`: Der Plugins-Dialog mit dem MayDialogue-Eintrag.
 > *Setup:* Plugins-Fenster geöffnet, Kategorie "Gameplay" ausgewählt. MayDialogue-Eintrag sichtbar mit aktivierter Checkbox, dem Beta-Banner darunter und dem Plugin-Beschreibungstext. Roter Pfeil auf die aktivierte Checkbox.
 
 {% hint style="info" %}

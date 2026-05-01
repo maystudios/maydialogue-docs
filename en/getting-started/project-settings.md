@@ -1,4 +1,4 @@
----
+﻿---
 description: All settings under Edit → Project Settings → Plugins → MayDialogue explained.
 ---
 
@@ -6,12 +6,12 @@ description: All settings under Edit → Project Settings → Plugins → MayDia
 
 MayDialogue registers two settings sections:
 
-* **MayDialogue** — Runtime configuration. Saved to `DefaultGame.ini` and frozen in shipping builds. Configure everything that affects the running game here.
-* **MayDialogue Editor** — Editor configuration. Saved to `EditorPerProjectUserSettings.ini` and only applies in the editor. Configure node colors and editor behavior here.
+* **MayDialogue**: Runtime configuration. Saved to `DefaultGame.ini` and frozen in shipping builds. Configure everything that affects the running game here.
+* **MayDialogue Editor**: Editor configuration. Saved to `EditorPerProjectUserSettings.ini` and only applies in the editor. Configure node colors and editor behavior here.
 
 Open both under **Edit → Project Settings → Plugins**.
 
-> 📸 **Image placeholder:** `settings-overview.png` — Project Settings with both MayDialogue sections in the sidebar.
+> 📸 **Image placeholder:** `settings-overview.png`: Project Settings with both MayDialogue sections in the sidebar.
 > *Setup:* Project Settings window. In the left category bar under "Plugins" two entries are visible: "MayDialogue" and "MayDialogue Editor". Red arrow pointing at both entries.
 
 ---
@@ -117,7 +117,7 @@ Each entry (`FMayDialogueCueLifecycleBinding`) has:
 
 This lets you fire, for example, a blur cue when a dialogue starts, without writing any Blueprint code.
 
-> 📸 **Image placeholder:** `settings-runtime-panel.png` — Project Settings with the MayDialogue panel filled in.
+> 📸 **Image placeholder:** `settings-runtime-panel.png`: Project Settings with the MayDialogue panel filled in.
 > *Setup:* Project Settings → MayDialogue. Visible: sections "UI", "Dialogue Defaults", "Typewriter", "Input", "Audio", "Babel Voice", "Camera", "GAS Lifecycle Cues". Key fields filled in: `DefaultSoundClass` and `DefaultAttenuation` pointing to project assets, `bEnableTypewriterEffect = true`, `DefaultAdvanceMode = Manual`.
 
 ---
@@ -159,5 +159,5 @@ When starting a project from scratch, these four settings are enough to begin:
 3. Point **`DefaultSpeakerWidgetClass`** and **`DefaultDialogFrameClass`** at your Blueprint subclasses once you have built initial UI widgets.
 4. Everything else can stay at defaults until you need to change something specific.
 
-> 📸 **Image placeholder:** `settings-minimum-config.png` — Project Settings with the minimum configuration for a new project.
+> 📸 **Image placeholder:** `settings-minimum-config.png`: Project Settings with the minimum configuration for a new project.
 > *Setup:* MayDialogue settings panel. Only `DefaultSoundClass` and `DefaultAttenuation` are populated with assets (arrows pointing at project assets). All other fields are empty or at default. Red arrows on `DefaultSoundClass` and `DefaultAttenuation`.

@@ -1,5 +1,5 @@
----
-description: Variables, choice requirements, and SideEffect actions — a complete dialogue.
+﻿---
+description: Variables, choice requirements, and SideEffect actions: a complete dialogue.
 ---
 
 # Walkthrough: A Complete Dialogue
@@ -50,7 +50,7 @@ In the **Variables panel** (sidebar):
 
 Participant scope means the variable belongs to the guard actor and persists between dialogue starts as long as the actor lives in the level.
 
-> 📸 **Image placeholder:** `walkthrough-01-variables-panel.png` — Variables panel with the HasMet variable.
+> 📸 **Image placeholder:** `walkthrough-01-variables-panel.png`: Variables panel with the HasMet variable.
 > *Setup:* Variables panel in the asset editor, one entry visible: `HasMet`, type `Bool`, scope `Participant`, default `false`. Red arrow on the scope dropdown.
 
 ---
@@ -70,10 +70,10 @@ The entry point asks: has the player met the guard before?
 **True output** → **SayLine** "So you're back again. What do you want?"
 **False output** → **SayLine** "Halt! Who are you?"
 
-> 📸 **Image placeholder:** `walkthrough-02-branch-node.png` — Branch node with CheckParticipantVariable Sub-Node in the graph.
+> 📸 **Image placeholder:** `walkthrough-02-branch-node.png`: Branch node with CheckParticipantVariable Sub-Node in the graph.
 > *Setup:* Graph shows: `Entry` → `Branch` (diamond shape with True, False, and Fallback pins). In the Branch node body the Sub-Node "CheckParticipantVariable: HasMet == true" is visible as a pill. From the True pin an arrow goes to SayLine "So you're back again." (dark red), from the False pin to SayLine "Halt! Who are you?" (dark red). Fallback pin not connected.
 
-> 📸 **Image placeholder:** `walkthrough-03-branch-subnodes.png` — Details panel of the CheckParticipantVariable requirement.
+> 📸 **Image placeholder:** `walkthrough-03-branch-subnodes.png`: Details panel of the CheckParticipantVariable requirement.
 > *Setup:* Branch node selected, in the Details panel the embedded requirement is visible: `VariableName = HasMet`, `ExpectedValue = true`, `CheckTarget = Target`. Red arrow on `CheckTarget`.
 
 ---
@@ -88,9 +88,9 @@ Each greeting SayLine (True and False path) should set `HasMet = true` when ente
 2. In the Sub-Nodes area: **Add SideEffect → SetVariable**.
 3. `VariableName`: `HasMet`, `NewValue`: `true`, `Scope`: `Participant`, `Target`: guard participant.
 
-The SideEffect appears as a pill in the SayLine's node body — visible but unobtrusive.
+The SideEffect appears as a pill in the SayLine's node body: visible but unobtrusive.
 
-> 📸 **Image placeholder:** `walkthrough-04-sideeffect-pill.png` — SayLine "Halt! Who are you?" with a SideEffect pill in the node body.
+> 📸 **Image placeholder:** `walkthrough-04-sideeffect-pill.png`: SayLine "Halt! Who are you?" with a SideEffect pill in the node body.
 > *Setup:* SayLine node "Halt! Who are you?" in the graph. In the lower area of the node body a pill is visible: small icon (pen or variable symbol) + text "SetVariable: HasMet = true". Red arrow pointing at the pill.
 
 ---
@@ -106,7 +106,7 @@ Both greeting SayLines feed into the same **PlayerChoice** node:
    * Choice 1: `I'm a friend of the king.`
    * Choice 2: `That's none of your business.`
 
-> 📸 **Image placeholder:** `walkthrough-05-playerchoice-overview.png` — PlayerChoice node with three choices and two incoming arrows.
+> 📸 **Image placeholder:** `walkthrough-05-playerchoice-overview.png`: PlayerChoice node with three choices and two incoming arrows.
 > *Setup:* Graph shows SayLine "Halt!" (upper left) and SayLine "So you're back again." (lower left), both with arrows to the PlayerChoice node (center-right). In the PlayerChoice body three choice entries as pills: "I know the password…", "I'm a friend…", "That's none of your business." Three output pins on the right (0, 1, 2).
 
 ---
@@ -121,7 +121,7 @@ Choice 0 should only appear if the player has the tag `Story.Secret.HeardPasswor
 4. `CheckOnInstigator`: `true` (the player is the instigator).
 5. `FailureResult`: `FailedAndHidden`. The choice disappears entirely if the condition is not met.
 
-> 📸 **Image placeholder:** `walkthrough-06-requirement-hastag.png` — Details panel of the HasTag requirement on Choice 0.
+> 📸 **Image placeholder:** `walkthrough-06-requirement-hastag.png`: Details panel of the HasTag requirement on Choice 0.
 > *Setup:* Choice 0 of the PlayerChoice node selected. Details panel shows: `RequiredTag = Story.Secret.HeardPassword`, `CheckOnInstigator = true`, `FailureResult = FailedAndHidden`. Red arrow on `FailureResult`.
 
 This is the classic RPG pattern: you only see the password option if you have actually heard the password.
@@ -141,15 +141,15 @@ Choice 1 should be visible but not selectable if reputation is too low.
 7. `FailureResult`: `FailedButVisible`. The choice appears greyed out but cannot be selected.
 8. `UnavailableReason`: `Your reputation with the guards is too low.` (shown as a tooltip).
 
-> 📸 **Image placeholder:** `walkthrough-07-requirement-attribute.png` — Details panel of the CheckAttribute requirement on Choice 1.
+> 📸 **Image placeholder:** `walkthrough-07-requirement-attribute.png`: Details panel of the CheckAttribute requirement on Choice 1.
 > *Setup:* Choice 1 of the PlayerChoice node selected. Details panel shows: `Attribute = Reputation.Guards`, `ComparisonOp = >=`, `ComparisonValue = 50`, `CheckOnInstigator = true`, `FailureResult = FailedButVisible`, `UnavailableReason = "Your reputation with the guards is too low."`. Red arrow on `FailedButVisible`.
 
-> 📸 **Image placeholder:** `walkthrough-08-ingame-choices.png` — In-game screenshot of the PlayerChoice widget with a greyed-out choice.
+> 📸 **Image placeholder:** `walkthrough-08-ingame-choices.png`: In-game screenshot of the PlayerChoice widget with a greyed-out choice.
 > *Setup:* PIE running. Widget shows three choices: Choice 0 is missing (because HasHeardPassword is not set), Choice 1 is visible but greyed out with tooltip "Your reputation with the guards is too low.", Choice 2 is normally clickable "That's none of your business." Red arrow on the greyed-out Choice 1.
 
 ---
 
-## Step 7: Consequences — Choice 0 with ApplyEffect
+## Step 7: Consequences: Choice 0 with ApplyEffect
 
 **Path for Choice 0 (password):**
 
@@ -164,12 +164,12 @@ After output pin 0 of the PlayerChoice, place:
 
 Connections: `PlayerChoice OutputPin[0]` → `ApplyEffect` → `SayLine "Pass in peace"` → `Exit`.
 
-> 📸 **Image placeholder:** `walkthrough-09-choice0-path.png` — Path from Choice 0 with ApplyEffect node in the graph.
+> 📸 **Image placeholder:** `walkthrough-09-choice0-path.png`: Path from Choice 0 with ApplyEffect node in the graph.
 > *Setup:* To the right of PlayerChoice, top: arrow from output pin 0 → `ApplyEffect` node (body shows "GE_GuardTrust, Level 1.0, Instigator") → `SayLine "Then pass in peace."` (dark red) → `Exit` (red capsule, Status: Completed). All connection arrows visible.
 
 ---
 
-## Step 8: Consequences — Choice 1 and Choice 2
+## Step 8: Consequences: Choice 1 and Choice 2
 
 **Path for Choice 1 (king):**
 
@@ -178,14 +178,14 @@ Connections: `PlayerChoice OutputPin[0]` → `ApplyEffect` → `SayLine "Pass in
 **Path for Choice 2 (rude):**
 
 Place:
-1. **Action node: Add Tag** — `Tag`: `Story.Guard.Hostile`, `AddToInstigator`: `false` (tag is added to the guard)
-2. **Action node: Camera Shake** — your project's `UCameraShakeBase`, `Scale: 1.5`
+1. **Action node: Add Tag**: `Tag`: `Story.Guard.Hostile`, `AddToInstigator`: `false` (tag is added to the guard)
+2. **Action node: Camera Shake**: your project's `UCameraShakeBase`, `Scale: 1.5`
 3. **SayLine** `Then get out of here!` (Speaker: Guard)
 4. **Exit** (Status: Failed)
 
 Connections: `PlayerChoice OutputPin[2]` → `AddTag` → `CameraShake` → `SayLine "Get out"` → `Exit (Failed)`.
 
-> 📸 **Image placeholder:** `walkthrough-10-choice2-path.png` — Path from Choice 2 with AddTag and CameraShake nodes.
+> 📸 **Image placeholder:** `walkthrough-10-choice2-path.png`: Path from Choice 2 with AddTag and CameraShake nodes.
 > *Setup:* To the right of PlayerChoice, bottom: arrow from output pin 2 → `AddTag` node (body: "Story.Guard.Hostile → Target") → `CameraShake` node (body: "Scale 1.5") → `SayLine "Then get out!"` (dark red) → `Exit (Failed)` (red capsule, Status: Failed). All arrows labeled.
 
 ---
@@ -204,7 +204,7 @@ The SayLine "So you're back again." gets repetitive after a few visits. Replace 
 5. Connect True path of Branch → RandomLine input.
 6. Connect RandomLine output → PlayerChoice input (as before).
 
-> 📸 **Image placeholder:** `walkthrough-11-random-line.png` — RandomLine node in the graph with a dice icon and three lines in the body.
+> 📸 **Image placeholder:** `walkthrough-11-random-line.png`: RandomLine node in the graph with a dice icon and three lines in the body.
 > *Setup:* RandomLine node (dice icon in the title bar). In the node body three lines visible as pills: "So you're back again…", "Back?…", "Again…". Details panel shows `bRememberSelection = true`. Arrow incoming from Branch True pin, arrow outgoing to PlayerChoice.
 
 ---
@@ -224,7 +224,7 @@ The SayLine "So you're back again." gets repetitive after a few visits. Replace 
 | Choice 0 selected | ApplyEffect increases reputation; guard bids farewell kindly |
 | Choice 2 selected | `Story.Guard.Hostile` tag set; CameraShake; guard throws you out |
 
-> 📸 **Image placeholder:** `walkthrough-12-full-graph-overview.png` — Overview of the complete graph DA_Gate_Guardian.
+> 📸 **Image placeholder:** `walkthrough-12-full-graph-overview.png`: Overview of the complete graph DA_Gate_Guardian.
 > *Setup:* Full graph from a bird's-eye view (zoomed out). Visible left to right: `Entry` → `Branch` → True path (RandomLine → PlayerChoice) and False path (SayLine "Halt!" → PlayerChoice). From PlayerChoice three outputs to the right: top Choice-0-path (ApplyEffect → SayLine → Exit Completed), middle Choice-1-path (SayLine → Exit Completed), bottom Choice-2-path (AddTag → CameraShake → SayLine → Exit Failed). SideEffect pills on the greeting nodes visible.
 
 ---
@@ -233,7 +233,7 @@ The SayLine "So you're back again." gets repetitive after a few visits. Replace 
 
 | Feature | Used in |
 | --- | --- |
-| Participant variable | `HasMet` — remembers the first visit |
+| Participant variable | `HasMet`: remembers the first visit |
 | Branch node + requirement | Greeting branch based on `HasMet` |
 | SideEffect → SetVariable | Set `HasMet` to `true` on first entry |
 | PlayerChoice with requirements | GAS tag- and attribute-driven options |
@@ -246,9 +246,9 @@ The SayLine "So you're back again." gets repetitive after a few visits. Replace 
 
 ## Next steps
 
-* [Core Concepts](../concepts/README.md) — understand the mental model
-* [Node Reference](../nodes/README.md) — all nodes in detail
-* [Recipes](../recipes/README.md) — more examples for common patterns
+* [Core Concepts](../concepts/README.md): understand the mental model
+* [Node Reference](../nodes/README.md): all nodes in detail
+* [Recipes](../recipes/README.md): more examples for common patterns
 
 {% hint style="info" %}
 **Building custom requirement types:** Create a Blueprint class with parent `UMayDialogueRequirement`. In the `IsRequirementSatisfied` function, return `Passed`, `FailedButVisible`, or `FailedAndHidden`. The new type immediately appears in the Sub-Node palette. See [Custom Requirements](../extension/custom-requirements.md).

@@ -1,16 +1,16 @@
----
-description: Create a dialogue asset, place an NPC in the level, and test — in five minutes.
+﻿---
+description: Create a dialogue asset, place an NPC in the level, and test: in five minutes.
 ---
 
 # Quick Start
 
-By the end of this guide you will have a playable NPC dialogue in your level: a guard asks a question, the player picks from two answers, and each leads to a different reaction. No UMG setup, no audio handling, no input fiddling — the plugin takes care of all of that.
+By the end of this guide you will have a playable NPC dialogue in your level: a guard asks a question, the player picks from two answers, and each leads to a different reaction. No UMG setup, no audio handling, no input fiddling: the plugin takes care of all of that.
 
 Prerequisite: Plugin installed (see [Installation](installation.md)).
 
 ---
 
-## Step 1 — Create a dialogue asset
+## Step 1: Create a dialogue asset
 
 1. Open the Content Browser.
 2. Right-click in `Content/Dialogues/` (create the folder if it doesn't exist).
@@ -26,17 +26,17 @@ You will see an empty graph with an **Entry node** (green capsule). The Entry no
 
 ---
 
-## Step 2 — Define speakers
+## Step 2: Define speakers
 
 In the **Speakers panel** (sidebar of the asset editor):
 
-**Speaker 1 — Guard:**
+**Speaker 1: Guard:**
 1. Click **Add Speaker**.
 2. Tag: `Dialogue.Speaker.Guard`.
 3. DisplayName: `Guard`.
 4. NodeColor: Dark red.
 
-**Speaker 2 — Player:**
+**Speaker 2: Player:**
 1. Click **Add Speaker**.
 2. Tag: `Dialogue.Speaker.Player`.
 3. DisplayName: `You`.
@@ -46,7 +46,7 @@ In the **Speakers panel** (sidebar of the asset editor):
 
 ---
 
-## Step 3 — First SayLine
+## Step 3: First SayLine
 
 1. Right-click in the graph → choose **Say Line**.
 2. Configure the new node in the Details panel (or by double-clicking the node):
@@ -60,7 +60,7 @@ The node's title bar automatically takes on the color of the selected speaker (d
 
 ---
 
-## Step 4 — Create a PlayerChoice
+## Step 4: Create a PlayerChoice
 
 1. Right-click in the graph → choose **Player Choice**.
 2. Connect the SayLine output pin to the PlayerChoice input pin.
@@ -73,7 +73,7 @@ The node's title bar automatically takes on the color of the selected speaker (d
 
 ---
 
-## Step 5 — Reaction SayLines
+## Step 5: Reaction SayLines
 
 One SayLine for each choice as a reaction:
 
@@ -93,7 +93,7 @@ Connect:
 
 ---
 
-## Step 6 — Exit
+## Step 6: Exit
 
 1. Right-click in the graph → choose **Exit**.
 2. Connect SayLine A output pin → Exit input pin.
@@ -103,7 +103,7 @@ Connect:
 
 ---
 
-## Step 7 — Compile
+## Step 7: Compile
 
 Click **Toolbar → Compile**.
 
@@ -117,15 +117,15 @@ If the validator reports errors, fix them in the **Compiler Results** panel:
 
 ---
 
-## Optional: Quick test in the editor — Preview Runner
+## Optional: Quick test in the editor: Preview Runner
 
-Before placing any level actors you can already walk through the entire dialogue flow right inside the asset editor — no PIE required.
+Before placing any level actors you can already walk through the entire dialogue flow right inside the asset editor: no PIE required.
 
 In the asset editor, find the **Preview** panel (docked below the graph by default). Click the **Play** button to start:
 
 * The preview highlights the active node in the graph as it advances.
 * Speaker name and dialogue text appear in the Preview panel.
-* When a PlayerChoice node is reached, clickable choice buttons appear — select one to continue.
+* When a PlayerChoice node is reached, clickable choice buttons appear: select one to continue.
 * Click **Stop** (or let the dialogue reach the Exit node) to end the session.
 
 ![Preview panel running the DA_Greeting_Simple dialogue in the editor with the active node highlighted in the graph](../../assets/quickstart-preview-runner.png)
@@ -134,7 +134,7 @@ This is the fastest way to verify flow and text before touching the level. Requi
 
 ---
 
-## Step 8 — Add the Participant component to the NPC and player pawn
+## Step 8: Add the Participant component to the NPC and player pawn
 
 **Guard actor:**
 
@@ -153,19 +153,19 @@ This is the fastest way to verify flow and text before touching the level. Requi
 3. Configure the component:
    * `ParticipantTag`: `Dialogue.Speaker.Player`
 
-The plugin needs this component to know who the instigator of the dialogue is — even if the player has no SayLines of their own in this Quick Start.
+The plugin needs this component to know who the instigator of the dialogue is: even if the player has no SayLines of their own in this Quick Start.
 
 ![Details panel of the guard actor showing the MayDialogueParticipant component with ParticipantTag, DisplayName and DefaultDialogue filled in](../../assets/quickstart-09-participant-component.png)
 
 ---
 
-## Step 9 — Trigger the dialogue
+## Step 9: Trigger the dialogue
 
 {% hint style="success" %}
 **Recommended approach for Blueprint users: Option A**
 {% endhint %}
 
-**Option A — directly via the participant (recommended):**
+**Option A: directly via the participant (recommended):**
 
 In the Blueprint graph of your trigger actor or player logic:
 
@@ -176,7 +176,7 @@ In the Blueprint graph of your trigger actor or player logic:
 
 ![Blueprint graph of a trigger actor: OnComponentBeginOverlap → Get MayDialogueParticipant → Start Default Dialogue with player participant as Other](../../assets/quickstart-10-blueprint-trigger.png)
 
-**Option B — via the library function:**
+**Option B: via the library function:**
 
 ![Blueprint graph calling StartDialogue on the MayDialogue Subsystem with DA_Greeting_Simple, Get Player Pawn as Instigator, and Self as Target](../../assets/quickstart-10b-library-trigger.png)
 
@@ -204,7 +204,7 @@ if (GuardParticipant)
 
 ---
 
-## Step 10 — Test
+## Step 10: Test
 
 **Start PIE**, walk up to the guard, and trigger the trigger.
 
@@ -237,7 +237,7 @@ Check:
 * Does the asset have an Entry node and has it been compiled (Toolbar → Compile)?
 * Does the guard actor have a `MayDialogueParticipant` component with the correct tag?
 * Does the player pawn also have a participant component?
-* The Output Log shows warnings when something is missing — search for `MayDialogue` there.
+* The Output Log shows warnings when something is missing: search for `MayDialogue` there.
 </details>
 
 <details>

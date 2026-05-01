@@ -1,5 +1,5 @@
----
-description: Adding the plugin to your project — step by step.
+﻿---
+description: Adding the plugin to your project: step by step.
 ---
 
 # Installation
@@ -42,7 +42,7 @@ MyProject/
         └── Resources/
 ```
 
-> 📸 **Image placeholder:** `installation-folder-structure.png` — Windows Explorer with the project's `Plugins/` folder open.
+> 📸 **Image placeholder:** `installation-folder-structure.png`: Windows Explorer with the project's `Plugins/` folder open.
 > *Setup:* Explorer window showing `Plugins/MayDialogue/` with subfolders `Source/`, `Content/`, `Resources/`, and the file `MayDialogue.uplugin`. Red arrow pointing at `MayDialogue.uplugin`.
 
 ## Step 2: Regenerate project files
@@ -87,7 +87,7 @@ Alternatively, via batch file:
 2. Go to **Edit → Plugins**.
 3. Select the **Gameplay** category. The **MayDialogue** entry must be visible and enabled (checkbox checked).
 
-> 📸 **Image placeholder:** `installation-plugin-dialog.png` — The Plugins dialog with the MayDialogue entry.
+> 📸 **Image placeholder:** `installation-plugin-dialog.png`: The Plugins dialog with the MayDialogue entry.
 > *Setup:* Plugins window open, "Gameplay" category selected. MayDialogue entry visible with an enabled checkbox, the beta banner below it, and the plugin description text. Red arrow pointing at the enabled checkbox.
 
 {% hint style="info" %}

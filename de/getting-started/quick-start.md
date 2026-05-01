@@ -1,16 +1,16 @@
----
-description: Dialog-Asset anlegen, NPC ins Level, testen — in fünf Minuten.
+﻿---
+description: Dialog-Asset anlegen, NPC ins Level, testen: in fünf Minuten.
 ---
 
 # Quick Start
 
-Am Ende dieser Anleitung steht ein spielbarer NPC-Dialog im Level: Ein Wächter stellt eine Frage, der Spieler wählt aus zwei Antworten, jede führt zu einer anderen Reaktion. Kein UMG-Setup, kein Audio-Handling, kein Input-Gefrickel — das Plugin erledigt das alles.
+Am Ende dieser Anleitung steht ein spielbarer NPC-Dialog im Level: Ein Wächter stellt eine Frage, der Spieler wählt aus zwei Antworten, jede führt zu einer anderen Reaktion. Kein UMG-Setup, kein Audio-Handling, kein Input-Gefrickel: das Plugin erledigt das alles.
 
 Voraussetzung: Plugin installiert (siehe [Installation](installation.md)).
 
 ---
 
-## Schritt 1 — Dialog-Asset anlegen
+## Schritt 1: Dialog-Asset anlegen
 
 1. Content Browser öffnen.
 2. Rechtsklick in `Content/Dialogues/` (Ordner ggf. anlegen).
@@ -26,17 +26,17 @@ Du siehst einen leeren Graph mit einem **Entry-Node** (grüne Kapsel). Der Entry
 
 ---
 
-## Schritt 2 — Sprecher definieren
+## Schritt 2: Sprecher definieren
 
 Im **Speakers-Panel** (Seitenleiste des Asset-Editors):
 
-**Sprecher 1 — Wächter:**
+**Sprecher 1: Wächter:**
 1. **Add Speaker** klicken.
 2. Tag: `Dialogue.Speaker.Guard`.
 3. DisplayName: `Wächter`.
 4. NodeColor: Dunkelrot.
 
-**Sprecher 2 — Spieler:**
+**Sprecher 2: Spieler:**
 1. **Add Speaker** klicken.
 2. Tag: `Dialogue.Speaker.Player`.
 3. DisplayName: `Du`.
@@ -46,7 +46,7 @@ Im **Speakers-Panel** (Seitenleiste des Asset-Editors):
 
 ---
 
-## Schritt 3 — Erste SayLine
+## Schritt 3: Erste SayLine
 
 1. Rechtsklick im Graph → **Say Line** wählen.
 2. Den neuen Node im Details-Panel (oder per Doppelklick im Node) konfigurieren:
@@ -60,7 +60,7 @@ Die Title-Bar des Nodes nimmt automatisch die Farbe des gewählten Sprechers an 
 
 ---
 
-## Schritt 4 — PlayerChoice anlegen
+## Schritt 4: PlayerChoice anlegen
 
 1. Rechtsklick im Graph → **Player Choice** wählen.
 2. SayLine-Output-Pin mit PlayerChoice-Input-Pin verbinden.
@@ -73,7 +73,7 @@ Die Title-Bar des Nodes nimmt automatisch die Farbe des gewählten Sprechers an 
 
 ---
 
-## Schritt 5 — Reaktions-SayLines
+## Schritt 5: Reaktions-SayLines
 
 Für jede Choice eine eigene SayLine als Reaktion:
 
@@ -93,7 +93,7 @@ Verbinden:
 
 ---
 
-## Schritt 6 — Exit
+## Schritt 6: Exit
 
 1. Rechtsklick im Graph → **Exit** wählen.
 2. SayLine A Output-Pin → Exit Input-Pin verbinden.
@@ -103,7 +103,7 @@ Verbinden:
 
 ---
 
-## Schritt 7 — Compile
+## Schritt 7: Compile
 
 **Toolbar → Compile** klicken.
 
@@ -117,24 +117,24 @@ Falls der Validator Fehler meldet, behebe sie im **Compiler Results**-Panel:
 
 ---
 
-## Optional: Schnelltest im Editor — Preview Runner
+## Optional: Schnelltest im Editor: Preview Runner
 
-Bevor du einen einzigen Level-Actor platzierst, kannst du den gesamten Dialog-Ablauf direkt im Asset-Editor durchspielen — ohne PIE.
+Bevor du einen einzigen Level-Actor platzierst, kannst du den gesamten Dialog-Ablauf direkt im Asset-Editor durchspielen: ohne PIE.
 
 Suche im Asset-Editor das **Preview**-Panel (standardmäßig unterhalb des Graphen angedockt). Klicke auf **Play**, um zu starten:
 
 * Das Preview markiert den aktuell aktiven Node im Graphen in Echtzeit.
 * Sprecher-Name und Dialogtext erscheinen im Preview-Panel.
-* Sobald ein PlayerChoice-Node erreicht wird, erscheinen anklickbare Choice-Buttons — Klick auf eine Choice setzt den Ablauf fort.
+* Sobald ein PlayerChoice-Node erreicht wird, erscheinen anklickbare Choice-Buttons: Klick auf eine Choice setzt den Ablauf fort.
 * Klicke **Stop** (oder lass den Dialog den Exit-Node erreichen), um die Session zu beenden.
 
 ![Preview-Panel mit laufendem DA_Greeting_Simple-Dialog im Editor, aktiver Node im Graphen hervorgehoben](../../assets/quickstart-preview-runner.png)
 
-Das ist der schnellste Weg, um Ablauf und Text zu prüfen, bevor du das Level anfasst. Requirements und Side Effects, die von GAS oder persistenten Variablen abhängen, werden im Preview übersprungen — die Verzweigungsstruktur ist aber vollständig testbar.
+Das ist der schnellste Weg, um Ablauf und Text zu prüfen, bevor du das Level anfasst. Requirements und Side Effects, die von GAS oder persistenten Variablen abhängen, werden im Preview übersprungen: die Verzweigungsstruktur ist aber vollständig testbar.
 
 ---
 
-## Schritt 8 — NPC und Spieler-Pawn mit Participant-Komponente versehen
+## Schritt 8: NPC und Spieler-Pawn mit Participant-Komponente versehen
 
 **Wächter-Actor:**
 
@@ -153,19 +153,19 @@ Das ist der schnellste Weg, um Ablauf und Text zu prüfen, bevor du das Level an
 3. Komponente konfigurieren:
    * `ParticipantTag`: `Dialogue.Speaker.Player`
 
-Das Plugin benötigt diese Komponente, um zu wissen, wer der Instigator des Dialogs ist — auch wenn der Spieler selbst im Quick Start keine eigenen SayLines hat.
+Das Plugin benötigt diese Komponente, um zu wissen, wer der Instigator des Dialogs ist: auch wenn der Spieler selbst im Quick Start keine eigenen SayLines hat.
 
 ![Details-Panel des Wächter-Actors mit der MayDialogueParticipant-Komponente und ausgefüllten Properties ParticipantTag, DisplayName und DefaultDialogue](../../assets/quickstart-09-participant-component.png)
 
 ---
 
-## Schritt 9 — Dialog auslösen
+## Schritt 9: Dialog auslösen
 
 {% hint style="success" %}
 **Empfohlener Weg für Blueprint-Nutzer: Variante A**
 {% endhint %}
 
-**Variante A — direkt über den Participant (empfohlen):**
+**Variante A: direkt über den Participant (empfohlen):**
 
 Im Blueprint-Graph deines Trigger-Actors oder deiner Spieler-Logik:
 
@@ -176,7 +176,7 @@ Im Blueprint-Graph deines Trigger-Actors oder deiner Spieler-Logik:
 
 ![Blueprint-Graph eines Trigger-Actors: OnComponentBeginOverlap → Get MayDialogueParticipant → Start Default Dialogue mit Spieler-Participant als Other](../../assets/quickstart-10-blueprint-trigger.png)
 
-**Variante B — über die Library-Funktion:**
+**Variante B: über die Library-Funktion:**
 
 ![Blueprint-Graph: StartDialogue am MayDialogue Subsystem mit DA_Greeting_Simple, Get Player Pawn als Instigator und Self als Target](../../assets/quickstart-10b-library-trigger.png)
 
@@ -204,7 +204,7 @@ if (GuardParticipant)
 
 ---
 
-## Schritt 10 — Testen
+## Schritt 10: Testen
 
 **PIE starten**, zum Wächter gehen und den Trigger auslösen.
 
@@ -237,7 +237,7 @@ Prüfe:
 * Hat das Asset einen Entry-Node und wurde es compiliert (Toolbar → Compile)?
 * Hat der Wächter-Actor eine `MayDialogueParticipant`-Komponente mit dem richtigen Tag?
 * Hat der Spieler-Pawn ebenfalls eine Participant-Komponente?
-* Der Output-Log zeigt Warnungen, wenn etwas fehlt — dort nach `MayDialogue` suchen.
+* Der Output-Log zeigt Warnungen, wenn etwas fehlt: dort nach `MayDialogue` suchen.
 </details>
 
 <details>
