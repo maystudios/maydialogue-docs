@@ -48,4 +48,4 @@ Dialog verhält sich falsch
 
 - **[Häufige Probleme](common-issues.md)** — Pro Symptom: Ursache + Lösung.
 - **[Debug-Tipps](debugging-tips.md)** — Output-Log, Debugger, Preview-Runner, Isolations-Tests.
-- **[Bekannte Issues](known-issues.md)** — Offene Einschränkungen der aktuellen Beta + Workarounds.
+- **[Bekannte Issues](known-issues.md)** — Aktuelle Einschränkungen und empfohlene Vorgehensweisen.

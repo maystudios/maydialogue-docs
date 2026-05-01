@@ -1,10 +1,10 @@
 ---
-description: Offene Einschränkungen der aktuellen Beta-Version und empfohlene Workarounds.
+description: Aktuelle Einschränkungen und empfohlene Vorgehensweisen.
 ---
 
 # Bekannte Issues
 
-Stand: Plugin-Version **0.1.0 (Beta)**. Diese Liste wird mit jeder Release aktualisiert.
+Stand: Plugin-Version **1.0.0**. Diese Liste wird mit jeder Release aktualisiert.
 
 {% hint style="info" %}
 Wenn du auf ein Problem stößt, das hier nicht aufgeführt ist, prüfe zuerst die [Debug-Tipps](debugging-tips.md). Für neue Meldungen: Repro-Steps, Log-Auszug und Plugin-Version angeben.
@@ -18,68 +18,49 @@ Wenn du auf ein Problem stößt, das hier nicht aufgeführt ist, prüfe zuerst d
 
 | Problem | Empfohlener Workaround |
 | --- | --- |
-| Static-Widget überlebt Level-Teardown; bindet sich nach Level-Wechsel nicht neu. | `Subsystem → StopAllDialogues()` beim Level-Wechsel aufrufen, oder Widget manuell aus dem Viewport entfernen. |
-| UMG Starter-Themes (Horror, VN, RPG) noch nicht mitgeliefert. | Eigenes Theme aufsetzen (siehe [UI → Themes](../ui/themes.md)). |
-
-### Nodes & Runtime
-
-| Problem | Empfohlener Workaround |
-| --- | --- |
-| Wait-Timer überlebt Dialog-Abort unter bestimmten Cleanup-Pfaden. | Wait-Dauer kurz halten; oder Timeout-Event feuern, um frühzeitig aufzuräumen. |
-| PlayAnimation-Montage-End-Delegates bleiben bei Abort gebunden. | `bWaitForMontageEnd = false` setzen in risikoreichen Pfaden, oder Animation-End manuell verdrahten. |
-| `EMayDialogueNodeFailBehavior` ist deklariert, wird aber in `ExecuteNode` noch nicht konsequent ausgewertet. | Requirements redundant auf Outputs legen, wenn Abort erwartet wird. |
-| Wait-Node Condition-Modus (Polling) fehlt im UI-Pfad; nur Duration und Event verfügbar. | Externes Blueprint-Logik für den Condition-Check nutzen, dann `FireEvent` aufrufen. |
-
-### Variablen
-
-| Problem | Empfohlener Workaround |
-| --- | --- |
-| SetVariable-Node schreibt aktuell nur Dialogue-Scope; kein direkter Schreibpfad auf Participant-Scope. | Blueprint-SideEffect nutzen, der `Participant → SetPersistentVariable` direkt aufruft. |
-| UI-Pfad für Tag-Typ-Variablen fehlt. | String-Wert mit GameplayTag-Pfad als Fallback. |
+| UMG Starter-Themes (Horror, VN, RPG) noch nicht mitgeliefert. | Eigenes Theme aufsetzen (siehe [UI-Architektur](../ui/umg-architecture.md)). |
 
 ### Audio
 
 | Problem | Empfohlener Workaround |
 | --- | --- |
-| Node-Level 2D-Override (`bOverride2D`) fehlt auf SayLine und PlaySound. | Speaker-Level `AudioModeOverride = Force2D` setzen. |
-| `VolumeMultiplier` / `PitchMultiplier` auf SayLine fehlen; nur auf PlaySound verfügbar. | Auf Speaker-Ebene setzen. |
-| Babel halb-funktional: Sound-Quality, Konfigurierbarkeit, Per-Speaker-Depth in Arbeit. | Eigene `BlipSounds` zuweisen statt prozeduralen Modus nutzen. |
-| Babel Global Off: Flag vorhanden, vollständige Stummschaltung ohne Voice-Asset noch nicht final verifiziert. | Im eigenen Projekt testen, ob Stille erreicht wird. |
+| Babel-Synthesizer: Audio-Qualität und Konfigurierbarkeit (Per-Speaker-Depth, Biquad-Filter) in Überarbeitung. | Eigene `BlipSounds` zuweisen statt den prozeduralen Modus zu nutzen. |
+| Babel Global Off: Flag `bEnableBabelVoice` vorhanden; vollständige Stummschaltung ohne Voice-Asset in Kombination mit Typewriter noch nicht abschließend verifiziert. | Eigenes Projekt testen und ggf. `BlipSounds`-Array leer lassen. |
 
 ### Kamera
 
 | Problem | Empfohlener Workaround |
 | --- | --- |
-| CameraFocus FOV-Restore läuft im Instance-Cleanup global; Original-FOV wird nicht pro Node gespeichert. | Nur ein einziges FOV-Override pro Dialog nutzen. |
-
-### Input
-
-| Problem | Empfohlener Workaround |
-| --- | --- |
-| `RestoreGameInputMode()` setzt hart auf `GameOnly`; der vorherige Modus wird nicht gecacht. | Nach `OnDialogueEnded` den eigenen Input-Modus manuell setzen. |
+| CameraFocus FOV-Restore läuft beim Instance-Cleanup global; das Original-FOV wird nicht pro Node gecacht. | Pro Dialog nur ein einzelnes FOV-Override verwenden. |
 
 ### Editor
 
 | Problem | Empfohlener Workaround |
 | --- | --- |
-| Zyklus-Prüfung: Compiler erkennt Zyklen, das Schema lehnt sie aber beim Verbinden noch nicht ab. | Manuell aufpassen beim Verdrahten von Knot-Chains. |
-| Live-Validation deaktiviert wegen Re-Entry-Problem. | Compile-Button nach jeder Änderung drücken. |
-| Minimap-Widget existiert, ist keinem Tab zugeordnet. | Outline-Panel nutzen. |
-
-### API & Bridge
-
-| Problem | Empfohlener Workaround |
-| --- | --- |
-| Subscription-Hook für externe Systeme auf Choice-Tags nicht vollständig. | `OnChoiceMade`-Delegate abonnieren, ChoiceTags manuell aus `GetPendingChoices` nachschlagen. |
-| Bridge-Write-Methoden (`SelectChoice`, `ForceAdvance`, `SetVariable`) exposed, aber nicht vollständig getestet. | Eigene Integrations-Tests vor Release schreiben, wenn Bridge kritisch genutzt wird. |
-| QuickSave-Helper: API-Vertrag definiert, Implementierung wird finalisiert. | Projekt-eigenes SaveGame mit `ArIsSaveGame` nutzen. |
+| Zyklus-Prüfung: Der Compiler erkennt Zyklen zuverlässig, das Schema lehnt sie beim Verbinden jedoch noch nicht in Echtzeit ab. | Beim Verbinden von Knot-Chains manuell auf Zyklen achten; der Compiler gibt beim Speichern einen Fehler aus. |
+| Live-Validation ist standardmäßig deaktiviert (Re-Entry-Problem). | Compile-Button nach jeder Änderung drücken. |
+| Minimap-Widget existiert im Code, ist aber keinem eigenen Editor-Tab zugeordnet. | Outline-Panel als Alternative nutzen. |
 
 ---
 
-## Erledigte Issues (Auswahl)
+## Erledigte Issues
 
-Diese Punkte galten früher als offen und sind inzwischen behoben:
+Diese Punkte galten früher als offen und sind in v1.0 behoben:
 
+- Widget überlebt Level-Teardown nicht mehr (Subsystem-Deinitialize räumt Slate- und UMG-Widget korrekt auf).
+- Wait-Timer bei Dialog-Abort: AsyncState_Wait bereinigt alle Timer in `Cleanup()`.
+- PlayAnimation-Montage-End-Delegate bleibt nach Abort gebunden: `AsyncState_PlayAnimation::Cleanup` ersetzt den Delegate.
+- `EMayDialogueNodeFailBehavior` wird in `ExecuteNode` konsequent ausgewertet.
+- Wait-Node Condition-Modus (Polling) implementiert: `WaitCondition` + `ConditionCheckInterval` in `MayDialogueNode_Wait.h`.
+- SetVariable schreibt jetzt Dialogue- und Participant-Scope über die `Scope`-Property.
+- SetVariable unterstützt den Tag-Typ (`TagValue`-Branch) vollständig.
+- Node-Level 2D-Override: `NodeAudioMode` (tri-state Enum) ersetzt das alte `bOverride2D`-Flag auf SayLine und PlaySound.
+- `VolumeMultiplier` / `PitchMultiplier` auf SayLine verfügbar.
+- Choice-Tag-Binding (ChoiceTags) auf dem Choice-Sub-Node implementiert; `OnChoiceMade`-Delegate übergibt ChoiceTags.
+- QuickSave-Helper (`MayDialogueSaveHelper`) vollständig implementiert.
+- Input-Mode-Restore: Beide UI-Pfade (Slate + UMG) erkennen den vorherigen Input-Mode zuverlässig (`UIOnly` via `GameViewportClient::IgnoreInput()`, `GameAndUI` vs `GameOnly` via Cursor-State) und stellen ihn nach Dialog-Ende exakt wieder her.
+- Rich-Text-Decorators `<color>` und `<b>` funktional.
+- Komponenten-basierte UMG-Widget-Variante (DialogFrame, Speaker, Text, ChoiceButton, ChoiceList, SkipButton) mitgeliefert.
 - ApplyEffect als Action-Node implementiert.
 - Debugger Step-Into / Step-Out implementiert.
 - Participant `DefaultDialogue`, `SetActiveDialogue()`, `GetActiveDialogue()`, `StartDefaultDialogue()` verfügbar.
@@ -97,8 +78,6 @@ Diese Punkte galten früher als offen und sind inzwischen behoben:
 - Subsystem-Deinitialize räumt abgeschlossene Dialoge auf.
 - Validator prüft async-Nodes ohne Continuation.
 - Failed Dialogue-Start: Entry-Point-Check vor Instance-Erzeugung.
-- Rich-Text-Decorators `<color>` und `<b>` funktional.
-- Komponenten-basierte UMG-Widget-Variante mitgeliefert.
 
 ---
 

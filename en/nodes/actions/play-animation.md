@@ -77,10 +77,6 @@ For a waiting example (ritual scene):
 
 ## Pitfalls
 
-{% hint style="danger" %}
-**Known Bug:** If the dialogue is aborted while a waiting montage (`bWaitForMontageEnd=true`) is still running, the `OnMontageEnded` delegate may not be cleaned up correctly. Workaround: Use `bWaitForMontageEnd=false` on flows that can be aborted (e.g. early dialogue exit by the player).
-{% endhint %}
-
 {% hint style="warning" %}
 The validator warns if `bWaitForMontageEnd=true` is set but no Output pin is connected. In that case the dialogue would wait forever.
 {% endhint %}

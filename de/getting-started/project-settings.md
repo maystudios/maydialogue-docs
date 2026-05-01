@@ -73,7 +73,7 @@ Details zur Architektur: [UI → UMG-Architektur](../ui/umg-architecture.md).
 | `bShowMouseCursorDuringDialogue` | bool | `true` | Zeigt den Cursor für Choice-Buttons. Nur aktiv, wenn `bSwitchToUIInputDuringDialogue = true`. |
 
 {% hint style="info" %}
-**Hinweis für fortgeschrittene Setups mit eigenen Input-Modi:** Der Input-Mode wird nach Dialog-Ende hart auf `GameOnly` zurückgesetzt. Wenn dein Spiel vor dem Dialog einen anderen Modus nutzt (`UIOnly`, `GameAndUI`), musst du den Restore nach `OnDialogueEnded` manuell setzen. Für die meisten Projekte ist das Standardverhalten korrekt. Siehe [Known Issues](../troubleshooting/known-issues.md).
+**Hinweis für fortgeschrittene Setups:** Das Plugin erkennt den vorherigen Input-Mode automatisch — auch `UIOnly` — und stellt ihn nach Dialog-Ende exakt wieder her. Für Projekte, die den Input-Mode vollständig selbst verwalten möchten: `bSwitchToUIInputDuringDialogue = false` setzen.
 {% endhint %}
 
 ### Audio

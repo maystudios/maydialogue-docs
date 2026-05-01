@@ -48,4 +48,4 @@ Dialogue behaves incorrectly
 
 - **[Common Issues](common-issues.md)** — Per symptom: cause + solution.
 - **[Debugging Tips](debugging-tips.md)** — Output Log, debugger, Preview Runner, isolation tests.
-- **[Known Issues](known-issues.md)** — Open limitations of the current beta + workarounds.
+- **[Known Issues](known-issues.md)** — Current limitations and recommended approaches.

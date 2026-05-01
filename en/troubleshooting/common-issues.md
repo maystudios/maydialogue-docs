@@ -88,9 +88,9 @@ A wrong or missing name produces a silent warning — no crash, but no visible w
 </details>
 
 <details>
-<summary>Widget not rebound after level change (known issue)</summary>
+<summary>Widget not visible after level change</summary>
 
-The static widget doesn't always survive level teardown cleanly. **Workaround:** Call `Subsystem → StopAllDialogues()` on level change (e.g. in the Level Blueprint `BeginPlay` or in `GameMode::HandleSeamlessTravel`) so the widget re-registers correctly.
+If you call `StartDialogue` directly in a level's `BeginPlay`, the widget may miss the subsystem init timing. Call `Subsystem → StopAllDialogues()` on level change (e.g. in the Level Blueprint `BeginPlay` or in `GameMode::HandleSeamlessTravel`) so the widget re-registers correctly.
 
 </details>
 
@@ -212,9 +212,9 @@ Dialogue-scope variables only exist while the current dialogue is running. If yo
 </details>
 
 <details>
-<summary>SetVariable currently only writes Dialogue scope (known issue #13)</summary>
+<summary>SetVariable writes the wrong scope</summary>
 
-The SetVariable node currently supports only Dialogue scope. **Workaround:** Use a Blueprint SideEffect node that calls `Participant → SetPersistentVariable` directly.
+The SetVariable node has a `Scope` property (`DialogueScope` or `ParticipantScope`). Check that the scope is set to `ParticipantScope` if you want to write a persistent variable. With `DialogueScope` the variable only exists for the duration of the current dialogue.
 
 </details>
 

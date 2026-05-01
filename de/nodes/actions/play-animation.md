@@ -77,10 +77,6 @@ Für ein wartendes Beispiel (Ritual-Szene):
 
 ## Fallstricke
 
-{% hint style="danger" %}
-**Bekannter Bug:** Wenn der Dialog abbricht während eine wartende Montage (`bWaitForMontageEnd=true`) noch läuft, kann der `OnMontageEnded`-Delegate nicht korrekt aufgeräumt werden. Workaround: Nutze `bWaitForMontageEnd=false` auf Abläufen, die abgebrochen werden können (z.B. vorzeitiger Dialog-Exit durch Spieler).
-{% endhint %}
-
 {% hint style="warning" %}
 Der Validator warnt, wenn `bWaitForMontageEnd=true` gesetzt ist, aber kein Output-Pin verbunden ist. In dem Fall würde der Dialog ewig warten.
 {% endhint %}

@@ -88,9 +88,9 @@ Ein falscher oder fehlender Name erzeugt eine stille Warnung — kein Crash, abe
 </details>
 
 <details>
-<summary>Widget nach Level-Wechsel nicht neu gebunden (bekanntes Issue)</summary>
+<summary>Widget nach Level-Wechsel nicht sichtbar</summary>
 
-Das Static-Widget überlebt Level-Teardown nicht immer sauber. **Workaround:** Rufe `Subsystem → StopAllDialogues()` beim Level-Wechsel auf (z. B. im Level-Blueprint `BeginPlay` oder im `GameMode::HandleSeamlessTravel`), damit das Widget sich korrekt neu registriert.
+Wenn du `StartDialogue` direkt in `BeginPlay` eines Levels aufrufst, kann das Widget den Subsystem-Init-Zeitpunkt verpassen. Rufe `Subsystem → StopAllDialogues()` beim Level-Wechsel auf (z. B. im Level-Blueprint `BeginPlay` oder im `GameMode::HandleSeamlessTravel`), damit das Widget sich korrekt neu registriert.
 
 </details>
 
@@ -212,9 +212,9 @@ Dialogue-Scope-Variablen existieren nur während des laufenden Dialogs. Wenn du 
 </details>
 
 <details>
-<summary>SetVariable schreibt aktuell nur Dialogue-Scope (bekanntes Issue #13)</summary>
+<summary>SetVariable schreibt die falsche Scope</summary>
 
-Der SetVariable-Node unterstützt im aktuellen Stand nur Dialogue-Scope. **Workaround:** Nutze einen Blueprint-SideEffect-Node, der direkt `Participant → SetPersistentVariable` aufruft.
+Der SetVariable-Node besitzt eine `Scope`-Property (`DialogueScope` oder `ParticipantScope`). Prüfe, ob der Scope korrekt auf `ParticipantScope` gesetzt ist, wenn du eine persistente Variable schreiben möchtest. Bei `DialogueScope` existiert die Variable nur während des laufenden Dialogs.
 
 </details>
 

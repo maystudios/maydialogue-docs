@@ -1,10 +1,10 @@
 ---
-description: Open limitations of the current beta version and recommended workarounds.
+description: Current limitations and recommended approaches.
 ---
 
 # Known Issues
 
-As of: Plugin version **0.1.0 (Beta)**. This list is updated with each release.
+As of: Plugin version **1.0.0**. This list is updated with each release.
 
 {% hint style="info" %}
 If you run into a problem not listed here, check the [Debugging Tips](debugging-tips.md) first. For new reports: include repro steps, a log excerpt, and the plugin version.
@@ -18,68 +18,49 @@ If you run into a problem not listed here, check the [Debugging Tips](debugging-
 
 | Problem | Recommended Workaround |
 | --- | --- |
-| Static widget survives level teardown; doesn't re-bind after a level change. | Call `Subsystem → StopAllDialogues()` on level change, or manually remove the widget from the viewport. |
-| UMG Starter Themes (Horror, VN, RPG) not yet included. | Set up your own theme (see [UI → Themes](../ui/themes.md)). |
-
-### Nodes & Runtime
-
-| Problem | Recommended Workaround |
-| --- | --- |
-| Wait timer survives dialogue abort on certain cleanup paths. | Keep wait durations short; or fire a timeout event to clean up early. |
-| PlayAnimation montage end delegates remain bound after abort. | Set `bWaitForMontageEnd = false` on risky paths, or wire the animation end manually. |
-| `EMayDialogueNodeFailBehavior` is declared but not yet consistently evaluated in `ExecuteNode`. | Place Requirements redundantly on outputs when an abort is expected. |
-| Wait node condition mode (polling) missing in the UI path; only Duration and Event are available. | Use external Blueprint logic for the condition check, then call `FireEvent`. |
-
-### Variables
-
-| Problem | Recommended Workaround |
-| --- | --- |
-| SetVariable node currently writes only Dialogue scope; no direct write path to Participant scope. | Use a Blueprint SideEffect that calls `Participant → SetPersistentVariable` directly. |
-| UI path for Tag-type variables is missing. | Use a String value with the GameplayTag path as a fallback. |
+| UMG Starter Themes (Horror, VN, RPG) not yet included. | Set up your own theme (see [UI Architecture](../ui/umg-architecture.md)). |
 
 ### Audio
 
 | Problem | Recommended Workaround |
 | --- | --- |
-| Node-level 2D override (`bOverride2D`) missing on SayLine and PlaySound. | Set `AudioModeOverride = Force2D` at the speaker level. |
-| `VolumeMultiplier` / `PitchMultiplier` missing on SayLine; only available on PlaySound. | Set at the speaker level. |
-| Babel partially functional: sound quality, configurability, per-speaker depth in progress. | Assign your own `BlipSounds` instead of using procedural mode. |
-| Babel global off: flag present, but complete silence without a voice asset not yet fully verified. | Test in your own project to confirm silence is achieved. |
+| Babel synthesizer: audio quality and configurability (per-speaker depth, biquad filter) are being reworked. | Assign your own `BlipSounds` instead of using procedural mode. |
+| Babel global off: the `bEnableBabelVoice` flag exists, but complete silence without a voice asset combined with the typewriter effect has not been fully verified. | Test in your own project and leave the `BlipSounds` array empty if needed. |
 
 ### Camera
 
 | Problem | Recommended Workaround |
 | --- | --- |
-| CameraFocus FOV restore runs globally in Instance cleanup; the original FOV is not saved per node. | Use only a single FOV override per dialogue. |
-
-### Input
-
-| Problem | Recommended Workaround |
-| --- | --- |
-| `RestoreGameInputMode()` hard-sets to `GameOnly`; the previous mode is not cached. | Manually set your own input mode after `OnDialogueEnded`. |
+| CameraFocus FOV restore runs globally in Instance cleanup; the original FOV is not cached per node. | Use only a single FOV override per dialogue. |
 
 ### Editor
 
 | Problem | Recommended Workaround |
 | --- | --- |
-| Cycle detection: the compiler detects cycles, but the schema doesn't reject them on connect yet. | Be careful manually when wiring Knot chains. |
-| Live validation disabled due to re-entry issue. | Press the Compile button after each change. |
-| Minimap widget exists but is not assigned to any tab. | Use the Outline panel instead. |
-
-### API & Bridge
-
-| Problem | Recommended Workaround |
-| --- | --- |
-| Subscription hook for external systems on choice tags is incomplete. | Subscribe to the `OnChoiceMade` delegate, then look up ChoiceTags manually from `GetPendingChoices`. |
-| Bridge write methods (`SelectChoice`, `ForceAdvance`, `SetVariable`) are exposed but not fully tested. | Write your own integration tests before release if the bridge is used critically. |
-| QuickSave helper: API contract defined, implementation being finalized. | Use your project's own SaveGame with `ArIsSaveGame`. |
+| Cycle detection: the compiler reliably detects cycles, but the schema does not reject them in real time on connect. | Be careful manually when wiring Knot chains — the compiler reports an error on save. |
+| Live validation is disabled by default (re-entry issue). | Press the Compile button after each change. |
+| Minimap widget exists in code but is not assigned to its own editor tab. | Use the Outline panel as an alternative. |
 
 ---
 
-## Resolved Issues (Selection)
+## Resolved Issues
 
-These items were previously open and have since been fixed:
+These items were previously open and are fixed in v1.0:
 
+- Widget survives level teardown no longer: Subsystem Deinitialize correctly tears down both Slate and UMG auto-widgets.
+- Wait timer on dialogue abort: `AsyncState_Wait::Cleanup` clears all timers.
+- PlayAnimation montage end delegate bound after abort: `AsyncState_PlayAnimation::Cleanup` replaces the delegate.
+- `EMayDialogueNodeFailBehavior` is now consistently evaluated in `ExecuteNode`.
+- Wait node condition mode (polling) implemented: `WaitCondition` + `ConditionCheckInterval` in `MayDialogueNode_Wait.h`.
+- SetVariable now writes both Dialogue and Participant scope via the `Scope` property.
+- SetVariable supports the Tag type (`TagValue` branch) fully.
+- Node-level 2D override: tri-state `NodeAudioMode` enum replaces the old `bOverride2D` flag on both SayLine and PlaySound.
+- `VolumeMultiplier` / `PitchMultiplier` available on SayLine.
+- Choice tag binding (`ChoiceTags` on the Choice sub-node) implemented; `OnChoiceMade` delegate passes ChoiceTags.
+- QuickSave helper (`MayDialogueSaveHelper`) fully implemented.
+- Input mode restore: both UI paths (Slate + UMG) reliably detect the previous input mode (`UIOnly` via `GameViewportClient::IgnoreInput()`, `GameAndUI` vs `GameOnly` via cursor state) and restore it exactly after dialogue ends.
+- Rich-text decorators `<color>` and `<b>` functional.
+- Component-based UMG widget variant (DialogFrame, Speaker, Text, ChoiceButton, ChoiceList, SkipButton) included.
 - ApplyEffect implemented as an Action Node.
 - Debugger Step-Into / Step-Out implemented.
 - Participant `DefaultDialogue`, `SetActiveDialogue()`, `GetActiveDialogue()`, `StartDefaultDialogue()` available.
