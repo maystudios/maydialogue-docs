@@ -8,13 +8,9 @@ Ein `UMayDialogueBabelProfile` bündelt alle Synthese-Parameter für einen Sprec
 
 ## Profil anlegen
 
-1. Content Browser → Rechtsklick → **DataAsset**
-2. Parent-Class: `UMayDialogueBabelProfile`
-3. Benennen, z.B. `BP_Babel_Ghost`, `BP_Babel_Guard`, `BP_Babel_Child`
-4. Doppelklicken und Parameter setzen
-
-> 📸 **Bild-Platzhalter:** `babel-profiles-create-datatasset.png` — "Pick DataAsset Class"-Dialog mit UMayDialogueBabelProfile in der Klassen-Liste.
-> *Setup:* Content Browser → Rechtsklick → DataAsset → Klassen-Picker öffnet sich. In der Suchliste: `UMayDialogueBabelProfile` markiert und sichtbar. OK-Button im Fokus. Zeigt den Erstellungs-Workflow.
+1. Content Browser → Rechtsklick → **May Dialogue → Babel Voice Profile**
+2. Benennen, z.B. `BP_Babel_Ghost`, `BP_Babel_Guard`, `BP_Babel_Child`
+3. Doppelklicken und Parameter setzen
 
 ## Alle Properties im Überblick
 

@@ -8,13 +8,9 @@ A `UMayDialogueBabelProfile` bundles all synthesis parameters for a speaker: mod
 
 ## Creating a Profile
 
-1. Content Browser → right-click → **DataAsset**
-2. Parent class: `UMayDialogueBabelProfile`
-3. Name it, e.g. `BP_Babel_Ghost`, `BP_Babel_Guard`, `BP_Babel_Child`
-4. Double-click and set the parameters
-
-> 📸 **Image placeholder:** `babel-profiles-create-datatasset.png` — "Pick DataAsset Class" dialog with UMayDialogueBabelProfile in the class list.
-> *Setup:* Content Browser → right-click → DataAsset → class picker opens. In the search list: `UMayDialogueBabelProfile` highlighted and visible. OK button in focus. Shows the creation workflow.
+1. Content Browser → right-click → **May Dialogue → Babel Voice Profile**
+2. Name it, e.g. `BP_Babel_Ghost`, `BP_Babel_Guard`, `BP_Babel_Child`
+3. Double-click and set the parameters
 
 ## All Properties at a Glance
 

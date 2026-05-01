@@ -28,7 +28,7 @@ You meet a guard in front of a fortress. Three things determine what happens:
 
 ## Step 1 — Create a new dialogue asset
 
-1. Content Browser → `Content/Dialogues/` → Right-click → **Miscellaneous → MayDialogue Asset**.
+1. Content Browser → `Content/Dialogues/` → Right-click → **May Dialogue → Dialogue Asset**.
 2. Name it: `DA_Gate_Guardian`.
 3. Double-click to open the graph editor.
 

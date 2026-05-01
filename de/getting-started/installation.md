@@ -106,7 +106,7 @@ MayDialogue liefert ein Content-Verzeichnis mit Default-Assets. Damit der Conten
 
 Erstelle einen neuen Ordner `Content/Dialogues/` und klicke:
 
-1. Rechtsklick im Content Browser → **Miscellaneous → MayDialogue Asset**.
+1. Rechtsklick im Content Browser → **May Dialogue → Dialogue Asset**.
 2. Asset benennen: `DA_Test_Install`.
 3. Doppelklick öffnet den Asset-Editor mit einem leeren Graph und einem **Entry**-Node.
 

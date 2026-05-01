@@ -106,7 +106,7 @@ MayDialogue ships a content directory with default assets. To make the Content B
 
 Create a new folder `Content/Dialogues/` and:
 
-1. Right-click in the Content Browser → **Miscellaneous → MayDialogue Asset**.
+1. Right-click in the Content Browser → **May Dialogue → Dialogue Asset**.
 2. Name the asset: `DA_Test_Install`.
 3. Double-click it — the asset editor opens with an empty graph and an **Entry** node.
 

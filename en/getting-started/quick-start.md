@@ -14,7 +14,7 @@ Prerequisite: Plugin installed (see [Installation](installation.md)).
 
 1. Open the Content Browser.
 2. Right-click in `Content/Dialogues/` (create the folder if it doesn't exist).
-3. Choose **Miscellaneous → MayDialogue Asset**.
+3. Choose **May Dialogue → Dialogue Asset**.
 4. Name the asset: `DA_Greeting_Simple`.
 5. Double-click to open the graph editor.
 

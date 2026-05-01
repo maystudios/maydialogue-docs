@@ -28,7 +28,7 @@ Du triffst einen Wächter vor einer Festung. Drei Dinge bestimmen, was passiert:
 
 ## Schritt 1 — Neues Dialog-Asset anlegen
 
-1. Content Browser → `Content/Dialogues/` → Rechtsklick → **Miscellaneous → MayDialogue Asset**.
+1. Content Browser → `Content/Dialogues/` → Rechtsklick → **May Dialogue → Dialogue Asset**.
 2. Benennen: `DA_Gate_Guardian`.
 3. Doppelklick öffnet den Graph-Editor.
 
