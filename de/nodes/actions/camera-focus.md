@@ -28,7 +28,7 @@ Ein Camera-Focus-Node unterstützt drei Konfigurationen. Die Runtime wertet sie 
 |---|---|---|
 | 1 | `CameraSequence` | Eine Level Sequence übernimmt die Kamera (Cine Camera + Camera Cuts Track). |
 | 2 | `CameraAnchorTag` | Findet einen `AMayDialogueCameraAnchor`-Actor per Tag und macht ihn per `SetViewTargetWithBlend` zum neuen ViewTarget. |
-| 3 | `FocusSpeakerTag` allein | Legacy-Pfad: transienter `ACameraActor` an der Spielerkamera-Position, ausgerichtet auf den Sprecher. |
+| 3 | `FocusSpeakerTag` allein | Legacy-Pfad: dreht die `ControlRotation` des Spielers smooth zum Sprecher. **Kein ViewTarget-Switch** — die echte Pawn-Kamera (Spring-Arm, Lag, Post-Process) bleibt aktiv. |
 
 Niedriger priorisierte Pfade werden übersprungen, sobald ein höherer greift. Das ursprüngliche ViewTarget wird beim ersten Switch gecached und bei Dialog-Ende automatisch wiederhergestellt (Blend-Zeit = `DefaultAnchorRestoreBlendTime` aus den Project Settings).
 
@@ -66,6 +66,7 @@ Im Anchor-Pfad sind diese Offsets **wirkungslos** — der Anchor-Actor definiert
 | `BlendTime` | `float` | Blend-Dauer in Sekunden. `-1` = Wert aus den Projekt-Settings (`DefaultCameraBlendTime`). |
 | `CameraOffset` | `FVector` | Zusätzlicher Welt-Offset (nur Pfad 3, additiv mit `Participant.CameraTargetOffset`). |
 | `bIgnoreParticipantOffset` | `bool` | Wenn `true`: ignoriert `Participant.CameraTargetOffset`, nur `CameraOffset` zählt. Default: `false`. |
+| `bLockLookInputDuringBlend` | `bool` | Legacy-Pfad: sperrt Spieler-Look-Input während des Blends, damit der Lerp nicht von Maus/Stick überschrieben wird. Auf Anchor-Pfad wirkungslos. Default: `true`. |
 | `FOVOverride` | `float` | FOV in Grad während des Focus (nur Pfad 3). `0` = kein Override. |
 | `bShowDialogueText` | `bool` | Zeigt Dialogtext und wartet auf Spieler-Advance (verhält sich wie SayLine). Orthogonal zum Kamera-Pfad. |
 | `DialogueText` | `FText` | Text, der gezeigt wird wenn `bShowDialogueText = true`. |

@@ -28,7 +28,7 @@ A Camera Focus node supports three configurations. The runtime evaluates them to
 |---|---|---|
 | 1 | `CameraSequence` | A Level Sequence drives the camera (Cine Camera + Camera Cuts Track). |
 | 2 | `CameraAnchorTag` | Finds an `AMayDialogueCameraAnchor` by tag and switches the player's ViewTarget to it via `SetViewTargetWithBlend`. |
-| 3 | `FocusSpeakerTag` only | Legacy path: a transient `ACameraActor` at the player camera position aimed at the speaker. |
+| 3 | `FocusSpeakerTag` only | Legacy path: smoothly rotates the player's `ControlRotation` toward the speaker. **No ViewTarget switch** — the real pawn camera (spring-arm, lag, post-process) stays active. |
 
 Lower-priority paths are skipped once a higher one matches. The original ViewTarget is captured on the first switch and restored on dialogue end (blend time = `DefaultAnchorRestoreBlendTime` from Project Settings).
 
@@ -66,6 +66,7 @@ In the Anchor path these offsets have **no effect** — the anchor actor defines
 | `BlendTime` | `float` | Blend duration in seconds. `-1` = value from Project Settings (`DefaultCameraBlendTime`). |
 | `CameraOffset` | `FVector` | Extra world offset (path 3 only, additive with `Participant.CameraTargetOffset`). |
 | `bIgnoreParticipantOffset` | `bool` | If `true`, ignore `Participant.CameraTargetOffset` and use only this node's `CameraOffset`. Default: `false`. |
+| `bLockLookInputDuringBlend` | `bool` | Legacy path: suppress player look input during the blend so the lerp is not fought by mouse/stick. No effect on Anchor path. Default: `true`. |
 | `FOVOverride` | `float` | FOV in degrees while focused (path 3 only). `0` = no override. |
 | `bShowDialogueText` | `bool` | Shows dialogue text and waits for player advance (behaves like SayLine). Orthogonal to the camera path. |
 | `DialogueText` | `FText` | Text shown when `bShowDialogueText = true`. |
