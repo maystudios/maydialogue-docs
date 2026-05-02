@@ -20,18 +20,60 @@ Blends the player camera toward a specific Participant (Speaker or NPC). You can
 
 ---
 
+## Resolution priority
+
+A single Camera Focus node supports four configurations. The runtime evaluates them top-down and uses the first one that is set:
+
+| Priority | Active property | Result |
+|---|---|---|
+| 1 | `CameraSequence` | A Level Sequence drives the camera (Cine Camera + Camera Cuts Track). |
+| 2 | `CameraAnchorTag` | Finds an `AMayDialogueCameraAnchor` actor in the level by tag and switches the player's ViewTarget to it via `SetViewTargetWithBlend`. |
+| 3 | `FocusSpeakerTag` + `ShotTag` | Composes the participant's `ShotAnchors[ShotTag]` with the actor transform, spawns a transient `CineCameraActor` there, and sets it as ViewTarget. |
+| 4 | `FocusSpeakerTag` only | Legacy path: rotates the player's `ControlRotation` toward the speaker (no ViewTarget switch). |
+
+Lower-priority paths are skipped once a higher one matches. The original ViewTarget is captured on the first switch and restored on dialogue end (blend time = `DefaultAnchorRestoreBlendTime` from Project Settings).
+
 ## Properties
 
 | Property | Type | Description |
 |---|---|---|
-| `FocusSpeakerTag` | `FGameplayTag` | Tag of the Participant the camera blends to. Must be under `Dialogue.Speaker.*`. |
+| `FocusSpeakerTag` | `FGameplayTag` (`Dialogue.Speaker.*`) | The participant referenced by paths 3 and 4. |
 | `BlendTime` | `float` | Blend duration in seconds. `-1` = value from Project Settings (`DefaultCameraBlendTime`). |
-| `CameraOffset` | `FVector` | Additional offset relative to the target Participant's position. |
-| `FOVOverride` | `float` | FOV in degrees. `0` = no override. Reset when the dialogue ends. |
-| `bShowDialogueText` | `bool` | Shows dialogue text and waits for player advance (behaves like SayLine). |
+| `CameraOffset` | `FVector` | Extra world offset (path 4 only — rotate-controller). |
+| `FOVOverride` | `float` | FOV in degrees while focused (paths 3 + 4). `0` = no override. Reset on dialogue end. |
+| `bShowDialogueText` | `bool` | Shows dialogue text and waits for player advance (behaves like SayLine). Orthogonal to the camera path. |
 | `DialogueText` | `FText` | Text shown when `bShowDialogueText = true`. |
-| `CameraSequence` | `TSoftObjectPtr<ULevelSequence>` | Optional LevelSequence instead of manual blend. |
-| `bWaitForSequenceEnd` | `bool` | Dialogue waits for the sequence to end. Only active when `CameraSequence` is set. |
+| `CameraSequence` | `TSoftObjectPtr<ULevelSequence>` | Path 1 — Level Sequence drives the camera. |
+| `bWaitForSequenceEnd` | `bool` | Path 1 — dialogue waits for the sequence's `OnFinished`. |
+| `CameraAnchorTag` | `FGameplayTag` (`Dialogue.CameraAnchor.*`) | Path 2 — tag of the level-placed anchor actor. |
+| `ShotTag` | `FGameplayTag` (`Dialogue.Shot.*`) | Path 3 — key into `Participant->ShotAnchors`. Requires `FocusSpeakerTag`. |
+
+## Camera Anchor Actor
+
+`AMayDialogueCameraAnchor` is an actor that inherits from `ACineCameraActor`. Place it in your level where you want the camera to live during a shot — the editor shows the cine-camera frustum, focal length, aperture, depth of field, etc. live in the viewport.
+
+| Property | Purpose |
+|---|---|
+| `AnchorTag` | Identifier (should be unique per level). Referenced from Camera Focus nodes via `CameraAnchorTag`. |
+| `BlendTimeOverride` | Per-anchor blend override. Negative = use the node's `BlendTime` / project default. |
+
+Workflow:
+
+1. Drop a `MayDialogueCameraAnchor` actor in the level where the camera should sit.
+2. Frame the shot in the viewport (position, rotation, focal length, aperture).
+3. Set `AnchorTag` (e.g. `Dialogue.CameraAnchor.MerchantHall.OverShoulder`).
+4. In the dialogue asset, set the Camera Focus node's `CameraAnchorTag` to the same tag.
+
+## Shot Anchors on the Participant
+
+`UMayDialogueParticipant::ShotAnchors` is a `TMap<FGameplayTag, FTransform>` that defines a small **per-NPC** "shot vocabulary" (closeup, over-shoulder, wide, …). Transforms are **relative to the participant actor** and travel with it.
+
+Workflow:
+
+1. On the NPC's `MayDialogueParticipant` component, populate `ShotAnchors` with one entry per shot kind (e.g. `Dialogue.Shot.Closeup` → relative transform).
+2. In the dialogue asset, set the Camera Focus node's `FocusSpeakerTag` to the speaker and `ShotTag` to the shot.
+
+At runtime a transient `CineCameraActor` is placed at `ShotAnchors[ShotTag] * Participant->GetActorTransform()` and used as the ViewTarget. The transient camera is reused across all Shot focus nodes in the same dialogue and destroyed automatically on dialogue end.
 
 ---
 
@@ -85,3 +127,7 @@ If the camera pan is the **central dramatic step** of this graph section (the pl
 - `CameraSequence` runs in parallel — the dialogue advances immediately (unless `bWaitForSequenceEnd = true`).
 - `bShowDialogueText` and `bWaitForSequenceEnd = true` simultaneously: `bShowDialogueText` wins (manual advance).
 - `FocusSpeakerTag` must correspond to a registered Participant — otherwise no blend, log warning.
+- Anchor existence is **not** checked by the validator (anchors live in the level, the validator runs on the asset). A missing anchor logs a runtime `Warning` and the node falls through to the next priority.
+- `ShotTag` without `FocusSpeakerTag` is a **validator error** — the shot map cannot resolve without a speaker.
+- On a dedicated server (no PlayerController) the anchor / shot paths no-op — correct, since only clients have a ViewTarget.
+- Multiple Camera Focus nodes in sequence: the original ViewTarget is captured on the **first** switch, subsequent nodes blend between anchors. On dialogue end the original target is restored.
