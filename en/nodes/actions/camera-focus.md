@@ -67,6 +67,7 @@ In the Anchor path these offsets have **no effect** — the anchor actor defines
 | `CameraOffset` | `FVector` | Extra world offset (path 3 only, additive with `Participant.CameraTargetOffset`). |
 | `bIgnoreParticipantOffset` | `bool` | If `true`, ignore `Participant.CameraTargetOffset` and use only this node's `CameraOffset`. Default: `false`. |
 | `bLockLookInputDuringBlend` | `bool` | Legacy path: suppress player look input during the blend so the lerp is not fought by mouse/stick. No effect on Anchor path. Default: `true`. |
+| `bLockMoveInputDuringBlend` | `bool` | Legacy path: suppress player movement input for the duration of the focus (no walk-and-talk). No effect on Anchor path. Default: `true`. |
 | `FOVOverride` | `float` | FOV in degrees while focused (path 3 only). `0` = no override. |
 | `bShowDialogueText` | `bool` | Shows dialogue text and waits for player advance (behaves like SayLine). Orthogonal to the camera path. |
 | `DialogueText` | `FText` | Text shown when `bShowDialogueText = true`. |

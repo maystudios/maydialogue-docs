@@ -67,6 +67,7 @@ Im Anchor-Pfad sind diese Offsets **wirkungslos** — der Anchor-Actor definiert
 | `CameraOffset` | `FVector` | Zusätzlicher Welt-Offset (nur Pfad 3, additiv mit `Participant.CameraTargetOffset`). |
 | `bIgnoreParticipantOffset` | `bool` | Wenn `true`: ignoriert `Participant.CameraTargetOffset`, nur `CameraOffset` zählt. Default: `false`. |
 | `bLockLookInputDuringBlend` | `bool` | Legacy-Pfad: sperrt Spieler-Look-Input während des Blends, damit der Lerp nicht von Maus/Stick überschrieben wird. Auf Anchor-Pfad wirkungslos. Default: `true`. |
+| `bLockMoveInputDuringBlend` | `bool` | Legacy-Pfad: sperrt Bewegungs-Input des Spielers während des Focus (kein Walk-and-Talk). Auf Anchor-Pfad wirkungslos. Default: `true`. |
 | `FOVOverride` | `float` | FOV in Grad während des Focus (nur Pfad 3). `0` = kein Override. |
 | `bShowDialogueText` | `bool` | Zeigt Dialogtext und wartet auf Spieler-Advance (verhält sich wie SayLine). Orthogonal zum Kamera-Pfad. |
 | `DialogueText` | `FText` | Text, der gezeigt wird wenn `bShowDialogueText = true`. |
