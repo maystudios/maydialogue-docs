@@ -20,17 +20,17 @@ Blendet die Spielerkamera auf einen bestimmten Participant (Sprecher oder NPC). 
 
 ---
 
-## Auflösungs-Reihenfolge — welcher Pfad läuft
+## Camera Mode — expliziter Selector
 
-Ein Camera-Focus-Node unterstützt drei Konfigurationen. Die Runtime wertet sie von oben nach unten aus und nutzt die erste, die gesetzt ist:
+Der Node hat ein einziges **`CameraMode`**-Dropdown. Das Details-Panel passt sich an und zeigt nur die zur gewählten Mode passenden Properties (irrelevante Felder verschwinden per `EditConditionHides`).
 
-| Priorität | Aktive Property | Resultat |
-|---|---|---|
-| 1 | `CameraSequence` | Eine Level Sequence übernimmt die Kamera (Cine Camera + Camera Cuts Track). |
-| 2 | `CameraAnchorTag` | Findet einen `AMayDialogueCameraAnchor`-Actor per Tag und macht ihn per `SetViewTargetWithBlend` zum neuen ViewTarget. |
-| 3 | `FocusSpeakerTag` allein | Legacy-Pfad: dreht die `ControlRotation` des Spielers smooth zum Sprecher. **Kein ViewTarget-Switch** — die echte Pawn-Kamera (Spring-Arm, Lag, Post-Process) bleibt aktiv. |
+| Mode | Was er tut |
+|---|---|
+| **Speaker Look** *(Default)* | Dreht die `ControlRotation` des Spielers smooth zum Sprecher. Pawn-Kamera (Spring-Arm, Lag, Post-Process) bleibt aktiv — kein ViewTarget-Switch. |
+| **Camera Anchor** | Schaltet das ViewTarget des Spielers per `SetViewTargetWithBlend` auf einen platzierten `MayDialogueCameraAnchor`-Actor. |
+| **Level Sequence** | Gibt die Kamera für die Dauer des Nodes an ein Level-Sequence-Asset ab. |
 
-Niedriger priorisierte Pfade werden übersprungen, sobald ein höherer greift. Das ursprüngliche ViewTarget wird beim ersten Switch gecached und bei Dialog-Ende automatisch wiederhergestellt (Blend-Zeit = `DefaultAnchorRestoreBlendTime` aus den Project Settings).
+Das ursprüngliche ViewTarget / die ControlRotation wird beim ersten Focus gecached und bei Dialog-Ende automatisch wiederhergestellt (Blend-Zeit = `DefaultAnchorRestoreBlendTime` aus den Project Settings).
 
 ## Override-Reihenfolge — wer gewinnt für jeden Wert
 

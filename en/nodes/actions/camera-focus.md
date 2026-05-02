@@ -20,17 +20,17 @@ Blends the player camera toward a specific Participant (Speaker or NPC). You can
 
 ---
 
-## Resolution priority — which path runs
+## Camera Mode — explicit selector
 
-A Camera Focus node supports three configurations. The runtime evaluates them top-down and uses the first one that is set:
+The node has a single **`CameraMode`** dropdown. The Details panel adapts to show only the properties relevant to the selected mode (irrelevant fields are hidden via `EditConditionHides`).
 
-| Priority | Active property | Result |
-|---|---|---|
-| 1 | `CameraSequence` | A Level Sequence drives the camera (Cine Camera + Camera Cuts Track). |
-| 2 | `CameraAnchorTag` | Finds an `AMayDialogueCameraAnchor` by tag and switches the player's ViewTarget to it via `SetViewTargetWithBlend`. |
-| 3 | `FocusSpeakerTag` only | Legacy path: smoothly rotates the player's `ControlRotation` toward the speaker. **No ViewTarget switch** — the real pawn camera (spring-arm, lag, post-process) stays active. |
+| Mode | What it does |
+|---|---|
+| **Speaker Look** *(default)* | Smoothly rotates the player's `ControlRotation` toward the speaker. Pawn camera (spring-arm, lag, post-process) stays active — no ViewTarget switch. |
+| **Camera Anchor** | Switches the player's ViewTarget to a designer-placed `MayDialogueCameraAnchor` actor via `SetViewTargetWithBlend`. |
+| **Level Sequence** | Hands the camera to a Level Sequence asset for the duration of the node. |
 
-Lower-priority paths are skipped once a higher one matches. The original ViewTarget is captured on the first switch and restored on dialogue end (blend time = `DefaultAnchorRestoreBlendTime` from Project Settings).
+The original ViewTarget / control rotation is captured on the first focus and restored on dialogue end (blend time = `DefaultAnchorRestoreBlendTime` from Project Settings).
 
 ## Override priority — who wins per value
 
