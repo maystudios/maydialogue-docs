@@ -20,7 +20,7 @@ Blendet die Spielerkamera auf einen bestimmten Participant (Sprecher oder NPC). 
 
 ---
 
-## Auflösungs-Reihenfolge
+## Auflösungs-Reihenfolge — welcher Pfad läuft
 
 Ein Camera-Focus-Node unterstützt drei Konfigurationen. Die Runtime wertet sie von oben nach unten aus und nutzt die erste, die gesetzt ist:
 
@@ -28,9 +28,35 @@ Ein Camera-Focus-Node unterstützt drei Konfigurationen. Die Runtime wertet sie 
 |---|---|---|
 | 1 | `CameraSequence` | Eine Level Sequence übernimmt die Kamera (Cine Camera + Camera Cuts Track). |
 | 2 | `CameraAnchorTag` | Findet einen `AMayDialogueCameraAnchor`-Actor per Tag und macht ihn per `SetViewTargetWithBlend` zum neuen ViewTarget. |
-| 3 | `FocusSpeakerTag` allein | Klassischer Pfad: dreht die `ControlRotation` des Spielers zum Sprecher (kein ViewTarget-Wechsel). |
+| 3 | `FocusSpeakerTag` allein | Legacy-Pfad: transienter `ACameraActor` an der Spielerkamera-Position, ausgerichtet auf den Sprecher. |
 
 Niedriger priorisierte Pfade werden übersprungen, sobald ein höherer greift. Das ursprüngliche ViewTarget wird beim ersten Switch gecached und bei Dialog-Ende automatisch wiederhergestellt (Blend-Zeit = `DefaultAnchorRestoreBlendTime` aus den Project Settings).
+
+## Override-Reihenfolge — wer gewinnt für jeden Wert
+
+Alle Werte folgen demselben Muster: **most-specific wins**, mit Sentinel-Werten als „nicht gesetzt → fall through".
+
+| Wert | Quelle 1 (Priorität) | Quelle 2 | Fallback |
+|---|---|---|---|
+| **BlendTime (Anchor-Pfad)** | Node `BlendTime` ≥ 0 | Anchor `BlendTimeOverride` ≥ 0 | Settings `DefaultCameraBlendTime` |
+| **BlendTime (Legacy-Pfad)** | Node `BlendTime` ≥ 0 | — | Settings `DefaultCameraBlendTime` |
+| **Restore-BlendTime** | — | — | Settings `DefaultAnchorRestoreBlendTime` |
+| **FOV (Legacy-Pfad)** | Node `FOVOverride` > 0 | — | Aktueller `PlayerCameraManager`-FOV |
+| **FOV (Anchor-Pfad)** | — | — | CineCamera-Settings am Anchor (Brennweite, Aperture etc.) |
+
+### Look-at-Position (nur Legacy-Pfad)
+
+Die einzige Stelle mit **additivem** statt override-Verhalten:
+
+```
+Look-at = SpeakerActor.Location
+          + (Node.bIgnoreParticipantOffset ? 0 : Participant.CameraTargetOffset)
+          + Node.CameraOffset
+```
+
+`Participant.CameraTargetOffset` setzt der Designer **einmal pro NPC** (z. B. „Kopfhöhe = +60 cm"), `Node.CameraOffset` ist situativ pro Szene. Beides wird sinnvoll addiert statt Doppelarbeit zu erzwingen. `bIgnoreParticipantOffset = true` am Node deaktiviert die Participant-Komponente für Spezialfälle.
+
+Im Anchor-Pfad sind diese Offsets **wirkungslos** — der Anchor-Actor definiert seine Pose komplett selbst.
 
 ## Properties
 
@@ -38,7 +64,8 @@ Niedriger priorisierte Pfade werden übersprungen, sobald ein höherer greift. D
 |---|---|---|
 | `FocusSpeakerTag` | `FGameplayTag` (`Dialogue.Speaker.*`) | Sprecher für Pfad 3. |
 | `BlendTime` | `float` | Blend-Dauer in Sekunden. `-1` = Wert aus den Projekt-Settings (`DefaultCameraBlendTime`). |
-| `CameraOffset` | `FVector` | Zusätzlicher Welt-Offset (nur Pfad 3 — rotate-controller). |
+| `CameraOffset` | `FVector` | Zusätzlicher Welt-Offset (nur Pfad 3, additiv mit `Participant.CameraTargetOffset`). |
+| `bIgnoreParticipantOffset` | `bool` | Wenn `true`: ignoriert `Participant.CameraTargetOffset`, nur `CameraOffset` zählt. Default: `false`. |
 | `FOVOverride` | `float` | FOV in Grad während des Focus (nur Pfad 3). `0` = kein Override. |
 | `bShowDialogueText` | `bool` | Zeigt Dialogtext und wartet auf Spieler-Advance (verhält sich wie SayLine). Orthogonal zum Kamera-Pfad. |
 | `DialogueText` | `FText` | Text, der gezeigt wird wenn `bShowDialogueText = true`. |

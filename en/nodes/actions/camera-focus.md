@@ -20,7 +20,7 @@ Blends the player camera toward a specific Participant (Speaker or NPC). You can
 
 ---
 
-## Resolution priority
+## Resolution priority — which path runs
 
 A Camera Focus node supports three configurations. The runtime evaluates them top-down and uses the first one that is set:
 
@@ -28,9 +28,35 @@ A Camera Focus node supports three configurations. The runtime evaluates them to
 |---|---|---|
 | 1 | `CameraSequence` | A Level Sequence drives the camera (Cine Camera + Camera Cuts Track). |
 | 2 | `CameraAnchorTag` | Finds an `AMayDialogueCameraAnchor` by tag and switches the player's ViewTarget to it via `SetViewTargetWithBlend`. |
-| 3 | `FocusSpeakerTag` only | Legacy path: rotates the player's `ControlRotation` toward the speaker (no ViewTarget switch). |
+| 3 | `FocusSpeakerTag` only | Legacy path: a transient `ACameraActor` at the player camera position aimed at the speaker. |
 
 Lower-priority paths are skipped once a higher one matches. The original ViewTarget is captured on the first switch and restored on dialogue end (blend time = `DefaultAnchorRestoreBlendTime` from Project Settings).
+
+## Override priority — who wins per value
+
+Every value follows the same rule: **most-specific wins**, with sentinel values meaning "not set, fall through".
+
+| Value | Source 1 (priority) | Source 2 | Fallback |
+|---|---|---|---|
+| **BlendTime (Anchor path)** | Node `BlendTime` ≥ 0 | Anchor `BlendTimeOverride` ≥ 0 | Settings `DefaultCameraBlendTime` |
+| **BlendTime (Legacy path)** | Node `BlendTime` ≥ 0 | — | Settings `DefaultCameraBlendTime` |
+| **Restore BlendTime** | — | — | Settings `DefaultAnchorRestoreBlendTime` |
+| **FOV (Legacy path)** | Node `FOVOverride` > 0 | — | Current `PlayerCameraManager` FOV |
+| **FOV (Anchor path)** | — | — | The anchor's CineCamera settings (focal length, aperture, …) |
+
+### Look-at position (Legacy path only)
+
+The one place that is **additive** rather than override:
+
+```
+LookAt = SpeakerActor.Location
+       + (Node.bIgnoreParticipantOffset ? 0 : Participant.CameraTargetOffset)
+       + Node.CameraOffset
+```
+
+`Participant.CameraTargetOffset` is set **once per NPC** (e.g. "head height = +60 cm"), `Node.CameraOffset` is per-scene fine-tuning. Adding them is useful default behavior — it avoids forcing every node to repeat the per-NPC base offset. Set `bIgnoreParticipantOffset = true` on the node when a special-case shot should not inherit the participant's offset.
+
+In the Anchor path these offsets have **no effect** — the anchor actor defines its pose entirely on its own.
 
 ## Properties
 
@@ -38,7 +64,8 @@ Lower-priority paths are skipped once a higher one matches. The original ViewTar
 |---|---|---|
 | `FocusSpeakerTag` | `FGameplayTag` (`Dialogue.Speaker.*`) | Speaker for path 3. |
 | `BlendTime` | `float` | Blend duration in seconds. `-1` = value from Project Settings (`DefaultCameraBlendTime`). |
-| `CameraOffset` | `FVector` | Extra world offset (path 3 only — rotate-controller). |
+| `CameraOffset` | `FVector` | Extra world offset (path 3 only, additive with `Participant.CameraTargetOffset`). |
+| `bIgnoreParticipantOffset` | `bool` | If `true`, ignore `Participant.CameraTargetOffset` and use only this node's `CameraOffset`. Default: `false`. |
 | `FOVOverride` | `float` | FOV in degrees while focused (path 3 only). `0` = no override. |
 | `bShowDialogueText` | `bool` | Shows dialogue text and waits for player advance (behaves like SayLine). Orthogonal to the camera path. |
 | `DialogueText` | `FText` | Text shown when `bShowDialogueText = true`. |
