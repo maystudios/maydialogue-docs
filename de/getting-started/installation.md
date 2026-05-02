@@ -1,5 +1,5 @@
 ﻿---
-description: Plugin in dein Projekt einbinden: Schritt für Schritt.
+description: "Plugin in dein Projekt einbinden: Schritt für Schritt."
 ---
 
 # Installation

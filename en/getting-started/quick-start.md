@@ -1,5 +1,5 @@
 ﻿---
-description: Create a dialogue asset, place an NPC in the level, and test: in five minutes.
+description: "Create a dialogue asset, place an NPC in the level, and test: in five minutes."
 ---
 
 # Quick Start

@@ -1,5 +1,5 @@
 ﻿---
-description: Dialog-Asset anlegen, NPC ins Level, testen: in fünf Minuten.
+description: "Dialog-Asset anlegen, NPC ins Level, testen: in fünf Minuten."
 ---
 
 # Quick Start

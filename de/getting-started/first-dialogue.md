@@ -1,5 +1,5 @@
 ﻿---
-description: Variablen, Choice-Requirements und SideEffect-Aktionen: ein vollständiger Dialog.
+description: "Variablen, Choice-Requirements und SideEffect-Aktionen: ein vollständiger Dialog."
 ---
 
 # Walkthrough: Ein vollständiger Dialog

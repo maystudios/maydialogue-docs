@@ -1,5 +1,5 @@
 ﻿---
-description: Adding the plugin to your project: step by step.
+description: "Adding the plugin to your project: step by step."
 ---
 
 # Installation

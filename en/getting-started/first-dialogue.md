@@ -1,5 +1,5 @@
 ﻿---
-description: Variables, choice requirements, and SideEffect actions: a complete dialogue.
+description: "Variables, choice requirements, and SideEffect actions: a complete dialogue."
 ---
 
 # Walkthrough: A Complete Dialogue
