@@ -164,7 +164,7 @@ If you want to access an `FMayDialogueVariables` container directly (e.g. from a
   └─ Out Value As String → (process further)
 ```
 
-> **Note:** `Copy Dialogue Variables` currently returns `false` (stub implementation). Use `Get`+`Set` in a loop instead if you need to port variables.
+> **Note (1.0):** `Copy Dialogue Variables` is now fully implemented. It iterates the source `FInstancedPropertyBag`, maps each property to `EMayDialogueVariableType`, and writes it to the destination via the same typed setters that fire `OnVariableChanged`. Returns `true` when at least one variable was copied, or when the source is empty (vacuous success). Returns `false` when a required argument is null or every transfer attempt failed.
 
 ---
 

@@ -19,13 +19,19 @@ Blueprint Function Library with static methods. Convenience layer over the Subsy
 | Function | Kind | Parameters | Return | When to use |
 |---|---|---|---|---|
 | `Start Dialogue` | Callable | `WorldContext`, `Asset`, `Instigator`, `Target` | `UMayDialogueInstance*` | Start a dialogue from any Blueprint. |
-| `Stop Dialogue` | Callable | `Instance` | — | Stop a specific Instance. |
-| `Stop All Dialogues` | Callable | `WorldContext` | — | Abort all dialogues (death, level travel). |
+| `Abort Dialogue` | Callable | `Instance` | — | Abort a specific Instance (canonical 1.0 name). Server/authority only. |
+| `Abort All Dialogues` | Callable | `WorldContext` | — | Abort all dialogues (death, level travel). Server/authority only. |
+| `Stop Dialogue` | Callable | `Instance` | — | **Deprecated** — use `Abort Dialogue`. |
+| `Stop All Dialogues` | Callable | `WorldContext` | — | **Deprecated** — use `Abort All Dialogues`. |
 | `Get Active Dialogue` | Callable | `WorldContext` | `UMayDialogueInstance*` | Fetch the active Instance to read state. |
 | `Is Any Dialogue Active` | Pure | `WorldContext` | `bool` | Check whether a dialogue is running (e.g. for overlap guards). |
 | `Get Dialogue Subsystem` | Callable | `WorldContext` | `UMayDialogueSubsystem*` | Fetch the Subsystem for delegate binding. |
 
 `WorldContext` is automatically filled in by the node context in Blueprint (no manual pin needed).
+
+{% hint style="info" %}
+**Verb change (1.0):** `StopDialogue` / `StopAllDialogues` have been renamed to `AbortDialogue` / `AbortAllDialogues` for verb consistency across the entire public API. The old names compile with a deprecation warning and forward to the new ones — update call sites at your next convenience.
+{% endhint %}
 
 ---
 
@@ -47,26 +53,54 @@ Returns the created Instance or `nullptr` on error (no asset, no entry, Instigat
 
 ---
 
-### Stop Dialogue
-
-```cpp
-UFUNCTION(BlueprintCallable, Category = "MayDialogue")
-static void StopDialogue(UMayDialogueInstance* Instance);
-```
-
-No-op on `nullptr`. Cleanly aborts the specified Instance.
-
----
-
-### Stop All Dialogues
+### Abort Dialogue (1.0)
 
 ```cpp
 UFUNCTION(BlueprintCallable, Category = "MayDialogue",
-    meta = (WorldContext = "WorldContext"))
+    meta = (ToolTip = "Abort and stop the given dialogue instance. Server/authority only."))
+static void AbortDialogue(UMayDialogueInstance* Instance);
+```
+
+No-op on `nullptr`. Cleanly aborts the specified Instance. Server/authority only — clients route through `UMayDialogueParticipant::RequestAbortDialogue`.
+
+---
+
+### Abort All Dialogues (1.0)
+
+```cpp
+UFUNCTION(BlueprintCallable, Category = "MayDialogue",
+    meta = (WorldContext = "WorldContext",
+        ToolTip = "Abort every active dialogue instance in the world. Server/authority only."))
+static void AbortAllDialogues(UObject* WorldContext);
+```
+
+Aborts all active Instances. Typical for level travel, player death, pause menu. Server/authority only.
+
+---
+
+### Stop Dialogue (Deprecated)
+
+```cpp
+UFUNCTION(BlueprintCallable, Category = "MayDialogue",
+    meta = (DeprecatedFunction,
+        DeprecationMessage = "Use AbortDialogue instead."))
+static void StopDialogue(UMayDialogueInstance* Instance);
+```
+
+Kept for source compatibility. Forwards to `AbortDialogue`. Will be removed in a future version.
+
+---
+
+### Stop All Dialogues (Deprecated)
+
+```cpp
+UFUNCTION(BlueprintCallable, Category = "MayDialogue",
+    meta = (WorldContext = "WorldContext", DeprecatedFunction,
+        DeprecationMessage = "Use AbortAllDialogues instead."))
 static void StopAllDialogues(UObject* WorldContext);
 ```
 
-Aborts all active Instances. Typical for level travel, player death, pause menu.
+Kept for source compatibility. Forwards to `AbortAllDialogues`. Will be removed in a future version.
 
 ---
 
@@ -125,13 +159,13 @@ Returns the Subsystem. If you need it frequently, cache it in a Blueprint variab
 > 📸 **Image placeholder:** `library-start-with-check-bp.png` — Complete Blueprint graph: Start Dialogue → Is Valid → Branch.
 > *Setup:* Interaction Blueprint. Nodes: `Start Dialogue` (pins filled), `Is Valid` (Input: Return Value of the Start node), `Branch`, True branch empty, False branch → `Print String`. All connections visible.
 
-### Stop All Dialogues on Player Death
+### Abort All Dialogues on Player Death
 
 ```text
 [Event On Player Died]
     │
     ▼
-[Stop All Dialogues]
+[Abort All Dialogues]
 ```
 
 ### Get Subsystem for Delegate Binding

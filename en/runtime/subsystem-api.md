@@ -34,10 +34,12 @@ UMayDialogueSubsystem* Sub = UMayDialogueLibrary::GetDialogueSubsystem(this);
 
 | Function | Use Case |
 |---|---|
-| `StartDialogue(Asset, Instigator, Target)` | Start a dialogue. Returns the instance or `nullptr` on failure. |
-| `CanStartDialogue(Asset, Instigator, Target)` | Check whether a start would succeed without triggering it (e.g. for interaction prompts). |
-| `StopDialogue(Instance)` | Abort a specific instance. |
-| `StopAllDialogues()` | Abort all active dialogues (level change, player death). |
+| `StartDialogue(Asset, Instigator, Target)` | Start a dialogue. Returns the instance or `nullptr` on failure. Server-only. |
+| `K2_CanStartDialogue(Asset, Instigator, Target)` | Check whether a start would succeed without triggering it (e.g. for interaction prompts). |
+| `K2_AbortDialogue(Instance)` | Abort a specific instance. Server/authority only. (1.0 canonical name) |
+| `AbortAllDialogues()` | Abort all active dialogues (level change, player death). Server/authority only. (1.0 canonical name) |
+| `StopDialogue(Instance)` | **Deprecated** — use `K2_AbortDialogue`. |
+| `StopAllDialogues()` | **Deprecated** — use `AbortAllDialogues`. |
 
 ### Example: Start dialogue and check result
 

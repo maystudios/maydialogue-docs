@@ -164,7 +164,7 @@ Wenn du direkt auf einen `FMayDialogueVariables`-Container (z.B. aus einer gespe
   └─ Out Value As String → (weiterverarbeiten)
 ```
 
-> **Hinweis:** `Copy Dialogue Variables` gibt aktuell `false` zurück (Stub-Implementierung). Nutze stattdessen `Get`+`Set` in einer Schleife, wenn du Variablen portieren willst.
+> **Hinweis (1.0):** `Copy Dialogue Variables` ist jetzt vollständig implementiert. Die Funktion iteriert den Quell-`FInstancedPropertyBag`, ordnet jede Property einem `EMayDialogueVariableType` zu und schreibt den Wert über dieselben typisierten Setter in das Ziel, die `OnVariableChanged` auslösen. Gibt `true` zurück wenn mindestens eine Variable kopiert wurde oder die Quelle leer ist (vakuoser Erfolg). Gibt `false` zurück wenn ein erforderliches Argument null ist oder alle Übertragungsversuche scheitern.
 
 ---
 

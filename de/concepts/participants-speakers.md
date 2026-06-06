@@ -82,6 +82,26 @@ Mit `SetActiveDialogue(NewAsset)` kannst du den Default-Dialog eines NPCs zur La
 Guard->FindComponentByClass<UMayDialogueParticipant>()->SetActiveDialogue(DA_Guard_AfterRevelation);
 ```
 
+### GetEffectiveDialogueAsset (1.0)
+
+```cpp
+UFUNCTION(BlueprintPure, Category = "MayDialogue|Participant")
+UMayDialogueAsset* GetEffectiveDialogueAsset() const;
+```
+
+Gibt das aufgelöste Dialog-Asset für diesen Participant zurück: den Override aus `SetActiveDialogue()` wenn gesetzt, andernfalls die `DefaultDialogue`-Property. Damit lässt sich vor dem Aufruf von `StartDefaultDialogue` oder `RequestStartDialogue` bestätigen, welches Asset tatsächlich starten wird.
+
+```cpp
+// Prüfen, welches Asset läuft, bevor gestartet wird
+UMayDialogueAsset* NextAsset = Part->GetEffectiveDialogueAsset();
+if (IsValid(NextAsset))
+{
+    Part->StartDefaultDialogue(Player);
+}
+```
+
+> **Umbenannt von `GetActiveDialogue` (1.0):** Der alte Name auf `UMayDialogueParticipant` war mehrdeutig — er gab das konfigurierte Asset zurück, nicht eine laufende `UMayDialogueInstance`. Der deprecated Alias `GetActiveDialogue()` kompiliert weiterhin mit Deprecation-Warnung und leitet an `GetEffectiveDialogueAsset()` weiter.
+
 ## Der Sprecher-Eintrag im Asset
 
 Für jeden Sprecher in einem Dialog-Asset trägst du im **Speakers-Panel** einen Eintrag ein:

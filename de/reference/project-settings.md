@@ -98,6 +98,28 @@ Fallback-Klassen für den komponenten-basierten UMG-Workflow. Wenn `DefaultDialo
 
 ---
 
+## Barrierefreiheit (1.0)
+
+| Property | Typ | Default | Bedeutung |
+|---|---|---|---|
+| `DialogueTextScale` | `float` | `1.0` | Einheitlicher Text-Skalierungsfaktor für alle Dialog-Schriftgrößen (Nachrichtentext, Speaker-Name, Choice-Buttons) auf Slate- und UMG-Widget-Schicht. Begrenzt auf `0,5–3,0`. |
+| `bColorblindSafeChoiceCues` | `bool` | `true` | Wenn true, zeigen nicht verfügbare (gesperrte) Choices ein Schloss-Glyph-Präfix, damit sie ohne Farbabhängigkeit von verfügbaren Choices unterscheidbar sind. |
+
+`DialogueTextScale` wird von `MayDialogue::Accessibility::ClampTextScale(S->DialogueTextScale)` im eingebauten Slate-Widget (`SMayDialogueWidget`) und in den Standard-UMG-Komponenten-Widgets ausgelesen. Es muss kein Widget ersetzt werden, um größeren Text zu verwenden — den Scale hier setzen und er gilt projekt-weit.
+
+`bColorblindSafeChoiceCues` setzt einem Unicode-Schloss-Glyph (🔒) vor den Text nicht verfügbarer Choice-Buttons via `MayDialogue::Accessibility::GetColorblindChoicePrefix(...)`. Projekte mit eigenem farbunabhängigem Verfügbarkeits-Indikator können dies deaktivieren.
+
+**Screen-Reader-Unterstützung:** Beide Widget-Schichten rufen `SetAccessibleText` für jedes angezeigte Element auf, unter Verwendung von `MayDialogue::Accessibility::MakeSpeakerAccessibleText`, `MakeDialogueTextAccessibleText` und `MakeChoiceAccessibleText`. Der Accessible-Text für nicht verfügbare Choices enthält die Phrase "Gesperrte Wahl" und, wenn ein Grund angegeben wird, die Anforderungsbeschreibung — so gibt assistive Technologie Kontext aus, auch ohne das visuelle Schloss-Glyph.
+
+```ini
+# DefaultGame.ini-Beispiel
+[/Script/MayDialogue.MayDialogueSettings]
+DialogueTextScale=1.5
+bColorblindSafeChoiceCues=True
+```
+
+---
+
 ## Programmatischer Zugriff
 
 ```cpp
@@ -125,14 +147,50 @@ DefaultAdvanceMode=Manual
 DefaultAutoAdvanceDelay=2.5
 DefaultCameraBlendTime=0.5
 bAutoFocusSpeaker=False
+DialogueTextScale=1.0
+bColorblindSafeChoiceCues=True
 ```
 
 {% hint style="info" %}
 `TSoftObjectPtr`- und `TSoftClassPtr`-Referenzen werden beim ersten Dialog-Start lazy geladen. Es entsteht eine einmalige kurze Lade-Pause — plant das für deinen ersten Dialogstart ein.
 {% endhint %}
 
+---
+
+## Native GameplayTags im Plugin (1.0)
+
+Das Plugin registriert beim Modul-Start einen minimalen Satz nativer `GameplayTag`-Werte, damit die Editor-Tag-Picker befüllt sind und die Schnellstart-Anleitung ohne manuelle Tag-Tabellen-Pflege funktioniert.
+
+### Speaker-Tags
+
+| C++-Name | Tag-String | Zweck |
+|---|---|---|
+| `TAG_MayDialogue_Speaker_Guard` | `Dialogue.Speaker.Guard` | Beispiel-Speaker-Tag — entspricht dem mitgelieferten `DA_Greeting_Simple`-Sample. |
+| `TAG_MayDialogue_Speaker_Player` | `Dialogue.Speaker.Player` | Beispiel-Tag für den Spieler-Charakter. |
+| `TAG_MayDialogue_Speaker_NPC` | `Dialogue.Speaker.NPC` | Generischer Beispiel-Tag für unbenannte NPCs. |
+
+### Lifecycle-GameplayCue-Tags
+
+| C++-Name | Tag-String | Entspricht |
+|---|---|---|
+| `TAG_GameplayCue_Dialogue` | `GameplayCue.Dialogue` | Root-Tag für alle MayDialogue-Lifecycle-Cues. |
+| `TAG_GameplayCue_Dialogue_Started` | `GameplayCue.Dialogue.Started` | `EMayDialogueLifecycleEvent::DialogueStarted` |
+| `TAG_GameplayCue_Dialogue_Ended` | `GameplayCue.Dialogue.Ended` | `EMayDialogueLifecycleEvent::DialogueEnded` |
+| `TAG_GameplayCue_Dialogue_NodeReached` | `GameplayCue.Dialogue.NodeReached` | `EMayDialogueLifecycleEvent::NodeReached` |
+| `TAG_GameplayCue_Dialogue_ChoiceMade` | `GameplayCue.Dialogue.ChoiceMade` | `EMayDialogueLifecycleEvent::ChoiceMade` |
+| `TAG_GameplayCue_Dialogue_EventFired` | `GameplayCue.Dialogue.EventFired` | `EMayDialogueLifecycleEvent::DialogueEventFired` |
+
+Tags werden in `MayDialogueGameplayTags.h` deklariert (einbinden, um per extern-Variable-Namen auf sie zuzugreifen). Definitionen liegen in `MayDialogueGameplayTags.cpp` und werden automatisch registriert.
+
+**Projektspezifische Tags hinzufügen:** Eigene Tags in der `DefaultGameplayTags.ini` des Projekts oder über *Project Settings → GameplayTags* neben den Plugin-Tags anlegen. Die Plugin-Tags sind bewusst minimal und klar unter `Dialogue.*` geschützt, um keine Projekttag-Bäume zu beeinflussen.
+
+**Lifecycle-Cue-Bindungen:** Die `GameplayCue.Dialogue.*`-Tags mit eigenen GAS-gesteuerten Cues in *Project Settings → MayDialogue → GAS → Lifecycle Cue Bindings* verbinden. Siehe [GAS-Integration](../gas/README.md) für die vollständige Bindungs-Einrichtung.
+
+---
+
 ## Siehe auch
 
 - [Editor-Einstellungen](editor-settings.md) — Editor-spezifische Settings (Node-Farben, Debug-Highlights).
 - [UI → UMG-Architektur](../ui/umg-architecture.md) — wie die UMG-Defaults das Widget-Layout steuern.
 - [Audio → Babel-System](../audio/babel-system.md) — Babel-Details und Profil-Konfiguration.
+- [GAS-Integration](../gas/README.md) — Lifecycle-Cue-Bindungen und GAS-Requirements.

@@ -82,6 +82,26 @@ Use `SetActiveDialogue(NewAsset)` to change an NPC's default dialogue at runtime
 Guard->FindComponentByClass<UMayDialogueParticipant>()->SetActiveDialogue(DA_Guard_AfterRevelation);
 ```
 
+### GetEffectiveDialogueAsset (1.0)
+
+```cpp
+UFUNCTION(BlueprintPure, Category = "MayDialogue|Participant")
+UMayDialogueAsset* GetEffectiveDialogueAsset() const;
+```
+
+Returns the resolved dialogue asset for this participant: the override set via `SetActiveDialogue()` if one has been set, otherwise the `DefaultDialogue` property. Use this to confirm which asset will actually start before calling `StartDefaultDialogue` or `RequestStartDialogue`.
+
+```cpp
+// Check what asset will run before starting
+UMayDialogueAsset* NextAsset = Part->GetEffectiveDialogueAsset();
+if (IsValid(NextAsset))
+{
+    Part->StartDefaultDialogue(Player);
+}
+```
+
+> **Renamed from `GetActiveDialogue` (1.0):** The old name on `UMayDialogueParticipant` was ambiguous — it returned the configured asset, not a running `UMayDialogueInstance`. The deprecated alias `GetActiveDialogue()` still compiles with a deprecation warning and forwards to `GetEffectiveDialogueAsset()`.
+
 ## The speaker entry in the asset
 
 For each speaker in a dialogue asset you add an entry in the **Speakers panel**:

@@ -15,8 +15,11 @@ Zentraler Orchestrator. Ein `UWorldSubsystem`, pro Welt genau eine Instanz. Impl
 ## Zugriff
 
 ```cpp
-// C++
+// C++ — drei äquivalente Wege
 UMayDialogueSubsystem* Sub = GetWorld()->GetSubsystem<UMayDialogueSubsystem>();
+
+// Statischer Convenience-Accessor (1.0)
+UMayDialogueSubsystem* Sub = UMayDialogueSubsystem::Get(this);
 
 // Via Library-Helper
 UMayDialogueSubsystem* Sub = UMayDialogueLibrary::GetDialogueSubsystem(this);
@@ -24,7 +27,26 @@ UMayDialogueSubsystem* Sub = UMayDialogueLibrary::GetDialogueSubsystem(this);
 
 ```text
 // Blueprint
-[Get MayDialogue Subsystem]
+[Get MayDialogue Subsystem]    ← Library-Node, oder
+[UMayDialogueSubsystem::Get]   ← direkter Static-Node (DisplayName: "Get MayDialogue Subsystem")
+```
+
+### UMayDialogueSubsystem::Get (1.0)
+
+```cpp
+UFUNCTION(BlueprintCallable, Category = "MayDialogue|Subsystem",
+    meta = (WorldContext = "WorldContext", DisplayName = "Get MayDialogue Subsystem"))
+static UMayDialogueSubsystem* Get(const UObject* WorldContext);
+```
+
+Null-sicherer statischer Accessor. Gibt `nullptr` zurück, wenn `WorldContext` null ist, keine Welt hat oder das Subsystem nicht vorhanden ist. Äquivalent zu `UMayDialogueLibrary::GetDialogueSubsystem(WorldContext)`.
+
+```cpp
+// Null-sicheres Muster
+if (auto* S = UMayDialogueSubsystem::Get(this))
+{
+    S->StartDialogue(Asset, Instigator, Target);
+}
 ```
 
 > 📸 **Bild-Platzhalter:** `subsystem-access-bp.png` — Blueprint-Node `Get MayDialogue Subsystem` mit Rückgabe-Pin.
@@ -36,24 +58,58 @@ UMayDialogueSubsystem* Sub = UMayDialogueLibrary::GetDialogueSubsystem(this);
 
 | Signatur | Rückgabe | Beschreibung |
 |---|---|---|
-| `StartDialogue(Asset, Instigator, Target)` | `UMayDialogueInstance*` | Pre-Flight-Check → Instance erzeugen → Entry starten. `nullptr` bei Fehler. |
-| `CanStartDialogue(Asset, Instigator, Target)` | `bool` | Reiner Query. Klärt ob `StartDialogue` klappen würde. |
-| `StopDialogue(Instance)` | `void` | Abortet eine bestimmte Instance. No-op bei `nullptr`. |
-| `StopAllDialogues()` | `void` | Abortet alle aktiven Instances. |
+| `StartDialogue(Asset, Instigator, Target)` | `UMayDialogueInstance*` | Pre-Flight-Check → Instance erzeugen → Entry starten. `nullptr` bei Fehler. Nur Server. |
+| `K2_CanStartDialogue(Asset, Instigator, Target)` | `bool` | Blueprint-Pre-Flight-Check. Gibt `true` zurück wenn `StartDialogue` klappen würde. |
+| `K2_AbortDialogue(Instance)` | `void` | Abortet eine bestimmte Instance. No-op bei `nullptr`. Nur Server/Authority. |
+| `AbortAllDialogues()` | `void` | Abortet alle aktiven Instances. Nur Server/Authority. |
+| `StopDialogue(Instance)` | `void` | **Deprecated** — stattdessen `K2_AbortDialogue` verwenden. |
+| `StopAllDialogues()` | `void` | **Deprecated** — stattdessen `AbortAllDialogues` verwenden. |
 
 ```cpp
 UFUNCTION(BlueprintCallable, Category = "MayDialogue|Subsystem")
 UMayDialogueInstance* StartDialogue(UMayDialogueAsset* Asset, AActor* Instigator, AActor* Target);
 
-UFUNCTION(BlueprintCallable, Category = "MayDialogue|Subsystem")
-bool CanStartDialogue(UMayDialogueAsset* Asset, AActor* Instigator, AActor* Target) const;
+// Blueprint: "Can Start Dialogue" — Pre-Flight-Validierung (1.0)
+UFUNCTION(BlueprintCallable, Category = "MayDialogue|Subsystem",
+    DisplayName = "Can Start Dialogue")
+bool K2_CanStartDialogue(UMayDialogueAsset* Asset, AActor* Instigator, AActor* Target);
+
+// Blueprint: "Abort Dialogue" (1.0, kanonisches Verb)
+UFUNCTION(BlueprintCallable, Category = "MayDialogue|Subsystem",
+    meta = (DisplayName = "Abort Dialogue"))
+void K2_AbortDialogue(UMayDialogueInstance* Instance);
 
 UFUNCTION(BlueprintCallable, Category = "MayDialogue|Subsystem")
+void AbortAllDialogues();
+
+// Deprecated-Aliases — für Quellcode-Kompatibilität behalten, werden in einer zukünftigen Version entfernt
+UFUNCTION(BlueprintCallable, Category = "MayDialogue|Subsystem",
+    meta = (DeprecatedFunction,
+        DeprecationMessage = "Use K2_AbortDialogue instead."))
 void StopDialogue(UMayDialogueInstance* Instance);
 
-UFUNCTION(BlueprintCallable, Category = "MayDialogue|Subsystem")
+UFUNCTION(BlueprintCallable, Category = "MayDialogue|Subsystem",
+    meta = (DeprecatedFunction,
+        DeprecationMessage = "Use AbortAllDialogues instead."))
 void StopAllDialogues();
 ```
+
+### Verb-Konvention (1.0)
+
+MayDialogue verwendet an jeder öffentlichen Schicht ein einziges kanonisches Verb für „Dialog frühzeitig beenden":
+
+| Schicht | Kanonisches Verb |
+|---|---|
+| `UMayDialogueSubsystem` | `K2_AbortDialogue` / `AbortAllDialogues` |
+| `UMayDialogueLibrary` | `AbortDialogue` / `AbortAllDialogues` |
+| `UMayDialogueInstance` | `AbortDialogue` (server-autoritativ) |
+| `IMayDialogueBridge` | `AbortDialogue` |
+| `UMayDialogueParticipant` (Client-Input) | `RequestAbortDialogue` → `ServerAbortConversation` |
+
+- **`Abort*`** — im Server/Authority-Code aufrufen, um einen Dialog zu beenden.
+- **`Request*`** — netz-sichere Wrapper auf `UMayDialogueParticipant`; leiten über Server-RPCs weiter, funktionieren identisch auf Clients und Listen-Server-Hosts. Designer verbinden UI-Buttons direkt mit `Request*`.
+- **`Server*` / `Client*`** — rohe UE-RPC-Schicht; nicht aus Gameplay-Code aufrufen, stattdessen `Request*` nutzen.
+- **`Stop*`** — deprecated Aliases; kompilieren mit Deprecation-Warnung und leiten an `Abort*` weiter.
 
 **StartDialogue-Ablauf:**
 
@@ -64,7 +120,7 @@ StartDialogue gerufen
 CanStartDialogue?  →  Nein → nullptr
     │ Ja
     ▼
-Dialog aktiv?  →  Ja → StopAllDialogues
+Dialog aktiv?  →  Ja → AbortAllDialogues
     │
     ▼
 Neue Instance erzeugen
@@ -142,12 +198,33 @@ Details mit Beispielen: [Read/Write-API](../runtime/read-write-api.md).
 
 ---
 
+## K2_CanStartDialogue — Pre-Flight-Check (1.0)
+
+Verwenden, bevor Interaktions-Prompts angezeigt oder Ressourcen für einen Dialogstart ausgegeben werden:
+
+```text
+[Get MayDialogue Subsystem] → [Can Start Dialogue]
+  ├─ Asset:      DA_Greeting
+  ├─ Instigator: Player Pawn
+  └─ Target:     Guard Actor
+       │ (bool)
+       ▼
+[Branch]
+  ├─ True  → Interaktions-Prompt anzeigen
+  └─ False → Prompt ausblenden (kein Asset / kein Entry / kein Participant)
+```
+
+Prüft: Asset gültig und kompiliert, Entry-Point vorhanden, mindestens einer von Instigator/Target trägt eine `UMayDialogueParticipant`. Startet den Dialog **nicht**. Sicher auf Server oder Client aufrufbar.
+
+---
+
 ## Sicherheits-Contracts
 
 - Alle Methoden sind **Game-Thread-only**.
 - `StartDialogue` mit `nullptr`-Asset loggt Warning und liefert `nullptr` — kein Crash.
 - Mehrfach-Abort derselben Instance ist idempotent.
-- Während `StopAllDialogues` darf aus den Delegate-Handlern heraus **nicht** `StartDialogue` gerufen werden (Re-Entrant-Guard; ein Warning wird geloggt und der Call verworfen).
+- Während `AbortAllDialogues` darf aus den Delegate-Handlern heraus **nicht** `StartDialogue` gerufen werden (Re-Entrant-Guard; ein Warning wird geloggt und der Call verworfen).
+- `StartDialogue` muss server-seitig aufgerufen werden — Clients leiten über `UMayDialogueParticipant::RequestStartDialogue` weiter.
 
 ---
 
@@ -155,7 +232,7 @@ Details mit Beispielen: [Read/Write-API](../runtime/read-write-api.md).
 
 UE ruft `Deinitialize()` beim Welt-Wechsel:
 
-1. `StopAllDialogues()` — alle Instances sauber abbrechen.
+1. `AbortAllDialogues()` — alle Instances sauber abbrechen.
 2. Timer und Delegates detachen.
 3. `CleanupCompletedDialogues()` final leeren.
 

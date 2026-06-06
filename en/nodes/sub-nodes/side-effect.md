@@ -23,6 +23,19 @@ A SideEffect is an inline action that executes as soon as the parent Node is ent
 | Class | Action | Key Properties |
 | --- | --- | --- |
 | `UMayDialogueSideEffect_SetVariable` | Set a dialogue or participant variable | `VariableName`, `VariableType`, `Scope` (Dialogue / Participant), `Value` |
+| `UMayDialogueSideEffect_FireEvent` | Broadcast a dialogue event tag | `EventTag` |
+| `UMayDialogueSideEffect_PlaySound` | Play a sound effect (fire-and-forget) | `Sound`, `VolumeMultiplier`, `PitchMultiplier`, `NodeAudioMode`, `AttenuationOverride` |
+| `UMayDialogueSideEffect_PlayAnimation` | Start an animation montage on a participant (fire-and-forget) | `Montage`, `AnimationTargetTag`, `PlayRate`, `StartSection` |
+| `UMayDialogueSideEffect_CameraFocus` | Initiate a camera focus — SpeakerLook or Anchor (cosmetic, client-side) | `CameraMode`, `FocusSpeakerTag`, `CameraAnchorTag`, `BlendTime`, `FOVOverride` |
+| `UMayDialogueSideEffect_CameraShake` | Play a camera shake effect (cosmetic, client-side) | `ShakeClass`, `Scale`, `SpatialRadius`, `EpicenterParticipantTag`, `FalloffInnerRadius` |
+
+#### Notes on the 1.0 core SideEffects
+
+- **All five are fire-and-forget** — they do not pause dialogue execution. If you need the dialogue to wait for sound or animation completion, use the corresponding standalone Action-Node (`PlaySound`, `PlayAnimation`) with its wait semantics instead.
+- **CameraFocus** does not support `Sequence` mode as a SideEffect. Use the standalone `CameraFocus` node for Level Sequence playback.
+- **CameraFocus** and **CameraShake** run via `ExecuteClientSideEffect` (cosmetic, client-side). `ExecuteSideEffect` is a no-op for those two classes.
+- **PlaySound** respects the plugin-wide `bForce2D` setting and the node-level `NodeAudioMode` tri-state override, matching the resolution order of the standalone `PlaySound` node.
+- **PlayAnimation** targets the participant identified by `AnimationTargetTag`. The tag must match a `UMayDialogueParticipant::ParticipantTag` registered in the dialogue.
 
 ### GAS Integration (MayDialogueGAS module)
 
@@ -82,8 +95,9 @@ The effect is applied when the Choice is clicked, before the dialogue jumps to t
 | Should be visible in the graph as its own box? | Yes | No |
 | Set a debugger breakpoint on it? | Yes | No (only on parent Node) |
 | Multiple actions at the same moment? | Gets cluttered | Ideal |
+| Need to wait for completion? | Yes (PlaySound / PlayAnimation with wait semantics) | No (always fire-and-forget) |
 
-**Rule of thumb**: Up to two inline actions → SideEffect pills. Three or more and/or the action is the actual purpose of the step → dedicated Action Node.
+**Rule of thumb**: Up to two inline actions → SideEffect pills. Three or more and/or the action is the actual purpose of the step → dedicated Action Node. When you need the dialogue to pause until a sound or animation completes, always use the standalone Action-Node.
 
 ## Common Pitfalls
 

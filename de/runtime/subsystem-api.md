@@ -34,10 +34,12 @@ UMayDialogueSubsystem* Sub = UMayDialogueLibrary::GetDialogueSubsystem(this);
 
 | Funktion | Use-Case |
 |---|---|
-| `StartDialogue(Asset, Instigator, Target)` | Dialog starten. Liefert die Instance oder `nullptr` bei Fehler. |
-| `CanStartDialogue(Asset, Instigator, Target)` | Prüfen ob ein Start klappen würde, ohne ihn auszulösen (z.B. für Interaktions-Prompts). |
-| `StopDialogue(Instance)` | Gezielt eine Instance abbrechen. |
-| `StopAllDialogues()` | Alle aktiven Dialoge abbrechen (Level-Wechsel, Spielertod). |
+| `StartDialogue(Asset, Instigator, Target)` | Dialog starten. Liefert die Instance oder `nullptr` bei Fehler. Nur Server. |
+| `K2_CanStartDialogue(Asset, Instigator, Target)` | Prüfen ob ein Start klappen würde, ohne ihn auszulösen (z.B. für Interaktions-Prompts). |
+| `K2_AbortDialogue(Instance)` | Gezielt eine Instance abbrechen. Nur Server/Authority. (1.0 kanonischer Name) |
+| `AbortAllDialogues()` | Alle aktiven Dialoge abbrechen (Level-Wechsel, Spielertod). Nur Server/Authority. (1.0 kanonischer Name) |
+| `StopDialogue(Instance)` | **Deprecated** — stattdessen `K2_AbortDialogue` verwenden. |
+| `StopAllDialogues()` | **Deprecated** — stattdessen `AbortAllDialogues` verwenden. |
 
 ### Beispiel: Dialog starten und Ergebnis prüfen
 

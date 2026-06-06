@@ -137,20 +137,79 @@ Prüft: Asset gültig, Entry vorhanden, mindestens ein Participant mit passenden
 
 ---
 
-## Laufenden Dialog abbrechen
+## Option 4 — RequestStartDialogue (Multiplayer / Client-sicher, 1.0)
+
+**Wann:** Der Spieler initiiert das Gespräch (sein Charakter trägt `UMayDialogueParticipant`) und der Aufruf soll auf einem Dedicated-Server-Client korrekt funktionieren, ohne einen eigenen Server-RPC schreiben zu müssen.
+
+`RequestStartDialogue` ist das netz-sichere Pendant zu `StartDefaultDialogue`. Der wesentliche Rollenunterschied:
+
+| Methode | Besitzer der Komponente | Rolle im Dialog |
+|---|---|---|
+| `StartDefaultDialogue(Instigator)` | NPC / Target | Komponenten-Eigentümer ist das **Target** |
+| `RequestStartDialogue(Target)` | Spieler / Instigator | Komponenten-Eigentümer ist der **Instigator** |
+
+```cpp
+UFUNCTION(BlueprintCallable, Category = "MayDialogue|Participant",
+    meta = (ToolTip = "Netz-sicher: startet das effektive Dialog-Asset dieses Participants. Komponenten-Eigentümer ist der Instigator; Target ist der angesprochene Actor."))
+void RequestStartDialogue(AActor* Target);
+```
+
+Auf einem Client leitet dieser Aufruf via `ServerStartConversation` an den Server weiter, der `UMayDialogueSubsystem::StartDialogue` aufruft. Auf dem Server / Listen-Server-Host startet der Dialog direkt. Das verwendete Asset wird über `GetEffectiveDialogueAsset()` aufgelöst — `DefaultDialogue` setzen oder `SetActiveDialogue()` aufrufen, bevor dieser Aufruf erfolgt.
 
 ```text
-[Get MayDialogue Subsystem] → [Stop All Dialogues]
+// Spieler drückt E neben einem NPC — Blueprint des Spieler-Charakters
+[On Interact Input Action]
+    │
+    ▼
+[Get Component by Class: MayDialogueParticipant] (Target: Self / Spieler)
+    │
+    ▼
+[Request Start Dialogue]
+    └─ Target: NPC-Actor-Referenz
 ```
 
 ```cpp
-Sub->StopAllDialogues();   // alle abbrechen (Level-Wechsel, Spielertod)
-Sub->StopDialogue(Inst);   // gezielt eine Instance abbrechen
+// C++ — funktioniert auf Client und Server
+void APlayerCharacter::OnInteractInput()
+{
+    if (auto* Part = FindComponentByClass<UMayDialogueParticipant>())
+    {
+        Part->RequestStartDialogue(NearbyNPC);
+    }
+}
+```
+
+{% hint style="info" %}
+`RequestStartDialogue` erfordert, dass `Target` ein replizierter Actor ist, damit der Server ihn auflösen kann. Das effektive Dialog-Asset wird server-seitig bestimmt — sicherstellen, dass `DefaultDialogue` oder der `SetActiveDialogue`-Override gesetzt ist, bevor der RPC ankommt.
+{% endhint %}
+
+---
+
+## Laufenden Dialog abbrechen
+
+```text
+[Get MayDialogue Subsystem] → [Abort All Dialogues]
+```
+
+```cpp
+Sub->AbortAllDialogues();   // alle abbrechen (Level-Wechsel, Spielertod) — nur Server/Authority
+Sub->AbortDialogue(Inst);   // gezielt eine Instance abbrechen — nur Server/Authority
+```
+
+Clients leiten Abbruch-Input über den Participant weiter:
+
+```cpp
+// Netz-sicher — funktioniert auf Client und Listen-Server-Host
+Part->RequestAbortDialogue();
 ```
 
 > 📸 **Bild-Platzhalter:** `stop-all-dialogues-bp.png` — BP-Graph für Spielertod-Handling.
-> *Setup:* Game Mode oder Character-Blueprint. `Event On Player Died` → `Stop All Dialogues` (Library-Node). Kein weiterer Output.
+> *Setup:* Game Mode oder Character-Blueprint. `Event On Player Died` → `Abort All Dialogues` (Library-Node). Kein weiterer Output.
 
 {% hint style="warning" %}
 Wenn du `StartDialogue` rufst, während bereits ein Dialog läuft, wird der alte **sofort abgebrochen**. Kein Queue, kein Crash.
+{% endhint %}
+
+{% hint style="info" %}
+**1.0-Umbenennung:** `StopDialogue` / `StopAllDialogues` heißen jetzt `AbortDialogue` / `AbortAllDialogues`. Die alten Namen kompilieren mit Deprecation-Warnung und leiten an die neuen weiter.
 {% endhint %}

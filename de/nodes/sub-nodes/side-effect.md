@@ -23,6 +23,19 @@ Ein SideEffect ist eine Inline-Aktion, die ausgeführt wird, sobald der Eltern-N
 | Klasse | Aktion | Wichtige Properties |
 | --- | --- | --- |
 | `UMayDialogueSideEffect_SetVariable` | Dialog- oder Participant-Variable setzen | `VariableName`, `VariableType`, `Scope` (Dialogue / Participant), `Value` |
+| `UMayDialogueSideEffect_FireEvent` | Dialogue-Event-Tag broadcasten | `EventTag` |
+| `UMayDialogueSideEffect_PlaySound` | Sound-Effekt abspielen (Fire-and-Forget) | `Sound`, `VolumeMultiplier`, `PitchMultiplier`, `NodeAudioMode`, `AttenuationOverride` |
+| `UMayDialogueSideEffect_PlayAnimation` | Animations-Montage auf einem Participant starten (Fire-and-Forget) | `Montage`, `AnimationTargetTag`, `PlayRate`, `StartSection` |
+| `UMayDialogueSideEffect_CameraFocus` | Kamerafokus initiieren — SpeakerLook oder Anchor (kosmetisch, client-seitig) | `CameraMode`, `FocusSpeakerTag`, `CameraAnchorTag`, `BlendTime`, `FOVOverride` |
+| `UMayDialogueSideEffect_CameraShake` | Kamera-Shake abspielen (kosmetisch, client-seitig) | `ShakeClass`, `Scale`, `SpatialRadius`, `EpicenterParticipantTag`, `FalloffInnerRadius` |
+
+#### Hinweise zu den neuen Core-SideEffects (1.0)
+
+- **Alle fünf sind Fire-and-Forget** — sie pausieren die Dialog-Ausführung nicht. Wenn der Dialog auf den Abschluss eines Sounds oder einer Animation warten soll, den entsprechenden eigenständigen Action-Node (`PlaySound`, `PlayAnimation`) mit seinen Wait-Semantiken verwenden.
+- **CameraFocus** unterstützt als SideEffect keinen `Sequence`-Modus. Den eigenständigen `CameraFocus`-Node für Level-Sequence-Wiedergabe verwenden.
+- **CameraFocus** und **CameraShake** laufen über `ExecuteClientSideEffect` (kosmetisch, client-seitig). `ExecuteSideEffect` ist für diese beiden Klassen ein No-op.
+- **PlaySound** respektiert die plugin-weite `bForce2D`-Einstellung und den node-seitigen `NodeAudioMode`-Tri-State-Override, entsprechend der Auflösungsreihenfolge des eigenständigen `PlaySound`-Nodes.
+- **PlayAnimation** zielt auf den Participant, der durch `AnimationTargetTag` identifiziert wird. Der Tag muss einem `UMayDialogueParticipant::ParticipantTag` entsprechen, der im Dialog registriert ist.
 
 ### GAS-Integration (MayDialogueGAS-Modul)
 
@@ -82,8 +95,9 @@ Der Effect wird beim Klick auf die Choice angewendet, bevor der Dialog zur SayLi
 | Soll im Graph als eigene Box sichtbar sein? | Ja | Nein |
 | Debugger-Breakpoint darauf setzen? | Ja | Nein (nur am Eltern-Node) |
 | Mehrere Aktionen am selben Moment? | Wird unübersichtlich | Ideal |
+| Auf Abschluss warten müssen? | Ja (PlaySound / PlayAnimation mit Wait-Semantik) | Nein (immer Fire-and-Forget) |
 
-**Faustregel**: Bis zu zwei Inline-Aktionen → SideEffect-Pills. Drei oder mehr und/oder die Aktion ist der eigentliche Zweck des Schritts → eigener Action-Node.
+**Faustregel**: Bis zu zwei Inline-Aktionen → SideEffect-Pills. Drei oder mehr und/oder die Aktion ist der eigentliche Zweck des Schritts → eigener Action-Node. Wenn der Dialog pausieren soll, bis ein Sound oder eine Animation abgeschlossen ist, immer den eigenständigen Action-Node verwenden.
 
 ## Häufige Fallstricke
 
