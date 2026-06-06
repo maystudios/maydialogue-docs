@@ -113,13 +113,12 @@ Spatial-Mode für Voice-Wiedergabe.
 
 ### EMayDialogueBabelMode
 
-Wann Babel-Voice-Synthese einspringt.
+Steuert den Babel-Synthese-Algorithmus pro Profil.
 
 | Wert | Bedeutung |
 |---|---|
-| `Off` | Nie. |
-| `FallbackOnly` | Nur wenn kein Voice-Asset vorhanden. |
-| `Always` | Immer — auch wenn Voice-Asset gesetzt ist (Preview-Modus). |
+| `BlipPerCharacter` | Ein kurzer Blip-Sound pro enthülltem Zeichen ("bip bip bip"). Klassischer VN-Stil. |
+| `PhonemeBase` | Sinusoidale Töne basierend auf Vokal-/Konsonant-Typ. Für abstrakte oder Kreatur-Stimmen. |
 
 ---
 
@@ -129,9 +128,19 @@ Wie Babel mit dem Typewriter synchronisiert.
 
 | Wert | Bedeutung |
 |---|---|
-| `PerCharacter` | Ein Laut pro Typewriter-Zeichen. |
-| `PerWord` | Ein Babel-Block pro Wort. |
-| `Continuous` | Kontinuierlicher Ton, unabhängig vom Typewriter-Takt. |
+| `TypewriterSync` | Reagiert auf jeden enthüllten Buchstaben des Typewriters. Präzise Zeichen-genaue Synchronisation. |
+| `Continuous` | Interner Timer, unabhängig vom Typewriter-Takt. Für Kreatur-Groll oder Nicht-Typewriter-Abläufe. |
+
+---
+
+### EMayDialogueBabelEngine
+
+Wählt das Synthese-Back-End von `UMayDialogueBabelSynth`. Wird im `UMayDialogueBabelProfile`-Asset konfiguriert.
+
+| Wert | Bedeutung |
+|---|---|
+| `Granular` | **Standard.** Spielt voraufgenommene Blip-Samples aus den Profil-Pools mit zufälligem Pitch/Volume-Jitter. Fears-to-Fathom / Animal-Crossing-Qualität. |
+| `Biquad` | Legacy-prozedurale Formant-Synthese (RBJ-Bandpass-Filter-Kette). Opt-in für Projekte, die den originalen DSP-Pfad nutzten. Anzeigename: *Biquad Synthesizer (Legacy)*. |
 
 ---
 

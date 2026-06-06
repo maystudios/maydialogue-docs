@@ -47,17 +47,15 @@ Event Is Requirement Satisfied (Context)
   │
   ├─ Is Quest Completed? (QuestID)
   │     ├─ true  → Return Passed
-  │     └─ false → Branch: bHideOnFail?
-  │                   ├─ true  → Return FailedAndHidden
-  │                   └─ false → Return FailedButVisible
+  │     └─ false → Get Fail Result (Self)  →  Return  (FailedAndHidden or FailedButVisible from FailResult property)
 ```
 
 {% hint style="info" %}
-`bHideOnFail` is already defined in the base class `UMayDialogueRequirement`. You don't need to create it yourself — it automatically appears in the Details panel of every subclass.
+`FailResult` is already defined in the base class `UMayDialogueRequirement`. You don't need to create it yourself — it automatically appears in the Details panel of every subclass. Use `Get Fail Result (Self)` in Blueprint to resolve the correct return value and respect the designer's setting.
 {% endhint %}
 
 > 📸 **Image placeholder:** `gasext-req-bp-graph.png` — Fully implemented `Is Requirement Satisfied` graph.
-> *Setup:* Event `IsRequirementSatisfied` open in the Blueprint. From left: `Event` node → `Get World` → `Get Quest Subsystem` → `Is Quest Completed (QuestID)` → Branch node. True path: `Return Passed`. False path: another branch on `bHideOnFail` → two Returns (`FailedAndHidden` / `FailedButVisible`). All connections visible.
+> *Setup:* Event `IsRequirementSatisfied` open in the Blueprint. From left: `Event` node → `Get World` → `Get Quest Subsystem` → `Is Quest Completed (QuestID)` → Branch node. True path: `Return Passed`. False path: `Get Fail Result (Self)` → `Return`. All connections visible.
 
 ### Step 4 — Test
 
@@ -151,9 +149,7 @@ EMayDialogueRequirementResult UMyReq_QuestCompleted::IsRequirementSatisfied_Impl
 
     return Quest->IsCompleted(QuestID)
         ? EMayDialogueRequirementResult::Passed
-        : (bHideOnFail
-            ? EMayDialogueRequirementResult::FailedAndHidden
-            : EMayDialogueRequirementResult::FailedButVisible);
+        : GetFailResult(); // resolves FailResult property (FailedAndHidden or FailedButVisible)
 }
 ```
 

@@ -105,17 +105,24 @@ Im PIE: Dialog starten, Kamera schwenkt bei jedem CameraFocus-Node. Nach Exit: K
 **C++-Variante**
 
 ```cpp
-// Drei Actors: Player, Detektiv, Verdächtiger
-TArray<AActor*> Participants = { PlayerPawn, DetectiveActor, SuspectActor };
-Sub->StartDialogueMulti(Asset, Participants);
+// Dialog über das Subsystem starten, primäre Instigator- und Target-Actors übergeben.
+// Weitere Participant-Actors werden automatisch über ihre Participant-Komponenten-Tags gefunden.
+UMayDialogueSubsystem::Get(this)->StartDialogue(Asset, PlayerPawn, SuspectActor);
 ```
 {% endhint %}
 
-## CameraFocus als SideEffect
+## CameraFocus-Node als eigener Schritt
 
-Wenn der Kamera-Schwenk ein Nebenschritt ist (nicht der Hauptschritt des Flows), hänge ihn als **SideEffect** an die SayLine:
-- SayLine-Node → SideEffect → CameraFocus.
-- Der Schwenk passiert beim Betreten der SayLine, nicht als eigener Node im Fluss.
+CameraFocus ist ein eigener **Action-Node** im Graphen. Er existiert nicht als SideEffect-Sub-Node — verwende ihn als separaten Node vor der SayLine, auf die er sich beziehen soll:
+
+```text
+[CameraFocus: Speaker=Detective  BlendTime=0.5s]
+   │
+   ▼
+[SayLine: Detektiv – "Dein Alibi stimmt nicht."]
+```
+
+Wenn du eine Kamera-Transition ohne eigenen Graphen-Schritt benötigst, steuere sie per Blueprint über `FaceTowardsPartner` an der Participant-Komponente oder über eine eigene SideEffect-Subklasse.
 
 ## Variation / Weiter gehen
 

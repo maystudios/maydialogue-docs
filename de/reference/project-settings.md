@@ -22,7 +22,7 @@ Kompakt-Referenz von `UMayDialogueSettings`.
 |---|---|---|---|
 | `DefaultDialogueWidgetClass` | `TSoftClassPtr<UMayDialogueWidget>` | *(leer)* | UMG-Widget das als Dialog-Overlay angezeigt wird. Leer → Slate-Debug-Fallback. |
 | `bUseSlateDialogueWidget` | `bool` | `true` | Slate-Debug-Widget einblenden solange `DefaultDialogueWidgetClass` leer ist. |
-| `PanelBlurStrength` | `float` | `4.0` | Blur-Stärke der Slate-Panels (nur im Slate-Debug-Widget wirksam). |
+| `PanelBlurStrength` | `float` | `10.0` | Blur-Stärke der Slate-Panels (nur im Slate-Debug-Widget wirksam). |
 
 ---
 
@@ -64,7 +64,7 @@ Fallback-Klassen für den komponenten-basierten UMG-Workflow. Wenn `DefaultDialo
 | Property | Typ | Default | Bedeutung |
 |---|---|---|---|
 | `bAllowSkipTypewriter` | `bool` | `true` | Spieler-Input zipped den Typewriter sofort auf den vollen Text. |
-| `bAllowSkipVoiceLine` | `bool` | `false` | Spieler-Input stoppt laufende Voice und advanced weiter. |
+| `bAllowSkipVoiceLine` | `bool` | `true` | Spieler-Input stoppt laufende Voice und advanced weiter. |
 | `bSwitchToUIInputDuringDialogue` | `bool` | `true` | Input-Mode `GameAndUI` für die Dialog-Dauer. |
 | `bShowMouseCursorDuringDialogue` | `bool` | `true` | Maus-Cursor während des Dialogs einblenden. |
 
@@ -94,7 +94,7 @@ Fallback-Klassen für den komponenten-basierten UMG-Workflow. Wenn `DefaultDialo
 | Property | Typ | Default | Bedeutung |
 |---|---|---|---|
 | `bAutoFocusSpeaker` | `bool` | `false` | Automatischer CameraFocus auf den aktuellen SayLine-Speaker. |
-| `DefaultCameraBlendTime` | `float` | `0.75` | Blend-Dauer in Sekunden für CameraFocus ohne explizite Angabe. |
+| `DefaultCameraBlendTime` | `float` | `0.5` | Blend-Dauer in Sekunden für CameraFocus ohne explizite Angabe. |
 
 ---
 

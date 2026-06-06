@@ -55,7 +55,7 @@ Jede Seite dieses Abschnitts zeigt zuerst den Blueprint-Weg, dann eine C++-Varia
 * **Eine Klasse, eine Aufgabe.** `BP_Req_QuestActive` prüft Quest-Status — und nichts anderes.
 * **Display-Namen setzen.** In Class Settings einen verständlichen Namen eintragen — er erscheint in Pickern und Pill-Labels.
 * **Null-Guards einbauen.** Prüfe, ob dein Subsystem vorhanden ist. Gib bei fehlendem Subsystem `Passed` zurück (Requirement) oder tue nichts (SideEffect) — nie crashen.
-* **Fail-Modi respektieren.** `bHideOnFail` in Requirements sollte Designer-steuerbar bleiben.
+* **Fail-Modi respektieren.** `FailResult` in Requirements sollte Designer-steuerbar bleiben — nutze `GetFailResult()` in deiner Implementierung, statt das Verhalten hart zu kodieren.
 
 > 📸 **Bild-Platzhalter:** `ext-overview-pill-labels.png` — Graph-Ansicht mit eigenen SideEffect-Pills an einer SayLine, gut lesbare Display-Namen.
 > *Setup:* MayDialogue-Editor, SayLine-Node aufgeklappt. SideEffects-Array zeigt drei Pills: "Quest Progress +1 (KillDragon)", "Grant Achievement: DragonSlayer", "Add Tag: Story.DragonDefeated". Pill-Labels kommen aus `GetDisplayDescription`-Rückgabe der jeweiligen Klassen.

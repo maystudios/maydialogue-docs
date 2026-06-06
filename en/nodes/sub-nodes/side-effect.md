@@ -16,9 +16,17 @@ A SideEffect is an inline action that executes as soon as the parent Node is ent
 | --- | --- | --- | --- |
 | `Description` | `FText` | empty | Editor label of the pill in the graph. Also displayed in the Details panel. |
 
-## Built-in SideEffects (GAS Integration)
+## Built-in SideEffects
 
-These SideEffects are available out of the box — no additional setup needed. They access the Gameplay Ability System if your project uses it.
+### Core (no GAS required)
+
+| Class | Action | Key Properties |
+| --- | --- | --- |
+| `UMayDialogueSideEffect_SetVariable` | Set a dialogue or participant variable | `VariableName`, `VariableType`, `Scope` (Dialogue / Participant), `Value` |
+
+### GAS Integration (MayDialogueGAS module)
+
+These SideEffects access the Gameplay Ability System. No additional setup needed — they appear in the picker automatically when GAS is active in your project.
 
 | Class | Action | Key Properties |
 | --- | --- | --- |

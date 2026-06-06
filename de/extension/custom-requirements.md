@@ -72,10 +72,10 @@ Event Is Requirement Satisfied (Context)
 ```
 
 > 📸 **Bild-Platzhalter:** `creq-step3-graph.png` — Vollständiger Is-Requirement-Satisfied-Graph.
-> *Setup:* `Event Is Requirement Satisfied (Context)` → `Is Valid QuestID` (None-Vergleich) → Branch. True-Pfad direkt: `Return Passed`. False-Pfad: `Get World → Get Quest Subsystem → Is Quest Completed (QuestID)` → Branch. True: `Return Passed`. False: `Branch: bHideOnFail` → zwei Return-Nodes (`FailedAndHidden` / `FailedButVisible`). Alle Pfade verbunden, kein offener Exec-Pin.
+> *Setup:* `Event Is Requirement Satisfied (Context)` → `Is Valid QuestID` (None-Vergleich) → Branch. True-Pfad direkt: `Return Passed`. False-Pfad: `Get World → Get Quest Subsystem → Is Quest Completed (QuestID)` → Branch. True: `Return Passed`. False: `Get Fail Result (Self)` → `Return`. Alle Pfade verbunden, kein offener Exec-Pin.
 
 {% hint style="info" %}
-`bHideOnFail` ist in der Basisklasse `UMayDialogueRequirement` enthalten und muss nicht selbst deklariert werden. Er erscheint im Details-Panel und steuert, ob `FailedAndHidden` oder `FailedButVisible` zurückgegeben wird.
+`FailResult` ist in der Basisklasse `UMayDialogueRequirement` enthalten und muss nicht selbst deklariert werden. Es erscheint im Details-Panel und steuert, ob `FailedAndHidden` oder `FailedButVisible` zurückgegeben wird. Nutze `Get Fail Result (Self)` im Blueprint, um es auszulesen.
 {% endhint %}
 
 ---
@@ -85,11 +85,11 @@ Event Is Requirement Satisfied (Context)
 1. Dialog-Asset öffnen.
 2. Eine Choice auswählen → Details-Panel → **Add Requirement** → `BP_Req_QuestCompleted`.
 3. `QuestID` eintragen (z.B. `KillDragon`).
-4. `bHideOnFail` je nach Design auf true oder false.
+4. `FailResult` je nach Design auf `FailedAndHidden` oder `FailedButVisible` setzen.
 5. Kompilieren und im Preview-Runner testen.
 
 > 📸 **Bild-Platzhalter:** `creq-step4-details.png` — Details-Panel einer Choice mit `BP_Req_QuestCompleted` als Sub-Node.
-> *Setup:* MayDialogue-Editor, Choice "Ich habe den Drachen getötet" ausgewählt. Requirements-Array im Details-Panel zeigt einen Eintrag: `BP_Req_QuestCompleted`. Darunter: `QuestID = KillDragon`, `RequiredStage = 0`, `bHideOnFail = true`. Felder gut lesbar, Pill-Label im Graph zeigt "QuestCompleted: KillDragon".
+> *Setup:* MayDialogue-Editor, Choice "Ich habe den Drachen getötet" ausgewählt. Requirements-Array im Details-Panel zeigt einen Eintrag: `BP_Req_QuestCompleted`. Darunter: `QuestID = KillDragon`, `RequiredStage = 0`, `FailResult = FailedAndHidden`. Felder gut lesbar, Pill-Label im Graph zeigt "QuestCompleted: KillDragon".
 
 ---
 
@@ -100,15 +100,15 @@ Auf derselben Choice können mehrere Requirements liegen:
 ```text
 Choice "Ich habe alles vorbereitet"
   Requirements:
-    1. Quest Completed: KillDragon          bHideOnFail: true
-    2. Quest Completed: CollectIngredients  bHideOnFail: true
+    1. Quest Completed: KillDragon          FailResult: FailedAndHidden
+    2. Quest Completed: CollectIngredients  FailResult: FailedAndHidden
     3. Check GAS Attribute: Gold >= 100     FailResult: FailedButVisible
 ```
 
 Ergebnis: Choice erscheint nur wenn beide Quests erledigt sind. Ist Gold zu wenig: Choice sichtbar, aber deaktiviert (mit Tooltip).
 
 > 📸 **Bild-Platzhalter:** `creq-stacked-requirements.png` — Details-Panel einer Choice mit drei gestapelten Requirements.
-> *Setup:* Choice-Node im MayDialogue-Editor ausgewählt. Requirements-Array zeigt drei Einträge: `BP_Req_QuestCompleted (KillDragon, bHideOnFail=true)`, `BP_Req_QuestCompleted (CollectIngredients, bHideOnFail=true)`, `UMayDlgRequirement_CheckAttribute (Gold >= 100, FailResult=FailedButVisible)`. Alle drei sichtbar, Array-Elemente nummeriert.
+> *Setup:* Choice-Node im MayDialogue-Editor ausgewählt. Requirements-Array zeigt drei Einträge: `BP_Req_QuestCompleted (KillDragon, FailResult=FailedAndHidden)`, `BP_Req_QuestCompleted (CollectIngredients, FailResult=FailedAndHidden)`, `UMayDlgRequirement_CheckAttribute (Gold >= 100, FailResult=FailedButVisible)`. Alle drei sichtbar, Array-Elemente nummeriert.
 
 ---
 

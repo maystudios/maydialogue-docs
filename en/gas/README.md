@@ -59,7 +59,7 @@ Choice "I know the password"
   Requirement: HasTag
     RequiredTag: Story.Secret.HeardPassword
     bCheckOnInstigator: true
-    bHideOnFail: true          ← completely hide the Choice if tag is missing
+    FailResult: FailedAndHidden    ← completely hide the Choice if tag is missing
 ```
 
 If the player has the tag (e.g. because they spoke with an informant beforehand), the Choice appears. Otherwise it is invisible.

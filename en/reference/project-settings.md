@@ -22,7 +22,7 @@ Compact reference for `UMayDialogueSettings`.
 |---|---|---|---|
 | `DefaultDialogueWidgetClass` | `TSoftClassPtr<UMayDialogueWidget>` | *(empty)* | UMG widget displayed as the dialogue overlay. Empty → Slate debug fallback. |
 | `bUseSlateDialogueWidget` | `bool` | `true` | Show the Slate debug widget while `DefaultDialogueWidgetClass` is empty. |
-| `PanelBlurStrength` | `float` | `4.0` | Blur strength of Slate panels (only effective in the Slate debug widget). |
+| `PanelBlurStrength` | `float` | `10.0` | Blur strength of Slate panels (only effective in the Slate debug widget). |
 
 ---
 
@@ -64,7 +64,7 @@ Fallback classes for the component-based UMG workflow. If `DefaultDialogueWidget
 | Property | Type | Default | Meaning |
 |---|---|---|---|
 | `bAllowSkipTypewriter` | `bool` | `true` | Player input instantly reveals the full text. |
-| `bAllowSkipVoiceLine` | `bool` | `false` | Player input stops the running voice and advances. |
+| `bAllowSkipVoiceLine` | `bool` | `true` | Player input stops the running voice and advances. |
 | `bSwitchToUIInputDuringDialogue` | `bool` | `true` | Input mode `GameAndUI` for the duration of the dialogue. |
 | `bShowMouseCursorDuringDialogue` | `bool` | `true` | Show the mouse cursor during the dialogue. |
 
@@ -94,7 +94,7 @@ Fallback classes for the component-based UMG workflow. If `DefaultDialogueWidget
 | Property | Type | Default | Meaning |
 |---|---|---|---|
 | `bAutoFocusSpeaker` | `bool` | `false` | Automatic CameraFocus on the current SayLine speaker. |
-| `DefaultCameraBlendTime` | `float` | `0.75` | Blend duration in seconds for CameraFocus without an explicit value. |
+| `DefaultCameraBlendTime` | `float` | `0.5` | Blend duration in seconds for CameraFocus without an explicit value. |
 
 ---
 

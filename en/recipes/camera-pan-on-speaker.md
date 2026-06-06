@@ -105,17 +105,24 @@ In PIE: start the dialogue, the camera pans at each CameraFocus node. After Exit
 **C++ variant**
 
 ```cpp
-// Three actors: Player, Detective, Suspect
-TArray<AActor*> Participants = { PlayerPawn, DetectiveActor, SuspectActor };
-Sub->StartDialogueMulti(Asset, Participants);
+// Start the dialogue from the subsystem, passing the primary Instigator and Target.
+// Additional participant actors are discovered automatically by their Participant component tags.
+UMayDialogueSubsystem::Get(this)->StartDialogue(Asset, PlayerPawn, SuspectActor);
 ```
 {% endhint %}
 
-## CameraFocus as a SideEffect
+## CameraFocus Node as a Standalone Step
 
-If the camera pan is a secondary step (not the main flow step), attach it as a **SideEffect** on the SayLine:
-- SayLine node → SideEffect → CameraFocus.
-- The pan happens when the SayLine is entered, not as a separate node in the flow.
+CameraFocus is a dedicated **Action Node** in the graph. It does not exist as a SideEffect sub-node — use it as a separate node before the SayLine it should apply to:
+
+```text
+[CameraFocus: Speaker=Detective  BlendTime=0.5s]
+   │
+   ▼
+[SayLine: Detective – "Your alibi doesn't check out."]
+```
+
+If you need a camera transition without a dedicated graph step, drive it from Blueprint via `FaceTowardsPartner` on the Participant component or a custom SideEffect subclass.
 
 ## Variations / Going Further
 

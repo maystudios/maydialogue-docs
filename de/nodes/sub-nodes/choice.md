@@ -66,5 +66,5 @@ Eine Choice ist eine Antwort-Option auf einem [PlayerChoice-Node](../core/player
 
 Leite eine Blueprint-Subklasse von `UMayDialogueChoice` ab und überschreibe das Event `OnChoiceSelected`. So kannst du bei jeder Auswahl eigene Logik ausführen — ohne den Dialog-Graph zu verändern.
 
-Details: [Extension → Custom Choices](../../extension/custom-choices.md).
+Details: [Extension → Eigene Nodes](../../extension/custom-nodes.md).
 {% endhint %}

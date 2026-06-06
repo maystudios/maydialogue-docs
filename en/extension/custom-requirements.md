@@ -72,10 +72,10 @@ Event Is Requirement Satisfied (Context)
 ```
 
 > 📸 **Image placeholder:** `creq-step3-graph.png` — Complete Is Requirement Satisfied graph.
-> *Setup:* `Event Is Requirement Satisfied (Context)` → `Is Valid QuestID` (None comparison) → Branch. True path directly: `Return Passed`. False path: `Get World → Get Quest Subsystem → Is Quest Completed (QuestID)` → Branch. True: `Return Passed`. False: `Branch: bHideOnFail` → two Return nodes (`FailedAndHidden` / `FailedButVisible`). All paths connected, no open exec pins.
+> *Setup:* `Event Is Requirement Satisfied (Context)` → `Is Valid QuestID` (None comparison) → Branch. True path directly: `Return Passed`. False path: `Get World → Get Quest Subsystem → Is Quest Completed (QuestID)` → Branch. True: `Return Passed`. False: `Get Fail Result (Self)` → `Return`. All paths connected, no open exec pins.
 
 {% hint style="info" %}
-`bHideOnFail` is included in the base class `UMayDialogueRequirement` and does not need to be declared yourself. It appears in the Details panel and controls whether `FailedAndHidden` or `FailedButVisible` is returned.
+`FailResult` is defined in the base class `UMayDialogueRequirement` and does not need to be declared yourself. It appears in the Details panel and controls whether `FailedAndHidden` or `FailedButVisible` is returned. Use `Get Fail Result (Self)` in your Blueprint to read it.
 {% endhint %}
 
 ---
@@ -85,11 +85,11 @@ Event Is Requirement Satisfied (Context)
 1. Open a dialogue asset.
 2. Select a Choice → Details panel → **Add Requirement** → `BP_Req_QuestCompleted`.
 3. Enter `QuestID` (e.g. `KillDragon`).
-4. Set `bHideOnFail` to true or false depending on your design.
+4. Set `FailResult` to `FailedAndHidden` or `FailedButVisible` depending on your design.
 5. Compile and test in the Preview Runner.
 
 > 📸 **Image placeholder:** `creq-step4-details.png` — Details panel of a Choice with `BP_Req_QuestCompleted` as a sub-node.
-> *Setup:* MayDialogue editor, Choice "I killed the dragon" selected. Requirements array in the Details panel shows one entry: `BP_Req_QuestCompleted`. Below: `QuestID = KillDragon`, `RequiredStage = 0`, `bHideOnFail = true`. Fields clearly readable, pill label in the graph shows "QuestCompleted: KillDragon".
+> *Setup:* MayDialogue editor, Choice "I killed the dragon" selected. Requirements array in the Details panel shows one entry: `BP_Req_QuestCompleted`. Below: `QuestID = KillDragon`, `RequiredStage = 0`, `FailResult = FailedAndHidden`. Fields clearly readable, pill label in the graph shows "QuestCompleted: KillDragon".
 
 ---
 
@@ -100,15 +100,15 @@ Multiple Requirements can be placed on the same Choice:
 ```text
 Choice "I have prepared everything"
   Requirements:
-    1. Quest Completed: KillDragon          bHideOnFail: true
-    2. Quest Completed: CollectIngredients  bHideOnFail: true
+    1. Quest Completed: KillDragon          FailResult: FailedAndHidden
+    2. Quest Completed: CollectIngredients  FailResult: FailedAndHidden
     3. Check GAS Attribute: Gold >= 100     FailResult: FailedButVisible
 ```
 
 Result: the Choice only appears when both quests are completed. If Gold is too low: Choice visible but disabled (with tooltip).
 
 > 📸 **Image placeholder:** `creq-stacked-requirements.png` — Details panel of a Choice with three stacked Requirements.
-> *Setup:* Choice node in the MayDialogue editor selected. Requirements array shows three entries: `BP_Req_QuestCompleted (KillDragon, bHideOnFail=true)`, `BP_Req_QuestCompleted (CollectIngredients, bHideOnFail=true)`, `UMayDlgRequirement_CheckAttribute (Gold >= 100, FailResult=FailedButVisible)`. All three visible, array elements numbered.
+> *Setup:* Choice node in the MayDialogue editor selected. Requirements array shows three entries: `BP_Req_QuestCompleted (KillDragon, FailResult=FailedAndHidden)`, `BP_Req_QuestCompleted (CollectIngredients, FailResult=FailedAndHidden)`, `UMayDlgRequirement_CheckAttribute (Gold >= 100, FailResult=FailedButVisible)`. All three visible, array elements numbered.
 
 ---
 

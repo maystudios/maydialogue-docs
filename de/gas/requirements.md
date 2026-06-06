@@ -32,10 +32,10 @@ Klassischer Use-Case: eine Choice erscheint nur, wenn der Spieler einen Story-Ta
 | --- | --- | --- |
 | `RequiredTag` | `FGameplayTag` | Der Tag, der geprüft wird. |
 | `bCheckOnInstigator` | bool | `true` = Spieler-ASC; `false` = NPC-ASC. |
-| `bHideOnFail` | bool | `true` = FailedAndHidden; `false` = FailedButVisible. |
+| `FailResult` | `EMayDialogueRequirementFailResult` | `FailedAndHidden` = komplett ausblenden; `FailedButVisible` = ausgegraut anzeigen. |
 
 > 📸 **Bild-Platzhalter:** `req-hastag-details.png` — Details-Panel des HasTag-Requirements.
-> *Setup:* Auf einer Choice den HasTag-Sub-Node auswählen. Details-Panel rechts zeigt: `RequiredTag = Story.Witness.Murder`, `bCheckOnInstigator = true` (Häkchen gesetzt), `bHideOnFail = true` (Häkchen gesetzt). Felder klar beschriftet, kein anderer Sub-Node sichtbar.
+> *Setup:* Auf einer Choice den HasTag-Sub-Node auswählen. Details-Panel rechts zeigt: `RequiredTag = Story.Witness.Murder`, `bCheckOnInstigator = true` (Häkchen gesetzt), `FailResult = FailedAndHidden`. Felder klar beschriftet, kein anderer Sub-Node sichtbar.
 
 ### Beispiel: Zeugen-Choice
 
@@ -44,7 +44,7 @@ Choice "Ich war dabei, als es passierte"
   Requirement: Has Gameplay Tag
     RequiredTag:        Story.Witness.Murder
     bCheckOnInstigator: true
-    bHideOnFail:        true
+    FailResult:         FailedAndHidden
 ```
 
 Die Choice erscheint nur, wenn der Spieler-ASC den Tag `Story.Witness.Murder` trägt.
@@ -53,8 +53,8 @@ Die Choice erscheint nur, wenn der Spieler-ASC den Tag `Story.Witness.Murder` tr
 
 | Modus | Wann nutzen |
 | --- | --- |
-| `bHideOnFail = true` | Klassisches RPG: Option existiert erst, wenn Voraussetzung erfüllt. |
-| `bHideOnFail = false` | Skill-System: Option ist immer sichtbar, macht Progression greifbar. |
+| `FailResult = FailedAndHidden` | Klassisches RPG: Option existiert erst, wenn Voraussetzung erfüllt. |
+| `FailResult = FailedButVisible` | Skill-System: Option ist immer sichtbar, macht Progression greifbar. |
 
 ---
 
@@ -122,12 +122,12 @@ Zeige Choices nur an, wenn der Spieler eine bestimmte Ability hat ("Ich wirke ei
 | `AbilityTagsAll` | `FGameplayTagContainer` | Passt, wenn eine Ability **alle** dieser Tags hat. |
 | `bRequireActive` | bool | `true` = nur Abilities zählen, die gerade aktiv laufen (`IsActive()`). |
 | `bCheckOnInstigator` | bool | `true` = Spieler; `false` = NPC. |
-| `bHideOnFail` | bool | Sichtbarkeitsmodus bei Failure. |
+| `FailResult` | `EMayDialogueRequirementFailResult` | `FailedAndHidden` = komplett ausblenden; `FailedButVisible` = ausgegraut anzeigen. |
 
 **Match-Priorität:** `AbilityTagsAny` → `AbilityTagsAll` → `RequiredAbility`. Die Klassen-Prüfung ist nur aktiv, wenn beide Tag-Container leer sind.
 
 > 📸 **Bild-Platzhalter:** `req-hasability-details.png` — Details-Panel des HasAbility-Requirements mit Tag-Container-Eintrag.
-> *Setup:* HasAbility-Sub-Node auf einer Choice auswählen. Details-Panel zeigt: `RequiredAbility = leer`, `AbilityTagsAny = (Ability.Magic.Fire)`, `AbilityTagsAll = leer`, `bRequireActive = false`, `bCheckOnInstigator = true`, `bHideOnFail = true`.
+> *Setup:* HasAbility-Sub-Node auf einer Choice auswählen. Details-Panel zeigt: `RequiredAbility = leer`, `AbilityTagsAny = (Ability.Magic.Fire)`, `AbilityTagsAll = leer`, `bRequireActive = false`, `bCheckOnInstigator = true`, `FailResult = FailedAndHidden`.
 
 ### Beispiel: Magie-Choice
 
@@ -136,7 +136,7 @@ Choice "Ich wirke einen Feuerball"
   Requirement: Has Gameplay Ability
     AbilityTagsAny:     Ability.Magic.Fire
     bCheckOnInstigator: true
-    bHideOnFail:        true
+    FailResult:         FailedAndHidden
 ```
 
 Erscheint nur, wenn der Spieler-ASC eine Ability mit dem Tag `Ability.Magic.Fire` hat.
@@ -154,7 +154,7 @@ Auf einer Choice, einem Branch oder einer SayLine kannst du beliebig viele Requi
 ```text
 Choice "Ich bin der Auserwählte"
   Requirements:
-    1. Has Gameplay Tag:     Story.Chosen.Marked        bHideOnFail: true
+    1. Has Gameplay Tag:     Story.Chosen.Marked        FailResult: FailedAndHidden
     2. Check GAS Attribute:  Reputation >= 80           FailResult: FailedAndHidden
 ```
 

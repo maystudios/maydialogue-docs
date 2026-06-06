@@ -29,10 +29,10 @@ Globaler Schalter in den Project Settings:
 |---|---|
 | `bEnableBabelVoice` | Babel global an/aus (Default: `true`) |
 | `DefaultBabelProfile` | Profil wenn kein Sprecher-Profil gesetzt |
-| `BabelEngine` | Synthesis engine: `Granular` (recommended, sample-pool based) or `BiquadLegacy` (original sinusoidal DSP path). Configurable via `EMayDialogueBabelEngine`. |
+| `BabelEngine` | Synthese-Engine: `Granular` (empfohlen, Sample-Pool-basiert) oder `Biquad` (originaler sinusoidaler DSP-Pfad). Konfigurierbar über `EMayDialogueBabelEngine`. |
 
 {% hint style="info" %}
-`BabelEngine = Granular` uses the pre-recorded sample pool in `Content/DefaultBlips/Sounds/` for higher audio quality (Fears-to-Fathom / Animal-Crossing style). `BiquadLegacy` preserves the original procedural DSP path.
+`BabelEngine = Granular` nutzt den voraufgenommenen Sample-Pool in `Content/DefaultBlips/Sounds/` für höhere Audio-Qualität (Fears-to-Fathom / Animal-Crossing-Stil). `Biquad` (Anzeigename: *Biquad Synthesizer (Legacy)*) bewahrt den originalen prozeduralen DSP-Pfad.
 {% endhint %}
 
 ## Zwei Synthese-Modi
@@ -110,7 +110,7 @@ Diese Methoden sind nützlich wenn du Babel-Ausgabe aus einem anderen System her
 
 ## Widget-Integration
 
-**SMayDialogueWidget (Slate-Debug-Widget, Standard):** Das eingebaute Slate-Widget verdrahtet `BabelSynth::OnCharacterRevealed` automatisch mit dem Typewriter — kein manuelles Setup nötig. Dieses Widget ist der Standard-Fallback, wenn kein UMG-Widget konfiguriert ist. Mehr dazu: [Slate-Debug-Widget](slate-debug-widget.md).
+**SMayDialogueWidget (Slate-Debug-Widget, Standard):** Das eingebaute Slate-Widget verdrahtet `BabelSynth::OnCharacterRevealed` automatisch mit dem Typewriter — kein manuelles Setup nötig. Dieses Widget ist der Standard-Fallback, wenn kein UMG-Widget konfiguriert ist. Mehr dazu: [Slate-Debug-Widget](../ui/slate-debug-widget.md).
 
 **UMG-Komponenten-Pfad:** Im Blueprint musst du die Typewriter-Events deines Text-Widgets selbst an den Synth weitergeben. Sieh dazu [UI-Architektur](../ui/umg-architecture.md).
 

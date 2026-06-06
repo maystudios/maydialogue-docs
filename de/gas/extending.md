@@ -47,17 +47,15 @@ Event Is Requirement Satisfied (Context)
   │
   ├─ Is Quest Completed? (QuestID)
   │     ├─ true  → Return Passed
-  │     └─ false → Branch: bHideOnFail?
-  │                   ├─ true  → Return FailedAndHidden
-  │                   └─ false → Return FailedButVisible
+  │     └─ false → Get Fail Result (Self)  →  Return  (FailedAndHidden oder FailedButVisible aus FailResult-Property)
 ```
 
 {% hint style="info" %}
-`bHideOnFail` ist bereits in der Basisklasse `UMayDialogueRequirement` definiert. Du musst ihn nicht selbst anlegen — er erscheint automatisch im Details-Panel jeder Subklasse.
+`FailResult` ist bereits in der Basisklasse `UMayDialogueRequirement` definiert. Du musst es nicht selbst anlegen — es erscheint automatisch im Details-Panel jeder Subklasse. Nutze `Get Fail Result (Self)` im Blueprint, um den korrekten Rückgabewert aufzulösen und die Designer-Einstellung zu respektieren.
 {% endhint %}
 
 > 📸 **Bild-Platzhalter:** `gasext-req-bp-graph.png` — Fertig implementierter `Is Requirement Satisfied`-Graph.
-> *Setup:* Event `IsRequirementSatisfied` im Blueprint offen. Von links: `Event`-Node → `Get World` → `Get Quest Subsystem` → `Is Quest Completed (QuestID)` → Branch-Node. True-Pfad: `Return Passed`. False-Pfad: weiterer Branch auf `bHideOnFail` → zwei Returns (`FailedAndHidden` / `FailedButVisible`). Alle Verbindungen sichtbar.
+> *Setup:* Event `IsRequirementSatisfied` im Blueprint offen. Von links: `Event`-Node → `Get World` → `Get Quest Subsystem` → `Is Quest Completed (QuestID)` → Branch-Node. True-Pfad: `Return Passed`. False-Pfad: `Get Fail Result (Self)` → `Return`. Alle Verbindungen sichtbar.
 
 ### Schritt 4 — Testen
 
@@ -151,9 +149,7 @@ EMayDialogueRequirementResult UMyReq_QuestCompleted::IsRequirementSatisfied_Impl
 
     return Quest->IsCompleted(QuestID)
         ? EMayDialogueRequirementResult::Passed
-        : (bHideOnFail
-            ? EMayDialogueRequirementResult::FailedAndHidden
-            : EMayDialogueRequirementResult::FailedButVisible);
+        : GetFailResult(); // löst das FailResult-Property auf (FailedAndHidden oder FailedButVisible)
 }
 ```
 

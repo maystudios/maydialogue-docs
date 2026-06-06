@@ -29,10 +29,10 @@ Global switch in the Project Settings:
 |---|---|
 | `bEnableBabelVoice` | Babel on/off globally (default: `true`) |
 | `DefaultBabelProfile` | Profile when no speaker profile is set |
-| `BabelEngine` | Synthesis engine: `Granular` (recommended, sample-pool based) or `BiquadLegacy` (original sinusoidal DSP path). Configurable via `EMayDialogueBabelEngine`. |
+| `BabelEngine` | Synthesis engine: `Granular` (recommended, sample-pool based) or `Biquad` (original sinusoidal DSP path). Configurable via `EMayDialogueBabelEngine`. |
 
 {% hint style="info" %}
-`BabelEngine = Granular` uses the pre-recorded sample pool in `Content/DefaultBlips/Sounds/` for higher audio quality (Fears-to-Fathom / Animal Crossing style). `BiquadLegacy` preserves the original procedural DSP path.
+`BabelEngine = Granular` uses the pre-recorded sample pool in `Content/DefaultBlips/Sounds/` for higher audio quality (Fears-to-Fathom / Animal Crossing style). `Biquad` (displayed as *Biquad Synthesizer (Legacy)*) preserves the original procedural DSP path.
 {% endhint %}
 
 ## Two Synthesis Modes
@@ -110,7 +110,7 @@ These methods are useful when you control Babel output from another system — f
 
 ## Widget Integration
 
-**SMayDialogueWidget (Slate debug widget, default):** The built-in Slate widget wires `BabelSynth::OnCharacterRevealed` to the typewriter automatically — no manual setup required. This widget is the default fallback when no UMG widget is configured. More details: [Slate Debug Widget](slate-debug-widget.md).
+**SMayDialogueWidget (Slate debug widget, default):** The built-in Slate widget wires `BabelSynth::OnCharacterRevealed` to the typewriter automatically — no manual setup required. This widget is the default fallback when no UMG widget is configured. More details: [Slate Debug Widget](../ui/slate-debug-widget.md).
 
 **UMG component path:** In Blueprint you must forward the typewriter events from your text widget to the synth yourself. See [UI Architecture](../ui/umg-architecture.md).
 

@@ -50,15 +50,16 @@ When you call `StartDialogue(Asset, Instigator, Target)`, five steps run:
 
 After its execution, each node returns an instruction for how the dialogue should continue:
 
-| Return value | What happens |
-| --- | --- |
-| Advance (Next Node) | Jump directly to the specified next node. |
-| Pause + present choices | Instance waits. Widget shows choice buttons. |
-| Return to last choice | Jumps back to the most recently presented PlayerChoice. |
-| Return to dialogue start | Jumps back to the Entry. |
-| Abort | Dialogue ends as Aborted. |
+| Return value | What happens | Status |
+| --- | --- | --- |
+| Advance (Next Node) | Jump directly to the specified next node. | Shipping |
+| Pause + present choices | Instance waits. Widget shows choice buttons. | Shipping |
+| Abort | Dialogue ends as Aborted. | Shipping |
+| Return to last choice | Jumps back to the most recently presented PlayerChoice. | **Experimental** — not emitted by any built-in node; reserved for custom Blueprint-authored nodes. |
+| Return to current choice | Re-presents the currently active PlayerChoice. | **Experimental** — not emitted by any built-in node; reserved for custom Blueprint-authored nodes. |
+| Return to dialogue start | Jumps back to the Entry. | **Experimental** — not emitted by any built-in node; reserved for custom Blueprint-authored nodes. |
 
-As a user you don't need to drive this mechanism directly — the plugin's nodes use it correctly internally.
+As a user you don't need to drive this mechanism directly — the plugin's built-in nodes use Advance, Pause+Choices, and Abort. The Experimental values are reserved for future Blueprint-authored node classes.
 
 ## Requirements: When is a node executed?
 

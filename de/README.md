@@ -105,7 +105,7 @@ Such dir den Pfad, der zu dir passt:
 | Engine | Unreal Engine 5.7 |
 | Plugin-Version | 0.1.0 (Beta) |
 | Letzte Aktualisierung | 2026-04-27 |
-| Dependencies | `GameplayAbilities`, `GameplayTags`, `StructUtils`, `EnhancedInput` |
+| Dependencies | `GameplayAbilities`, `GameplayTags`, `StructUtils` |
 
 Aktuelle Limitierungen findest du unter [Bekannte Issues](troubleshooting/known-issues.md). Neu hier? Fang mit dem [Quick Start](getting-started/quick-start.md) an.
 

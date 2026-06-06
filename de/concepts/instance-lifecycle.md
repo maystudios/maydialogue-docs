@@ -50,15 +50,16 @@ Wenn du `StartDialogue(Asset, Instigator, Target)` aufrufst, laufen fünf Schrit
 
 Jeder Node gibt nach seiner Ausführung einen Anweisung zurück, wie der Dialog weiterlaufen soll:
 
-| Rückgabe | Was passiert |
-| --- | --- |
-| Advance (Next-Node) | Direkt zum angegebenen nächsten Node springen. |
-| Pause + Choices präsentieren | Instanz wartet. Widget zeigt Choice-Buttons. |
-| Zurück zum letzten Choice | Springt zum zuletzt präsentierten PlayerChoice zurück. |
-| Zurück zum Dialog-Start | Springt an den Entry zurück. |
-| Abort | Dialog endet als Aborted. |
+| Rückgabe | Was passiert | Status |
+| --- | --- | --- |
+| Advance (Next-Node) | Direkt zum angegebenen nächsten Node springen. | In Produktion |
+| Pause + Choices präsentieren | Instanz wartet. Widget zeigt Choice-Buttons. | In Produktion |
+| Abort | Dialog endet als Aborted. | In Produktion |
+| Zurück zum letzten Choice | Springt zum zuletzt präsentierten PlayerChoice zurück. | **Experimentell** — wird von keinem eingebauten Node verwendet; reserviert für eigene Blueprint-Nodes. |
+| Zurück zum aktuellen Choice | Präsentiert den aktiven PlayerChoice erneut. | **Experimentell** — wird von keinem eingebauten Node verwendet; reserviert für eigene Blueprint-Nodes. |
+| Zurück zum Dialog-Start | Springt an den Entry zurück. | **Experimentell** — wird von keinem eingebauten Node verwendet; reserviert für eigene Blueprint-Nodes. |
 
-Als Nutzer musst du diese Mechanik nicht direkt ansteuern — die Nodes des Plugins verwenden sie intern korrekt.
+Als Nutzer musst du diese Mechanik nicht direkt ansteuern — die eingebauten Nodes des Plugins verwenden Advance, Pause+Choices und Abort. Die experimentellen Werte sind für zukünftige Blueprint-Autor-Node-Klassen reserviert.
 
 ## Requirements: Wann wird ein Node ausgeführt?
 

@@ -19,7 +19,6 @@ MayDialogue is a UE plugin with three modules. Installation runs in five steps a
 * `GameplayAbilities`
 * `GameplayTagsEditor`
 * `StructUtils`
-* `EnhancedInput`
 
 ## Step 1: Copy the plugin folder
 
@@ -88,11 +87,7 @@ Alternatively, via batch file:
 3. Select the **Gameplay** category. The **MayDialogue** entry must be visible and enabled (checkbox checked).
 
 > 📸 **Image placeholder:** `installation-plugin-dialog.png`: The Plugins dialog with the MayDialogue entry.
-> *Setup:* Plugins window open, "Gameplay" category selected. MayDialogue entry visible with an enabled checkbox, the beta banner below it, and the plugin description text. Red arrow pointing at the enabled checkbox.
-
-{% hint style="info" %}
-**Beta flag.** MayDialogue is marked as `IsBetaVersion: true`. UE shows a warning banner in the Plugins dialog. You can safely ignore it.
-{% endhint %}
+> *Setup:* Plugins window open, "Gameplay" category selected. MayDialogue entry visible with an enabled checkbox and the plugin description text. Red arrow pointing at the enabled checkbox.
 
 ## Step 5: Enable plugin content
 

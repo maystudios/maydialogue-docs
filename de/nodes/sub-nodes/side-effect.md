@@ -16,9 +16,17 @@ Ein SideEffect ist eine Inline-Aktion, die ausgeführt wird, sobald der Eltern-N
 | --- | --- | --- | --- |
 | `Description` | `FText` | leer | Editor-Label der Pill im Graph. Wird auch im Details-Panel angezeigt. |
 
-## Standard-SideEffects (GAS-Integration)
+## Standard-SideEffects
 
-Diese SideEffects sind direkt verfügbar — keine zusätzliche Einrichtung nötig. Sie greifen auf das Gameplay Ability System zu, wenn dein Projekt es verwendet.
+### Core (ohne GAS)
+
+| Klasse | Aktion | Wichtige Properties |
+| --- | --- | --- |
+| `UMayDialogueSideEffect_SetVariable` | Dialog- oder Participant-Variable setzen | `VariableName`, `VariableType`, `Scope` (Dialogue / Participant), `Value` |
+
+### GAS-Integration (MayDialogueGAS-Modul)
+
+Diese SideEffects greifen auf das Gameplay Ability System zu. Keine zusätzliche Einrichtung nötig — sie erscheinen automatisch im Picker, wenn GAS in deinem Projekt aktiv ist.
 
 | Klasse | Aktion | Wichtige Properties |
 | --- | --- | --- |

@@ -66,5 +66,5 @@ A Choice is an answer option on a [PlayerChoice Node](../core/player-choice.md).
 
 Derive a Blueprint subclass from `UMayDialogueChoice` and override the Event `OnChoiceSelected`. This lets you execute custom logic on every selection — without modifying the dialogue graph.
 
-Details: [Extension → Custom Choices](../../extension/custom-choices.md).
+Details: [Extension → Custom Nodes](../../extension/custom-nodes.md).
 {% endhint %}

@@ -55,7 +55,7 @@ Each page in this section shows the Blueprint approach first, followed by a C++ 
 * **One class, one responsibility.** `BP_Req_QuestActive` checks quest status — and nothing else.
 * **Set display names.** Enter a meaningful name in Class Settings — it appears in pickers and pill labels.
 * **Add null guards.** Check whether your subsystem is present. Return `Passed` (Requirement) or do nothing (SideEffect) when the subsystem is missing — never crash.
-* **Respect fail modes.** `bHideOnFail` in Requirements should remain designer-configurable.
+* **Respect fail modes.** `FailResult` in Requirements should remain designer-configurable — use `GetFailResult()` in your implementation rather than hardcoding the failure behaviour.
 
 > 📸 **Image placeholder:** `ext-overview-pill-labels.png` — Graph view with custom SideEffect pills on a SayLine, readable display names.
 > *Setup:* MayDialogue editor, SayLine node expanded. SideEffects array shows three pills: "Quest Progress +1 (KillDragon)", "Grant Achievement: DragonSlayer", "Add Tag: Story.DragonDefeated". Pill labels come from the `GetDisplayDescription` return value of the respective classes.

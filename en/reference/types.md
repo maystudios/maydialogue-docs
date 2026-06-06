@@ -113,25 +113,34 @@ Spatial mode for voice playback.
 
 ### EMayDialogueBabelMode
 
-When Babel voice synthesis kicks in.
+Controls the Babel synthesis algorithm per profile.
 
 | Value | Meaning |
 |---|---|
-| `Off` | Never. |
-| `FallbackOnly` | Only when no voice asset is present. |
-| `Always` | Always — even when a voice asset is set (preview mode). |
+| `BlipPerCharacter` | A short blip sound per revealed character ("bip bip bip"). Classic VN style. |
+| `PhonemeBase` | Sinusoidal tones based on vowel/consonant type. Abstract or creature voices. |
 
 ---
 
 ### EMayDialogueBabelSyncMode
 
-How Babel synchronizes with the typewriter.
+How Babel synchronises with the typewriter.
 
 | Value | Meaning |
 |---|---|
-| `PerCharacter` | One sound per typewriter character. |
-| `PerWord` | One Babel blip per word. |
-| `Continuous` | Continuous tone, independent of the typewriter tick. |
+| `TypewriterSync` | Reacts to every letter revealed by the typewriter. Precise per-character synchronisation. |
+| `Continuous` | Internal timer, independent of the typewriter tick. For creature growls or non-typewriter flows. |
+
+---
+
+### EMayDialogueBabelEngine
+
+Selects the synthesis back-end used by `UMayDialogueBabelSynth`. Configured on the `UMayDialogueBabelProfile` asset.
+
+| Value | Meaning |
+|---|---|
+| `Granular` | **Default.** Plays pre-recorded blip samples from the profile's sample pools with random pitch/volume jitter. Fears-to-Fathom / Animal Crossing quality. |
+| `Biquad` | Legacy procedural formant synthesiser (RBJ bandpass filter chain). Retained as opt-in for projects that relied on the original DSP path. DisplayName: *Biquad Synthesizer (Legacy)*. |
 
 ---
 
