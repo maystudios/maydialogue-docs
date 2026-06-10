@@ -47,7 +47,7 @@ Jeder am Dialog beteiligte Actor braucht eine `UMayDialogueParticipant`-Komponen
 <details>
 <summary>Ein anderer Dialog läuft bereits</summary>
 
-Das Subsystem erlaubt standardmäßig nur einen aktiven Dialog. Prüfe mit `MayDialogueSubsystem → IsAnyDialogueActive()`. Stoppe laufende Dialoge zuerst mit `StopAllDialogues()`.
+Mehrere Dialoge können gleichzeitig laufen (das Subsystem verwaltet alle aktiven Instanzen) — ein anderer laufender Dialog blockiert einen neuen Start also nicht per se. Wenn aber *derselbe Participant* bereits in einem Gespräch ist, kann ein zweiter Start auf ihm fehlschlagen oder überlappende UI erzeugen. Prüfe mit `MayDialogueSubsystem → IsAnyDialogueActive()` und beende bei Bedarf zuerst das laufende Gespräch des Participants mit `AbortDialogue()` (oder `StopAllDialogues()`, um alles zu beenden).
 
 </details>
 

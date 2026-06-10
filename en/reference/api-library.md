@@ -112,7 +112,7 @@ UFUNCTION(BlueprintCallable, Category = "MayDialogue",
 static UMayDialogueInstance* GetActiveDialogue(UObject* WorldContext);
 ```
 
-Returns the (only) active Instance or `nullptr`. Since the Subsystem allows only one dialogue at a time, this is practically always unambiguous.
+Returns the most recently started active Instance or `nullptr`. Note that multiple dialogues can run concurrently (e.g. an ambient NPC conversation alongside the player's active dialogue) — if you manage several instances, keep your own reference to the one you started instead of relying on this convenience accessor.
 
 ---
 

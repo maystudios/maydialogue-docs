@@ -47,7 +47,7 @@ Open the actor in the Details panel, locate the component, and verify the tag va
 <details>
 <summary>Another dialogue is already running</summary>
 
-The Subsystem allows only one active dialogue by default. Check with `MayDialogueSubsystem → IsAnyDialogueActive()`. Stop any running dialogues first with `StopAllDialogues()`.
+Multiple dialogues can coexist (the Subsystem tracks all active instances), so another running dialogue does not block a new one by itself. However, if the *same participant* is already in a conversation, starting a second one on it can fail or produce overlapping UI. Check with `MayDialogueSubsystem → IsAnyDialogueActive()` and, if needed, end the participant's current conversation first with `AbortDialogue()` (or `StopAllDialogues()` to clear everything).
 
 </details>
 
