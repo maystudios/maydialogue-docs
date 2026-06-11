@@ -40,7 +40,7 @@ Ein `UMayDialogueAsset` — das Blueprint-Asset, das du im Content-Browser erste
 
 Eine einzelne Antwort-Option in einem PlayerChoice-Node. Jede Choice kann Requirements, Tags und einen eigenen Output-Pin haben. Choices werden als Sub-Nodes im PlayerChoice-Node angezeigt.
 
-Siehe auch: [FailedAndHidden](#failedandhidden), [FailedButVisible](#failedbut-visible), [Player Choice](#player-choice).
+Siehe auch: [FailedAndHidden](#failedandhidden), [FailedButVisible](#failedbutvisible), [Player Choice](#player-choice).
 
 ---
 

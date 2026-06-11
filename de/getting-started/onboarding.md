@@ -71,7 +71,7 @@ Das ist das einzige Feld, das du setzen musst. Der Participant-Tag und der Displ
 
 Starte PIE, geh zum NPC und löse ihn aus. Das Slate-Debug-Widget erscheint, der NPC spricht deine Zeile, und du hast einen funktionierenden Dialog ohne ein einziges Blueprint und ohne Code.
 
-Wenn du den Dialog aus deiner eigenen Logik auslösen willst (ein Interaktions-Prompt, ein Trigger-Volume) statt dich auf den Default des Templates zu verlassen, folge den Trigger-Optionen in [Quick Start → Schritt 9](quick-start.md#schritt-9-dialog-auslosen).
+Wenn du den Dialog aus deiner eigenen Logik auslösen willst (ein Interaktions-Prompt, ein Trigger-Volume) statt dich auf den Default des Templates zu verlassen, folge den Trigger-Optionen in [Quick Start → Schritt 9](quick-start.md#schritt-9-dialog-auslösen).
 
 ---
 

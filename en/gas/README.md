@@ -25,7 +25,7 @@ And when dialogue should trigger a GAS effect (healing, granting a tag, playing 
 All GAS classes live in the separate **`MayDialogueGAS`** module. The core module has no hard GAS dependency. Once `MayDialogueGAS` loads, the GAS classes automatically appear in the node and sub-node pickers in the editor.
 
 {% hint style="info" %}
-**No GAS in your project?** The GAS classes can still be loaded, but are ignored when no ASC is found. You can leave the module loaded and simply work with dialogue variables instead of GAS nodes.
+**No GAS in your project?** The GAS classes can still be loaded, but are ignored when no ASC is found. You can leave the module loaded and work with dialogue variables instead of GAS nodes.
 {% endhint %}
 
 ## Where GAS Intervenes in Dialogue

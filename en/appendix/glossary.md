@@ -40,7 +40,7 @@ A `UMayDialogueAsset` — the Blueprint asset you create in the Content Browser 
 
 A single answer option in a PlayerChoice node. Each Choice can have Requirements, tags, and its own output pin. Choices are displayed as sub-nodes inside the PlayerChoice node.
 
-See also: [FailedAndHidden](#failedandhidden), [FailedButVisible](#failedbut-visible), [Player Choice](#player-choice).
+See also: [FailedAndHidden](#failedandhidden), [FailedButVisible](#failedbutvisible), [Player Choice](#player-choice).
 
 ---
 
@@ -126,7 +126,7 @@ A node type that presents the player with one or more answer options. The dialog
 
 `FMayDialoguePreviewRunner` — an embedded playback system in the asset editor. Plays a dialogue directly in the editor without needing to start PIE. Enables rapid testing of text, structure, and branch logic. Tags can be simulated to test Requirements.
 
-See: [Debugging Tips → Preview Runner](../troubleshooting/debugging-tips.md#preview-runner-iteration-ohne-pie).
+See: [Debugging Tips → Preview Runner](../troubleshooting/debugging-tips.md#preview-runner-iteration-without-pie).
 
 ---
 

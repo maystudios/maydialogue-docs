@@ -161,7 +161,7 @@ Native tags have the advantage of typed references in code — no string typos p
 | `Dialogue.Choice.*` | Marking selected responses | Assertive, Friendly, Aggressive |
 
 {% hint style="info" %}
-**Custom tag categories** can be added at any time — simply register them in the INI or via `UE_DEFINE_GAMEPLAY_TAG_COMMENT`. Existing code matches automatically via hierarchy, without any changes.
+**Custom tag categories** can be added at any time — register them in the INI or via `UE_DEFINE_GAMEPLAY_TAG_COMMENT`. Existing code matches automatically via hierarchy, without any changes.
 {% endhint %}
 
 > 📸 **Image placeholder:** `tag-picker-in-editor.png` — Tag picker in the dialogue asset with custom Dialogue tags.

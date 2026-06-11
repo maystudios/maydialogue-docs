@@ -10,15 +10,15 @@ This section answers the most common questions when a dialogue doesn't behave as
 
 | Symptom | Page |
 | --- | --- |
-| Dialogue doesn't start at all, nothing happens | [Common Issues → Dialogue doesn't start](common-issues.md#dialog-startet-nicht) |
-| No widget visible even though the dialogue is running | [Common Issues → Widget doesn't appear](common-issues.md#widget-erscheint-nicht) |
-| Choices are missing or not clickable | [Common Issues → Choices missing](common-issues.md#choices-fehlen) |
-| No audio / no voice | [Common Issues → Audio missing](common-issues.md#audio-fehlt) |
-| Babel voice is silent | [Common Issues → Babel silent](common-issues.md#babel-stumm) |
-| Variable isn't saved / Requirement reads wrong values | [Common Issues → Variable not persistent](common-issues.md#variable-nicht-persistent) |
-| Dialogue gets stuck after one line | [Common Issues → Dialogue stuck](common-issues.md#dialog-bleibt-hängen) |
-| Compile error with no clear hint | [Common Issues → Compile error](common-issues.md#compile-fehler) |
-| Sub-Graph doesn't return to caller | [Common Issues → Sub-Graph return missing](common-issues.md#sub-graph-rückkehr-fehlt) |
+| Dialogue doesn't start at all, nothing happens | [Common Issues → Dialogue doesn't start](common-issues.md#dialogue-doesnt-start) |
+| No widget visible even though the dialogue is running | [Common Issues → Widget doesn't appear](common-issues.md#widget-doesnt-appear) |
+| Choices are missing or not clickable | [Common Issues → Choices missing](common-issues.md#choices-missing) |
+| No audio / no voice | [Common Issues → Audio missing](common-issues.md#audio-missing) |
+| Babel voice is silent | [Common Issues → Babel silent](common-issues.md#babel-silent) |
+| Variable isn't saved / Requirement reads wrong values | [Common Issues → Variable not persistent](common-issues.md#variable-not-persistent) |
+| Dialogue gets stuck after one line | [Common Issues → Dialogue stuck](common-issues.md#dialogue-gets-stuck) |
+| Compile error with no clear hint | [Common Issues → Compile error](common-issues.md#compile-error) |
+| Sub-Graph doesn't return to caller | [Common Issues → Sub-Graph return missing](common-issues.md#sub-graph-return-missing) |
 | Log error or crash | [Debugging Tips](debugging-tips.md) |
 | Known issue, looking for a workaround | [Known Issues](known-issues.md) |
 

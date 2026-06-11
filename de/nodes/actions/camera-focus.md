@@ -95,7 +95,7 @@ Soll der Shot **mit dem NPC mitwandern** (Closeup, Over-Shoulder, …):
 1. Den `MayDialogueCameraAnchor` ins Level setzen.
 2. Im **World Outliner** den Anchor per Drag-and-Drop auf den NPC-Actor ziehen → er wird zum **Child-Actor**, dessen Transform jetzt relativ zum NPC ist.
 3. Shot im Viewport komponieren — der Anchor folgt dem NPC automatisch, wo immer er sich bewegt.
-4. `AnchorTag` setzen, im Dialogue-Asset referenzieren.
+4. `AnchorTag` setzen, im Dialog-Asset referenzieren.
 
 Das ist der komplette Mechanismus für „NPC-relative Shots": natives UE-Actor-Parenting, kein separates Konzept. Vorteil gegenüber unsichtbaren Transform-Maps: **alles im Viewport sichtbar, draggbar, mit Live-CineCamera-Preview**.
 

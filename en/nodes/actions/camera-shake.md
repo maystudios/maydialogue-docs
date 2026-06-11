@@ -16,7 +16,7 @@ Plays a UE camera shake on the player camera and immediately returns advance. Th
 ---
 
 > 📸 **Image placeholder:** `camera-shake-node.png` — "Camera Shake" Node in the MayDialogue graph.
-> *Setup:* Node alone visible, title bar labeled "Camera Shake", blue-grey (camera category), Input pin left / Output pin right. In subtitle: `ShakeClass = BP_ShakeHeavy`, `Scale = 2.0`.
+> *Setup:* Node alone visible, title bar labeled "Camera Shake", blue-grey (camera category), Input pin left / Output pin right. In subtitle: `ShakeClass = CS_DoorJolt`, `Scale = 2.0`.
 
 ---
 
@@ -24,7 +24,7 @@ Plays a UE camera shake on the player camera and immediately returns advance. Th
 
 | Property | Type | Description |
 |---|---|---|
-| `ShakeClass` | `TSubclassOf<UCameraShakeBase>` | Any UE CameraShake class (Blueprint or C++). |
+| `ShakeClass` | `TSubclassOf<UCameraShakeBase>` | Any UE CameraShake class (Blueprint or C++). The plugin ships a ready-to-use `UMayDialogueCameraShake` — see below. |
 | `Scale` | `float` | Shake intensity. `1.0` = normal size, `0.0` = no effect. Minimum: 0. |
 | `SpatialRadius` | `float` | Effect radius in cm. `0` = global (always). When > 0: shake only plays if the player is close enough to the epicenter. |
 | `EpicenterParticipantTag` | `FGameplayTag` | Participant whose position serves as the epicenter. Only active when `SpatialRadius > 0`. |
@@ -33,7 +33,31 @@ Plays a UE camera shake on the player camera and immediately returns advance. Th
 ---
 
 > 📸 **Image placeholder:** `camera-shake-details.png` — Details panel with spatial setup.
-> *Setup:* Select the Node. In the Details panel: `ShakeClass = BP_ShakeMedium`, `Scale = 1.5`, `SpatialRadius = 500`, `EpicenterParticipantTag = Dialogue.Speaker.Monster`, `FalloffInnerRadius = 200`.
+> *Setup:* Select the Node. In the Details panel: `ShakeClass = CS_DoorJolt`, `Scale = 1.5`, `SpatialRadius = 500`, `EpicenterParticipantTag = Dialogue.Speaker.Monster`, `FalloffInnerRadius = 200`.
+
+---
+
+## The bundled shake class
+
+You do **not** need to write your own `UCameraShakeBase` subclass to get started. The plugin ships **`UMayDialogueCameraShake`** — a ready-to-use shake with a built-in sine-oscillation pattern. Assign it (or a Blueprint subclass of it) to `ShakeClass` and tune the properties on its `RootShakePattern`:
+
+| Pattern property | Meaning |
+|---|---|
+| `Duration` | Total play time in seconds. `0` or negative plays until stopped. |
+| `BlendInTime` / `BlendOutTime` | Ease-in / ease-out windows where the amplitude ramps up and down. |
+| `LocationAmplitude` / `LocationFrequency` | Per-axis location oscillation — amplitude in world units, frequency in cycles per second. |
+| `RotationAmplitude` / `RotationFrequency` | Per-axis rotation oscillation (X = Pitch, Y = Yaw, Z = Roll), amplitude in degrees, frequency in cycles per second. |
+
+To author your own look: create a Blueprint child of **MayDialogue Camera Shake**, open it, and edit the `RootShakePattern` values. No EngineCameras plugin or custom shake-pattern code is required — the pattern is self-contained.
+
+### Sample shakes you can use right away
+
+Two finished shakes ship under `/MayDialogue/Samples/Camera/` (both Blueprints of `UMayDialogueCameraShake`), used by the Horror sample dialogue:
+
+- **`CS_CorridorGroan`** — a long, low, queasy sway (slow roll + vertical drift) for an ambient "the corridor is breathing" beat.
+- **`CS_DoorJolt`** — a short, hard pitch/yaw rattle for a sudden scare hit.
+
+Drop either into a CameraShake node's `ShakeClass` and you have a working effect with no extra setup.
 
 ---
 
@@ -49,7 +73,7 @@ If the shake is **the dramatic main point** of this step (e.g. the scare moment)
 [SayLine: Player "I can't hear anything anymore..."]
   │
   ▼
-[CameraShake: ShakeClass=BP_ShakeHeavy, Scale=2.0]
+[CameraShake: ShakeClass=CS_DoorJolt, Scale=2.0]
   │
   ▼
 [SayLine: Monster "NOW I AM HERE."]

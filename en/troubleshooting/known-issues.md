@@ -14,12 +14,6 @@ If you run into a problem not listed here, check the [Debugging Tips](debugging-
 
 ## Open Issues
 
-### Widget & UI
-
-| Problem | Recommended Workaround |
-| --- | --- |
-| UMG Starter Themes (Horror, VN, RPG) not yet included. | Set up your own theme (see [UI Architecture](../ui/umg-architecture.md)). |
-
 ### Audio
 
 | Problem | Recommended Workaround |
@@ -47,6 +41,7 @@ If you run into a problem not listed here, check the [Debugging Tips](debugging-
 
 These items were previously open and are fixed in v1.0:
 
+- UMG starter themes now ship: three production themes — Horror (*Pale Static*), Visual Novel (*Daybreak*), and RPG (*Gilded Slate*) — under `/MayDialogue/Themes`, plus the neutral `WBP_DialogueTheme_Default`. Every sample map applies its theme via an `AMayDialogueThemeSetter` actor. See [Themes & Starter Kits](../ui/themes.md).
 - Widget survives level teardown no longer: Subsystem Deinitialize correctly tears down both Slate and UMG auto-widgets.
 - Wait timer on dialogue abort: `AsyncState_Wait::Cleanup` clears all timers.
 - PlayAnimation montage end delegate bound after abort: `AsyncState_PlayAnimation::Cleanup` replaces the delegate.

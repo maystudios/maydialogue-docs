@@ -72,7 +72,7 @@ Wenn das Setzen der Variable der **inhaltliche Hauptpunkt** dieses Schrittes ist
 ## Fallstricke
 
 {% hint style="warning" %}
-`VariableName` muss im **Variables-Panel** des Dialogue-Assets deklariert sein. Ein unbekannter Name führt zu einer Log-Warning und die Variable wird nicht geschrieben — kein harter Fehler, aber lautlos korrumpierte Logik.
+`VariableName` muss im **Variables-Panel** des Dialog-Assets deklariert sein. Ein unbekannter Name führt zu einer Log-Warning und die Variable wird nicht geschrieben — kein harter Fehler, aber lautlos korrumpierte Logik.
 {% endhint %}
 
 {% hint style="info" %}

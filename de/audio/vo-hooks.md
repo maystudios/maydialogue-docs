@@ -41,6 +41,8 @@ StartDialogue
 
 Der `AfterVoice`-Advance-Mode (eine SayLine, die weitergeht, wenn ihre Voice fertig ist) wird jetzt von derselben Event-basierten Voice-Ende-Erkennung getrieben wie `OnVoiceLineEnded`, statt von einer Polling-Schätzung. Das Ergebnis: Eine Zeile mit `AfterVoice` geht genau dann weiter, wenn die Audio-Komponente den Abschluss meldet – zuverlässig auch bei variabel langen lokalisierten Takes.
 
+Der Horror-Sample-Dialog (`DA_Horror_Corridor`) zeigt das durchgängig: Die Zähl-Zeile des Attendant trägt einen echten VO-Take (`A_Attendant_Count`, unter `/MayDialogue/Samples/Audio/`) und geht per `AfterVoice` weiter, sodass die nächste Zeile wartet, bis die aufgenommene Stimme fertig ist.
+
 ## Zero-Code-Weg (Blueprint)
 
 Du kannst die Events ohne eine Zeile C++ konsumieren.

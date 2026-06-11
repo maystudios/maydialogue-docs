@@ -4,41 +4,39 @@ description: Horror, Visual Novel, and RPG themes — how to choose, activate, a
 
 # Themes & Starter Kits
 
-{% hint style="warning" %}
-**Starter themes (Horror / Visual Novel / RPG) ship as a separate content add-on and are not included in v1.0.** v1.0 ships with the bare `DialogFrame` widget base classes only. See the **Custom Themes** section below to build your own theme from scratch. Pre-built themes will be available in v1.1.
+{% hint style="success" %}
+**Three production themes ship with the plugin** at `/MayDialogue/Themes` — Horror (**Pale Static**), Visual Novel (**Daybreak**), and RPG (**Gilded Slate**) — plus a neutral `WBP_DialogueTheme_Default` under `/MayDialogue/Samples/UI`. Every sample map applies its theme automatically through an `AMayDialogueThemeSetter` actor, so you can play any sample level and see a finished theme immediately. Take any of them as a starting point and subclass it, or build your own from scratch with the **Building your own theme** section below.
 {% endhint %}
 
-MayDialogue provides the widget framework. The **visual themes** you build as Blueprint subclasses — each is a complete set of widget classes that determines the appearance of your dialogue.
+MayDialogue provides the widget framework and ships finished themes on top of it. The **visual themes** are Blueprint subclasses — each is a complete set of widget classes that determines the appearance of your dialogue.
 
 > 📸 **Image placeholder:** `themes-overview-comparison.png` — Three PIE viewport screenshots side by side: left Horror theme (dark, blood-red accents), centre VN theme (light panel at the bottom, large portrait on the left), right RPG theme (parchment-coloured banner, small portrait). Same dialogue text in all three.
 > *Setup:* Start the same dialogue three times with different widget classes. Take screenshots in PIE.
 
 ## Which themes are available?
 
-{% hint style="danger" %}
-**Themes are a separate add-on and are not part of MayDialogue v1.0.** The following descriptions are a preview of the planned starter themes. In v1.0 only the base widget classes are available — use the "Building your own theme" section to get started right away.
-{% endhint %}
+Three themes ship ready to use under `/MayDialogue/Themes`. Each is a complete set of subclassed widget classes plus a top-level composite (`WBP_MayDlg_Theme_Horror` / `_VN` / `_RPG`):
 
-| Theme | Style | Genre |
-|---|---|---|
-| **Horror** | Dark, blood-red accents, rough frame, nervous typewriter | Horror, Mystery |
-| **Visual Novel** | Large portrait area, centred text box, soft animations | VN, story adventures |
-| **RPG** | Classic dialogue box, name plate, inventory-compatible layout | RPG, Adventure |
+| Theme | Composite widget | Style | Genre |
+|---|---|---|---|
+| **Horror** — *Pale Static* | `WBP_MayDlg_Theme_Horror` | Dark, blood-red accents, rough frame, nervous typewriter | Horror, Mystery |
+| **Visual Novel** — *Daybreak* | `WBP_MayDlg_Theme_VN` | Large portrait area, centred text box, soft animations | VN, story adventures |
+| **RPG** — *Gilded Slate* | `WBP_MayDlg_Theme_RPG` | Classic dialogue box, name plate, inventory-compatible layout | RPG, Adventure |
 
-The widget classes are subclassable — take a theme as a starting point and customise it.
+A neutral `WBP_DialogueTheme_Default` (under `/MayDialogue/Samples/UI`) is the plain baseline used when no theme is set. The widget classes are subclassable — take any theme as a starting point and customise it.
 
 ---
 
 ## Activating a theme
 
-Set this in Project Settings:
+For a project-wide default, set this in Project Settings:
 
 ```ini
 [MayDialogue]
-DefaultDialogueWidgetClass = /Game/UI/Themes/Horror/WBP_MayDialogue_Horror.WBP_MayDialogue_Horror_C
+DefaultDialogueWidgetClass = /MayDialogue/Themes/Horror/Widgets/WBP_MayDlg_Theme_Horror.WBP_MayDlg_Theme_Horror_C
 ```
 
-Done. The theme appears the next time a dialogue starts.
+Done. The theme appears the next time a dialogue starts. To apply a theme per level instead — or to switch live mid-conversation — use the `AMayDialogueThemeSetter` actor (see **Multiple themes in the same project** below), which is how every sample map sets its theme.
 
 > 📸 **Image placeholder:** `themes-project-settings.png` — Project Settings → MayDialogue. Field `DefaultDialogueWidgetClass` with a filled widget path, red arrow pointing to it.
 > *Setup:* Project Settings → MayDialogue, screenshot this section only.

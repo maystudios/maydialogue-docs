@@ -14,12 +14,6 @@ Wenn du auf ein Problem stößt, das hier nicht aufgeführt ist, prüfe zuerst d
 
 ## Offene Issues
 
-### Widget & UI
-
-| Problem | Empfohlener Workaround |
-| --- | --- |
-| UMG Starter-Themes (Horror, VN, RPG) noch nicht mitgeliefert. | Eigenes Theme aufsetzen (siehe [UI-Architektur](../ui/umg-architecture.md)). |
-
 ### Audio
 
 | Problem | Empfohlener Workaround |
@@ -47,6 +41,7 @@ Wenn du auf ein Problem stößt, das hier nicht aufgeführt ist, prüfe zuerst d
 
 Diese Punkte galten früher als offen und sind in v1.0 behoben:
 
+- UMG-Starter-Themes werden jetzt mitgeliefert: drei fertige Themes — Horror (*Pale Static*), Visual Novel (*Daybreak*) und RPG (*Gilded Slate*) — unter `/MayDialogue/Themes`, dazu das neutrale `WBP_DialogueTheme_Default`. Jede Sample-Map setzt ihr Theme über einen `AMayDialogueThemeSetter`-Actor. Siehe [Themes & Starterkits](../ui/themes.md).
 - Widget überlebt Level-Teardown nicht mehr (Subsystem-Deinitialize räumt Slate- und UMG-Widget korrekt auf).
 - Wait-Timer bei Dialog-Abort: AsyncState_Wait bereinigt alle Timer in `Cleanup()`.
 - PlayAnimation-Montage-End-Delegate bleibt nach Abort gebunden: `AsyncState_PlayAnimation::Cleanup` ersetzt den Delegate.

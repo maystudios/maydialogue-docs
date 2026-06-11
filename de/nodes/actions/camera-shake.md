@@ -16,7 +16,7 @@ Spielt einen UE-Camera-Shake auf der Spielerkamera ab und gibt sofort Advance zu
 ---
 
 > 📸 **Bild-Platzhalter:** `camera-shake-node.png` — Node "Camera Shake" im MayDialogue-Graphen.
-> *Setup:* Node allein sichtbar, Title-Bar beschriftet mit "Camera Shake", blau-grau (Kamera-Kategorie), Input-Pin links / Output-Pin rechts. Im Subtitle: `ShakeClass = BP_ShakeHeavy`, `Scale = 2.0`.
+> *Setup:* Node allein sichtbar, Title-Bar beschriftet mit "Camera Shake", blau-grau (Kamera-Kategorie), Input-Pin links / Output-Pin rechts. Im Subtitle: `ShakeClass = CS_DoorJolt`, `Scale = 2.0`.
 
 ---
 
@@ -24,7 +24,7 @@ Spielt einen UE-Camera-Shake auf der Spielerkamera ab und gibt sofort Advance zu
 
 | Property | Typ | Beschreibung |
 |---|---|---|
-| `ShakeClass` | `TSubclassOf<UCameraShakeBase>` | Beliebige UE-CameraShake-Klasse (Blueprint oder C++). |
+| `ShakeClass` | `TSubclassOf<UCameraShakeBase>` | Beliebige UE-CameraShake-Klasse (Blueprint oder C++). Das Plugin liefert eine fertige `UMayDialogueCameraShake` mit — siehe unten. |
 | `Scale` | `float` | Shake-Intensität. `1.0` = Normalgröße, `0.0` = kein Effekt. Minimum: 0. |
 | `SpatialRadius` | `float` | Wirkungsradius in cm. `0` = global (immer). Wenn > 0: Shake spielt nur, wenn Spieler nah genug am Epizentrum ist. |
 | `EpicenterParticipantTag` | `FGameplayTag` | Participant, dessen Position als Epizentrum gilt. Nur aktiv wenn `SpatialRadius > 0`. |
@@ -33,7 +33,31 @@ Spielt einen UE-Camera-Shake auf der Spielerkamera ab und gibt sofort Advance zu
 ---
 
 > 📸 **Bild-Platzhalter:** `camera-shake-details.png` — Details-Panel mit räumlichem Setup.
-> *Setup:* Node auswählen. Im Details-Panel sichtbar: `ShakeClass = BP_ShakeMedium`, `Scale = 1.5`, `SpatialRadius = 500`, `EpicenterParticipantTag = Dialogue.Speaker.Monster`, `FalloffInnerRadius = 200`.
+> *Setup:* Node auswählen. Im Details-Panel sichtbar: `ShakeClass = CS_DoorJolt`, `Scale = 1.5`, `SpatialRadius = 500`, `EpicenterParticipantTag = Dialogue.Speaker.Monster`, `FalloffInnerRadius = 200`.
+
+---
+
+## Die mitgelieferte Shake-Klasse
+
+Du musst **keine** eigene `UCameraShakeBase`-Subklasse schreiben, um loszulegen. Das Plugin liefert **`UMayDialogueCameraShake`** mit — einen fertigen Shake mit eingebautem Sinus-Oszillations-Pattern. Weise ihn (oder eine Blueprint-Subklasse davon) der `ShakeClass` zu und stelle die Properties auf seinem `RootShakePattern` ein:
+
+| Pattern-Property | Bedeutung |
+|---|---|
+| `Duration` | Gesamte Spieldauer in Sekunden. `0` oder negativ spielt, bis gestoppt wird. |
+| `BlendInTime` / `BlendOutTime` | Ease-In-/Ease-Out-Fenster, in denen die Amplitude hoch- und wieder herunterfährt. |
+| `LocationAmplitude` / `LocationFrequency` | Positions-Oszillation pro Achse — Amplitude in Welteinheiten, Frequenz in Schwingungen pro Sekunde. |
+| `RotationAmplitude` / `RotationFrequency` | Rotations-Oszillation pro Achse (X = Pitch, Y = Yaw, Z = Roll), Amplitude in Grad, Frequenz in Schwingungen pro Sekunde. |
+
+Für einen eigenen Look: Lege ein Blueprint-Kind von **MayDialogue Camera Shake** an, öffne es und passe die `RootShakePattern`-Werte an. Es braucht kein EngineCameras-Plugin und keinen eigenen Shake-Pattern-Code — das Pattern ist in sich geschlossen.
+
+### Sofort nutzbare Sample-Shakes
+
+Zwei fertige Shakes liegen unter `/MayDialogue/Samples/Camera/` (beide Blueprints von `UMayDialogueCameraShake`), genutzt vom Horror-Sample-Dialog:
+
+- **`CS_CorridorGroan`** — ein langes, tiefes, mulmiges Schwanken (langsamer Roll + vertikale Drift) für einen ambienten „der Korridor atmet"-Moment.
+- **`CS_DoorJolt`** — ein kurzes, hartes Pitch-/Yaw-Rütteln für einen plötzlichen Schreck-Treffer.
+
+Zieh einen davon in die `ShakeClass` eines CameraShake-Nodes, und du hast ohne weiteres Setup einen funktionierenden Effekt.
 
 ---
 
@@ -49,7 +73,7 @@ Wenn der Shake **der dramatische Hauptpunkt** dieses Schritts ist (z.B. der Ersc
 [SayLine: Spieler "Ich höre nichts mehr..."]
   │
   ▼
-[CameraShake: ShakeClass=BP_ShakeHeavy, Scale=2.0]
+[CameraShake: ShakeClass=CS_DoorJolt, Scale=2.0]
   │
   ▼
 [SayLine: Monster "JETZT BIN ICH DA."]
