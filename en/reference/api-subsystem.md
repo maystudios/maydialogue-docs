@@ -141,15 +141,24 @@ Start entry node → return Instance
 
 | Signature | Return | Description |
 |---|---|---|
-| `GetActiveDialogue()` | `UMayDialogueInstance*` | Active Instance or `nullptr`. |
+| `GetActiveDialogue()` | `UMayDialogueInstance*` | Most recently started active Instance, or `nullptr`. |
+| `GetAllActiveDialogues()` | `TArray<UMayDialogueInstance*>` | All active Instances (multiple dialogues can run concurrently). |
 | `IsAnyDialogueActive()` | `bool` | Checks whether anything is running. |
+| `ResumeDialogueFromSnapshot(Snapshot)` | `UMayDialogueInstance*` | Re-instantiate a paused dialogue from a `FMayDialogueInstanceSnapshot` and re-enter the saved node. Server-only. See [Resume](../runtime/resume.md). |
+| `FireDialogueEvent(WorldContext, EventTag)` | `void` | Broadcast a gameplay event tag to **all** active Instances (drives Wait nodes / lifecycle cues). |
 
 ```cpp
 UFUNCTION(BlueprintCallable, Category = "MayDialogue|Subsystem")
 UMayDialogueInstance* GetActiveDialogue() const;
 
+UFUNCTION(BlueprintCallable, Category = "MayDialogue|Subsystem")
+TArray<UMayDialogueInstance*> GetAllActiveDialogues() const;
+
 UFUNCTION(BlueprintPure, Category = "MayDialogue|Subsystem")
 bool IsAnyDialogueActive() const;
+
+UFUNCTION(BlueprintCallable, Category = "MayDialogue|Subsystem")
+UMayDialogueInstance* ResumeDialogueFromSnapshot(const FMayDialogueInstanceSnapshot& Snapshot);
 ```
 
 ---
