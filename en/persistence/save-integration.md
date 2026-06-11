@@ -1,71 +1,71 @@
 ---
-description: Wie du MayDialogue in dein eigenes SaveGame-System einbindest.
+description: How to wire MayDialogue into your own SaveGame system.
 ---
 
-# SaveGame-Integration
+# SaveGame Integration
 
-Wenn dein Projekt bereits ein SaveGame-System hat, fügst du MayDialogue-Daten nahtlos ein. Die Participant-Komponente ist schon vorbereitet.
+If your project already has a SaveGame system, you slot MayDialogue data in seamlessly. The Participant component is already prepared for it.
 
-## Blueprint-Schnelleinstieg
+## Blueprint Quick Start
 
-Für Projekte ohne eigenes SaveGame-System steht `UMayDialogueSaveHelper` bereit — eine Blueprint Function Library mit einfachen Speicher- und Lade-Nodes.
+For projects without their own SaveGame system, `UMayDialogueSaveHelper` is ready to go — a Blueprint Function Library with simple save and load nodes.
 
-**Speichern** (z.B. beim Verlassen eines Levels):
+**Saving** (e.g. when leaving a level):
 
 ```text
 [Event Level Exit]
     │
     ▼
-[Quick Save To Slot]  (Kategorie: MayDialogue|Persistence)
+[Quick Save To Slot]  (Category: MayDialogue|Persistence)
     ├─ WorldContextObject: Self
     ├─ Slot Name:          "AutoSave"
     └─ User Index:         0
-         │ Return Value (bool) — true wenn erfolgreich
+         │ Return Value (bool) — true on success
 ```
 
-**Laden** (z.B. beim Start des nächsten Levels):
+**Loading** (e.g. when the next level starts):
 
 ```text
 [Event Begin Play]
     │
     ▼
-[Does Slot Exist]  (Kategorie: MayDialogue|Persistence)
+[Does Slot Exist]  (Category: MayDialogue|Persistence)
     ├─ Slot Name: "AutoSave"
     │ True
     ▼
-[Quick Load From Slot]  (Kategorie: MayDialogue|Persistence)
+[Quick Load From Slot]  (Category: MayDialogue|Persistence)
     ├─ WorldContextObject: Self
     ├─ Slot Name:          "AutoSave"
     └─ User Index:         0
 ```
 
-`Quick Save To Slot` sammelt automatisch die `PersistentMemory` aller `UMayDialogueParticipant`-Komponenten in der Welt und schreibt sie in einen UE-SaveGame-Slot. `Quick Load From Slot` stellt sie beim Laden wieder her — Participants werden anhand ihres `ParticipantTag` identifiziert.
+`Quick Save To Slot` automatically gathers the `PersistentMemory` of every `UMayDialogueParticipant` component in the world and writes it into a UE SaveGame slot. `Quick Load From Slot` restores it on load — participants are identified by their `ParticipantTag`.
 
-Zusätzlich kannst du projektweite Flags (ohne Participant-Bezug) über `Set Global Bool` / `Get Global Bool` und die entsprechenden Int-, Float- und String-Varianten in der Kategorie `MayDialogue|Persistence|Global` speichern.
+In addition, you can store project-wide flags (with no participant association) via `Set Global Bool` / `Get Global Bool` and the corresponding Int, Float and String variants in the category `MayDialogue|Persistence|Global`.
 
 ---
 
-## Erweiterte Integration (C++)
+## Advanced Integration (C++)
 
-Wenn dein Projekt ein eigenes SaveGame-System hat, fügst du MayDialogue-Daten direkt in deine Save-Pipeline ein. Die Participant-Komponente ist schon vorbereitet.
+If your project has its own SaveGame system, you slot MayDialogue data straight into your save pipeline. The Participant component is already prepared.
 
-## Das UPROPERTY(SaveGame)-Flag
+## The UPROPERTY(SaveGame) Flag
 
-Auf `UMayDialogueParticipant`:
+On `UMayDialogueParticipant`:
 
 ```cpp
 UPROPERTY(SaveGame)
 FInstancedPropertyBag PersistentMemory;
 ```
 
-Das `SaveGame`-Specifier sagt UE's Serialisierer: "Diese Property beim Serialisieren eines SaveGame-Archives mitschreiben." Du musst nichts weiter tun, solange dein Archiv `ArIsSaveGame = true` setzt.
+The `SaveGame` specifier tells UE's serializer: "include this property when serializing a SaveGame archive." You don't have to do anything else, as long as your archive sets `ArIsSaveGame = true`.
 
-## Schritt 1 — Beim Speichern
+## Step 1 — On Save
 
-Wenn dein Projekt speichert, iterierst du alle Participants und serialisierst den Actor:
+When your project saves, you iterate all participants and serialize the actor:
 
 ```cpp
-// In deinem SaveSystem oder SaveGame-Handler:
+// In your SaveSystem or SaveGame handler:
 TArray<AActor*> Participants;
 UGameplayStatics::GetAllActorsWithComponent(World, UMayDialogueParticipant::StaticClass(), Participants);
 
@@ -76,79 +76,79 @@ for (AActor* Actor : Participants)
     FObjectAndNameAsStringProxyArchive Ar(Writer, /*bLoadIfFindFails=*/false);
     Ar.ArIsSaveGame = true;
 
-    Actor->Serialize(Ar);  // PersistentMemory wird mitgeschrieben, weil SaveGame-Flag
-    // Bytes in dein SaveData-Struct packen, Schlüssel = Actor-Name oder GUID
+    Actor->Serialize(Ar);  // PersistentMemory is written too, because of the SaveGame flag
+    // Pack Bytes into your SaveData struct, key = actor name or GUID
 }
 ```
 
-> 📸 **Bild-Platzhalter:** `saveint-blueprint-save.png` — Blueprint-Graph: Alle Actors mit UMayDialogueParticipant iterieren und serialisieren.
-> *Setup:* BP-Graph im SaveSystem-Blueprint. `Get All Actors With Component` (ComponentClass = MayDialogueParticipant) → ForEach-Loop → `Save Actor To Bytes`-Funktion (aus eigener Utility-Library). Schleifenausgang führt in ein `SaveData`-Array. Kein MayDialogue-spezifischer Knoten nötig — normaler UE-SaveGame-Pfad.
+> 📸 **Image placeholder:** `saveint-blueprint-save.png` — Blueprint graph: iterate all actors with UMayDialogueParticipant and serialize them.
+> *Setup:* BP graph in the SaveSystem Blueprint. `Get All Actors With Component` (ComponentClass = MayDialogueParticipant) → ForEach loop → `Save Actor To Bytes` function (from your own utility library). The loop output feeds into a `SaveData` array. No MayDialogue-specific node needed — standard UE SaveGame path.
 
-## Schritt 2 — Beim Laden
+## Step 2 — On Load
 
-Inverse Richtung: die gespeicherten Bytes auf die Actors anwenden.
+The inverse direction: apply the saved bytes back onto the actors.
 
 ```cpp
 for (auto& [ActorName, Bytes] : SavedData)
 {
-    AActor* Actor = FindActorByName(World, ActorName);  // deine Lookup-Logik
+    AActor* Actor = FindActorByName(World, ActorName);  // your lookup logic
     if (!Actor) continue;
 
     FMemoryReader Reader(Bytes);
     FObjectAndNameAsStringProxyArchive Ar(Reader, false);
     Ar.ArIsSaveGame = true;
 
-    Actor->Serialize(Ar);  // PersistentMemory wird wiederhergestellt
+    Actor->Serialize(Ar);  // PersistentMemory is restored
 }
 ```
 
-`FInstancedPropertyBag` kennt sein eigenes Schema und deserialisiert sich korrekt, solange das Schema zwischen Save und Load unverändert ist.
+`FInstancedPropertyBag` knows its own schema and deserializes itself correctly, as long as the schema is unchanged between save and load.
 
-## Manuelles Vorgehen (Alternative)
+## Manual Approach (Alternative)
 
-Du musst den Standard-Archive-Pfad nicht nutzen. Du kannst die PropertyBag auch direkt aus dem Participant holen und in dein SaveGame-Struct stecken:
+You don't have to use the standard archive path. You can also pull the PropertyBag straight off the participant and stick it into your own SaveGame struct:
 
 ```cpp
-// Beim Speichern:
+// On save:
 UMayDialogueParticipant* Part = Actor->FindComponentByClass<UMayDialogueParticipant>();
 FInstancedPropertyBag Memory = Part->PersistentMemory;
 MySaveData.DialogueMemories.Add(Part->ParticipantTag.GetTagName(), Memory);
 
-// Beim Laden:
+// On load:
 FInstancedPropertyBag LoadedMemory = MySaveData.DialogueMemories.FindRef(Part->ParticipantTag.GetTagName());
 Part->PersistentMemory = LoadedMemory;
 ```
 
-Das gibt dir volle Kontrolle über den Sync-Zeitpunkt.
+This gives you full control over when the sync happens.
 
-> 📸 **Bild-Platzhalter:** `saveint-manual-bp.png` — Blueprint-Graph: Manuelles Get/Set PersistentMemory.
-> *Setup:* BP-Graph zeigt `Get Component by Class` (MayDialogueParticipant) → `Get Persistent Memory` → `Add to SaveData Map`. Zweiter Teil: `Load from Map` → `Set Persistent Memory`. Beide Teile im selben Graph, mit Kommentar-Boxen "Beim Speichern" und "Beim Laden" beschriftet.
+> 📸 **Image placeholder:** `saveint-manual-bp.png` — Blueprint graph: manual Get/Set PersistentMemory.
+> *Setup:* BP graph showing `Get Component by Class` (MayDialogueParticipant) → `Get Persistent Memory` → `Add to SaveData Map`. Second part: `Load from Map` → `Set Persistent Memory`. Both parts in the same graph, labelled with comment boxes "On Save" and "On Load".
 
-## Was genau wird gespeichert
+## What Exactly Gets Saved
 
-Pro Participant wird die `PersistentMemory`-PropertyBag gespeichert — ein typisiertes Dictionary aus Bool-, Int-, Float-, String- und GameplayTag-Werten. Jede Variable, die du per `SetPersistentBool()`, `SetPersistentInt()` etc. geschrieben hast, lebt dort.
+For each participant, the `PersistentMemory` PropertyBag is saved — a typed dictionary of Bool, Int, Float, String and GameplayTag values. Every variable you wrote via `SetPersistentBool()`, `SetPersistentInt()` etc. lives in there.
 
-**Nicht** gespeichert werden:
+**Not** saved:
 
-* Laufende Dialog-Instances (sie werden neu gestartet, falls nötig).
-* Dialogue-Scope-Variablen.
-* UI-State.
+* Running dialogue instances (they are restarted if needed).
+* Dialogue-scope variables.
+* UI state.
 
-## Actor-Identität beim Load
+## Actor Identity on Load
 
-PersistentMemory überlebt nur, wenn die Participant-Komponente beim Load am richtigen Actor landet. Typisches Muster:
+PersistentMemory only survives if the Participant component lands on the right actor on load. Typical pattern:
 
-1. Level enthält NPC "Guard_01" (in der Szene platziert).
-2. Beim Save: Actor-Name oder GUID + PersistentMemory werden gespeichert.
-3. Beim Load: Level wird geladen, NPC erscheint wieder, PersistentMemory wird von deinem System über den Namen/GUID zurückgeschrieben.
+1. The level contains NPC "Guard_01" (placed in the scene).
+2. On save: actor name or GUID + PersistentMemory are saved.
+3. On load: the level loads, the NPC reappears, PersistentMemory is written back by your system via the name/GUID.
 
 {% hint style="warning" %}
-**Dynamisch gespawnte NPCs:** Wenn ein Actor nicht im Level liegt, sondern dynamisch gespawnt wird, stelle sicher, dass der Spawn-Pfad denselben `ParticipantTag` und eine stabile Identität (z.B. eine gespeicherte GUID) wiederverwendet.
+**Dynamically spawned NPCs:** if an actor is not placed in the level but spawned dynamically, make sure the spawn path reuses the same `ParticipantTag` and a stable identity (e.g. a saved GUID).
 {% endhint %}
 
 ## GlobalMemory
 
-`UMayDialogueSaveGame` hat zusätzlich ein `GlobalMemory`-Feld (`FInstancedPropertyBag`). Nutze es für Projekt-weite Dialog-Flags, die keinem bestimmten Participant gehören, z.B. *"Hat der Spieler das Tutorial-Gespräch gesehen?"*. Du greifst per Code auf `UMayDialogueSaveGame::GlobalMemory` zu und speicherst es zusammen mit den Participant-Daten.
+`UMayDialogueSaveGame` additionally has a `GlobalMemory` field (`FInstancedPropertyBag`). Use it for project-wide dialogue flags that don't belong to any specific participant, e.g. *"Has the player seen the tutorial conversation?"*. You access `UMayDialogueSaveGame::GlobalMemory` from code and save it alongside the participant data.
 
-> 📸 **Bild-Platzhalter:** `saveint-flow-diagram.png` — Zeitstrahl: User drückt Speichern → System iteriert Participants → Archive serialisiert → Slot geschrieben. Beim Laden: Slot gelesen → Actor gefunden → Archive deserialisiert → PersistentMemory wiederhergestellt.
-> *Setup:* Einfaches Flussdiagramm mit zwei Pfaden: "Speichern" (oben) und "Laden" (unten). Speichern: Rechteck "User drückt Speichern" → "Iterate Participants" → "Serialize ArIsSaveGame=true" → "Write Slot". Laden: "Load Slot" → "Find Actor by Name" → "Deserialize" → "PersistentMemory restored". Pfeile deutlich, Schritte nummeriert.
+> 📸 **Image placeholder:** `saveint-flow-diagram.png` — Timeline: user presses Save → system iterates participants → archive serializes → slot written. On load: slot read → actor found → archive deserialized → PersistentMemory restored.
+> *Setup:* Simple flow diagram with two paths: "Save" (top) and "Load" (bottom). Save: box "User presses Save" → "Iterate Participants" → "Serialize ArIsSaveGame=true" → "Write Slot". Load: "Load Slot" → "Find Actor by Name" → "Deserialize" → "PersistentMemory restored". Arrows clear, steps numbered.

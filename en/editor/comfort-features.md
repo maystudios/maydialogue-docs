@@ -1,167 +1,167 @@
 ---
-description: Auto-Layout, Cross-Asset-Copy/Paste, Undo/Redo, Knots, Comments und alle Shortcuts auf einen Blick.
+description: Auto-layout, cross-asset copy/paste, undo/redo, knots, comments and every shortcut at a glance.
 ---
 
-# Komfort-Features
+# Comfort Features
 
-Kleine Helfer, die große Dialoge handhabbar machen. Hier findest du alles, was den Editor schneller und übersichtlicher macht.
+The small helpers that make big dialogues manageable. Everything that makes the editor faster and easier to read lives here.
 
 ## Auto-Layout
 
-**Toolbar → Auto-Layout** oder `Ctrl+L` (falls konfiguriert).
+**Toolbar → Auto-Layout** or `Ctrl+L` (if configured).
 
-Der Graph wird nach Graph-Tiefe sortiert: Entry bleibt links, direkte Nachfolger eine Ebene weiter rechts, und so weiter. Innerhalb einer Ebene werden Nodes so angeordnet, dass Draht-Kreuzungen minimiert werden.
+The graph is sorted by graph depth: Entry stays on the left, its direct successors one level further right, and so on. Within a level, nodes are arranged to minimize wire crossings.
 
-Wann nutzen:
-- Graph ist nach vielen Änderungen unordentlich
-- Neuer Mitarbeiter soll den Dialog schnell lesen können
-- Vor einem Screenshot für die Doku
+When to use it:
+- The graph is messy after many edits
+- A new team member should be able to read the dialogue quickly
+- Before a screenshot for the docs
 
-Wann manuell nacharbeiten:
-- Sehr große Graphen mit vielen parallelen Zweigen
-- Comment-Boxen sollen um thematische Gruppen gesetzt werden
+When to touch up manually:
+- Very large graphs with many parallel branches
+- Comment boxes should be placed around thematic groups
 
-> 📸 **Bild-Platzhalter:** `autolayout-before-after.png` — Vorher/Nachher: Links chaotischer Graph, rechts derselbe Graph nach Auto-Layout.
-> *Setup:* Zweiteilig. Links: Asset mit 8 Nodes zufällig verteilt, Drähte kreuzen sich mehrfach. Rechts: Dasselbe Asset nach Auto-Layout-Klick – Entry links, Nodes in drei vertikalen Spalten sauber angeordnet, keine Draht-Kreuzungen. Roter Pfeil auf Auto-Layout-Button in der Toolbar (zwischen beiden Varianten).
+> 📸 **Image placeholder:** `autolayout-before-after.png` — Before/after: chaotic graph on the left, the same graph after Auto-Layout on the right.
+> *Setup:* Two parts. Left: an asset with 8 nodes scattered randomly, wires crossing multiple times. Right: the same asset after clicking Auto-Layout — Entry on the left, nodes arranged neatly in three vertical columns, no wire crossings. Red arrow pointing at the Auto-Layout button in the toolbar (between the two variants).
 
-## Comment-Boxes
+## Comment Boxes
 
-Wähle mehrere Nodes aus und drücke `C`. Eine farbige Box rahmt die Auswahl ein.
+Select multiple nodes and press `C`. A coloured box frames the selection.
 
-- **Titel** und **Farbe** im Details-Panel nach Auswahl der Box anpassen.
-- **Verschieben** der Box verschiebt alle enthaltenen Nodes mit.
-- **Größe** per Drag am Rand ändern.
+- Adjust the **title** and **colour** in the Details panel after selecting the box.
+- **Moving** the box moves all contained nodes with it.
+- Change the **size** by dragging the edge.
 
-Sinnvolle Gruppen für Kommentare:
-- *„Begrüßung"* – Erster Gesprächsabschnitt
-- *„Konfrontation"* – Eskalationszweige
-- *„Endings"* – Alle Exit-Pfade
+Sensible groups for comments:
+- *"Greeting"* — first conversation section
+- *"Confrontation"* — escalation branches
+- *"Endings"* — all exit paths
 
-> 📸 **Bild-Platzhalter:** `comfort-comment-boxes.png` — Graph mit zwei farbigen Comment-Boxen und sichtbaren Titeln.
-> *Setup:* Graph mit grüner Comment-Box „Begrüßung" (Entry + zwei SayLines), roter Comment-Box „Konfrontation" (PlayerChoice + zwei SayLines + Branch). Beide Boxen mit sichtbaren Titeln oben. Verbindungsdrähte gehen zwischen den Boxen durch.
+> 📸 **Image placeholder:** `comfort-comment-boxes.png` — Graph with two coloured comment boxes and visible titles.
+> *Setup:* Graph with a green comment box "Greeting" (Entry + two SayLines) and a red comment box "Confrontation" (PlayerChoice + two SayLines + Branch). Both boxes with visible titles at the top. Connecting wires run between the boxes.
 
-## Knots (Reroute-Punkte)
+## Knots (Reroute Points)
 
-Doppelklick auf einen **bestehenden Draht** fügt einen Knot-Punkt ein.
+Double-click an **existing wire** to insert a knot point.
 
-- Knots haben mehrere Ein- und Ausgänge.
-- Im Editor: Helfen, lange Drähte um andere Nodes herumzuführen.
-- Zur Laufzeit: Existieren nicht – der Compiler löst alle Knot-Ketten auf.
+- Knots have multiple inputs and outputs.
+- In the editor: they help route long wires around other nodes.
+- At runtime: they don't exist — the compiler resolves all knot chains.
 
-Nutze Knots, wenn:
-- Ein Draht andere Nodes verdeckt
-- Zwei weit auseinanderliegende Nodes verbunden werden sollen
-- Du einen Draht visuell aufteilen willst (ein Ausgang → mehrere Ziele)
+Use knots when:
+- A wire obscures other nodes
+- Two far-apart nodes need to be connected
+- You want to visually split a wire (one output → multiple targets)
 
-> 📸 **Bild-Platzhalter:** `comfort-knots.png` — Zwei Knot-Punkte auf einem langen Draht, der um einen Comment-Block herumgeführt wird.
-> *Setup:* SayLine-Node links oben verbunden mit Exit-Node rechts unten, Draht macht einen Bogen um eine Comment-Box in der Mitte. Zwei Knots markieren die Biegepunkte. Roter Pfeil auf einen Knot-Punkt mit Beschriftung „Doppelklick auf Draht".
+> 📸 **Image placeholder:** `comfort-knots.png` — Two knot points on a long wire routed around a comment block.
+> *Setup:* A SayLine node top-left connected to an Exit node bottom-right, the wire arcing around a comment box in the middle. Two knots mark the bend points. Red arrow pointing at a knot point labelled "Double-click on wire".
 
 ## Undo / Redo
 
 `Ctrl+Z` / `Ctrl+Y`
 
-Gilt für alle Graph-Aktionen:
-- Nodes hinzufügen und löschen
-- Verbindungen ziehen und trennen
-- Nodes verschieben
-- Properties im Details-Panel ändern
-- Sub-Nodes hinzufügen und entfernen
-- Comment-Boxes erstellen und verschieben
+Applies to all graph actions:
+- Adding and deleting nodes
+- Drawing and breaking connections
+- Moving nodes
+- Changing properties in the Details panel
+- Adding and removing sub-nodes
+- Creating and moving comment boxes
 
 ## Copy / Cut / Paste
 
-| Shortcut | Wirkung |
+| Shortcut | Effect |
 | --- | --- |
-| `Ctrl+C` | Selektierte Nodes kopieren |
-| `Ctrl+X` | Ausschneiden |
-| `Ctrl+V` | Einfügen (mit Offset) |
-| `Ctrl+D` | Duplizieren (in einem Schritt, mit automatischem Offset) |
+| `Ctrl+C` | Copy selected nodes |
+| `Ctrl+X` | Cut |
+| `Ctrl+V` | Paste (with offset) |
+| `Ctrl+D` | Duplicate (in one step, with an automatic offset) |
 
-### Cross-Asset-Copy/Paste
+### Cross-Asset Copy/Paste
 
-Du kannst Nodes aus einem Dialog-Asset kopieren und in ein anderes einfügen:
+You can copy nodes from one dialogue asset and paste them into another:
 
-1. Nodes im Quell-Asset auswählen.
+1. Select the nodes in the source asset.
 2. `Ctrl+C`.
-3. Ziel-Asset öffnen.
+3. Open the target asset.
 4. `Ctrl+V`.
 
-Beim Einfügen bekommen alle Nodes neue GUIDs. Verbindungen **innerhalb** der kopierten Auswahl bleiben erhalten. Verbindungen zu Nodes außerhalb der Auswahl fallen weg.
+On paste, all nodes get new GUIDs. Connections **within** the copied selection are preserved. Connections to nodes outside the selection are dropped.
 
-> 📸 **Bild-Platzhalter:** `comfort-cross-asset-paste.png` — Zwei Asset-Editor-Fenster nebeneinander. Links: Drei selektierte Nodes. Rechts: Dasselbe nach dem Paste, Nodes eingefügt.
-> *Setup:* Zwei Editor-Fenster side-by-side. Links `DA_Guard_Day`, drei Nodes markiert (blauer Selektion-Rahmen). Rechts `DA_Guard_Night`, die drei Nodes bereits eingefügt (leicht versetzt, Verbindungen untereinander erhalten). Roter Pfeil zeigt die Kopierrichtung von links nach rechts.
+> 📸 **Image placeholder:** `comfort-cross-asset-paste.png` — Two asset editor windows side by side. Left: three selected nodes. Right: the same after the paste, nodes inserted.
+> *Setup:* Two editor windows side-by-side. Left `DA_Guard_Day`, three nodes selected (blue selection frame). Right `DA_Guard_Night`, the three nodes already pasted (slightly offset, connections between them preserved). Red arrow showing the copy direction from left to right.
 
-## Speaker-Dropdown im Details-Panel
+## Speaker Dropdown in the Details Panel
 
-In den Properties jedes Nodes mit einem `SpeakerTag`-Feld erscheint **kein generischer Tag-Picker**, sondern ein Dropdown mit:
-- Farb-Chip des Sprechers
+In the properties of every node with a `SpeakerTag` field, you get **not a generic tag picker** but a dropdown with:
+- The speaker's colour chip
 - DisplayName
-- Tag als Tooltip
+- The tag as a tooltip
 
-Das spart Tipparbeit und Tippfehler. Sprecher wählen aus einer kurzen Liste statt Tags blind eintippen.
+This saves typing and typos. Speakers are picked from a short list instead of typing tags blind.
 
-## SubGraph-Breadcrumbs
+## SubGraph Breadcrumbs
 
-Wenn du in einem SubGraph-Node doppelklickst, öffnet sich der Sub-Graph. Oben erscheint der Breadcrumb-Pfad:
+When you double-click a SubGraph node, the sub-graph opens. The breadcrumb path appears at the top:
 
 ```
 DA_MainDialogue > IntroGraph > CombatResponse
 ```
 
-Klick auf ein Segment springt dorthin zurück.
+Clicking a segment jumps back there.
 
-## Drag-and-Drop aus der Palette
+## Drag-and-Drop from the Palette
 
-Statt Rechtsklick → Kontext-Menü: Palette-Tab öffnen, Node-Typ per Drag-and-Drop in den Graph ziehen. Gut, wenn du weißt welchen Typ du willst und das Kontext-Menü-Filtern langsam wird.
+Instead of right-click → context menu: open the Palette tab and drag a node type into the graph. Handy when you know which type you want and filtering the context menu gets slow.
 
-## Vollständige Shortcut-Referenz
+## Full Shortcut Reference
 
-### Allgemein
+### General
 
-| Shortcut | Wirkung |
+| Shortcut | Effect |
 | --- | --- |
-| `Ctrl+S` | Speichern |
+| `Ctrl+S` | Save |
 | `F7` | Compile |
-| `Ctrl+F` | Find-in-Dialogue öffnen |
+| `Ctrl+F` | Open Find-in-Dialogue |
 | `Ctrl+Z` | Undo |
 | `Ctrl+Y` | Redo |
 
-### Graph-Bearbeitung
+### Graph Editing
 
-| Shortcut | Wirkung |
+| Shortcut | Effect |
 | --- | --- |
-| `Ctrl+C` | Kopieren |
-| `Ctrl+X` | Ausschneiden |
-| `Ctrl+V` | Einfügen |
-| `Ctrl+D` | Duplizieren |
-| `Delete` | Selektierte Nodes löschen |
-| `C` | Comment-Box um Auswahl erstellen |
+| `Ctrl+C` | Copy |
+| `Ctrl+X` | Cut |
+| `Ctrl+V` | Paste |
+| `Ctrl+D` | Duplicate |
+| `Delete` | Delete selected nodes |
+| `C` | Create a comment box around the selection |
 
 ### Navigation
 
-| Shortcut | Wirkung |
+| Shortcut | Effect |
 | --- | --- |
-| `F` | Zoom auf selektierte Nodes |
-| `Home` | Auf Entry-Node zentrieren |
-| Rechtsklick + Drag | Graph panen |
-| Mausrad | Zoom |
+| `F` | Zoom to selected nodes |
+| `Home` | Center on the Entry node |
+| Right-click + drag | Pan the graph |
+| Mouse wheel | Zoom |
 
 ### Debugger
 
-| Shortcut | Wirkung |
+| Shortcut | Effect |
 | --- | --- |
-| `F9` | Breakpoint togglen |
+| `F9` | Toggle breakpoint |
 | `F5` | Continue |
 | `F10` | Step Over |
 | `F11` | Step Into |
 | `Shift+F11` | Step Out |
 
-> 📸 **Bild-Platzhalter:** `comfort-shortcuts-overview.png` — Shortcut-Cheatsheet als Overlay oder Popup im Editor (falls vorhanden), sonst Toolbar-Bereich mit Tooltips sichtbar.
-> *Setup:* Falls der Editor ein Shortcut-Hilfe-Popup hat: Screenshot davon. Alternativ: Toolbar mit geöffnetem Tooltip auf dem Compile-Button, der den F7-Shortcut zeigt.
+> 📸 **Image placeholder:** `comfort-shortcuts-overview.png` — Shortcut cheat sheet as an overlay or popup in the editor (if it exists), otherwise the toolbar area with tooltips visible.
+> *Setup:* If the editor has a shortcut-help popup: a screenshot of it. Alternatively: the toolbar with an open tooltip on the Compile button showing the F7 shortcut.
 
-> 📸 **Bild-Platzhalter:** `comfort-duplicate-workflow.png` — Drei SayLine-Nodes, einer selektiert, nach Ctrl+D erscheint ein Duplikat daneben.
-> *Setup:* Mittlerer SayLine-Node selektiert (blauer Rahmen). Nach Ctrl+D: Duplikat erscheint direkt rechts daneben, ebenfalls selektiert, leicht versetzt. Roter Pfeil auf das Duplikat.
+> 📸 **Image placeholder:** `comfort-duplicate-workflow.png` — Three SayLine nodes, one selected, a duplicate appearing next to it after Ctrl+D.
+> *Setup:* The middle SayLine node selected (blue frame). After Ctrl+D: the duplicate appears directly to its right, also selected, slightly offset. Red arrow pointing at the duplicate.
 
 ---
 
-Ende des Editor-Kapitels. Weiter mit der **Node-Referenz**: [Core-Nodes →](../nodes/README.md)
+End of the editor chapter. Continue with the **Node Reference**: [Core Nodes →](../nodes/README.md)
