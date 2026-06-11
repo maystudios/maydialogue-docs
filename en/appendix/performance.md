@@ -64,7 +64,7 @@ The counters above are **event-driven** — they only fire when a node runs. The
 | **ActiveDialogues** (gauge) | The subsystem's `ActiveDialogues` array length | A *count*, not a time — how many dialogues are running concurrently this frame. |
 
 {% hint style="info" %}
-The four tick/gauge counters in the table directly above (`SubsystemTick`, `InstanceTick`, `BabelSynthTick`, and the `ActiveDialogues` gauge) are **present in source now** — they are declared in `MayDialogueStats.h` alongside the hot-path counters. The functions they wrap (`UMayDialogueSubsystem::Tick`, `UMayDialogueInstance::Tick`, `UMayDialogueBabelSynth::Tick`) tick today. Only the representative *measurement numbers* in the table at the bottom of this page are still pending the 1.0 perf pass.
+The four tick/gauge counters in the table directly above (`SubsystemTick`, `InstanceTick`, `BabelSynthTick`, and the `ActiveDialogues` gauge) are **present in source now** — they are declared in `MayDialogueStats.h` alongside the hot-path counters. The functions they wrap (`UMayDialogueSubsystem::Tick`, `UMayDialogueInstance::Tick`, `UMayDialogueBabelSynth::Tick`) tick today. The representative *measurement numbers* in the table at the bottom of this page come from the 1.0 perf pass (2026-06).
 {% endhint %}
 
 ---
@@ -137,17 +137,15 @@ Pre-warm is **best-effort**, not a guarantee. If a player blitzes through a dial
 
 ## Measurements
 
-The structure ships now; the numbers land with the 1.0 performance pass on representative target hardware.
-
-> measured numbers to be filled by the 1.0 perf pass
+Measured in the 1.0 perf pass (2026-06): UE 5.7, Win64 **Development editor PIE**, AMD Ryzen 9 9950X3D, sample map `L_DialogueShowcase` with sample dialogues. Per-frame values are `stat DumpAve` averages over 60–120 frames; the `StartDialogue` timings are in-process measurements around the subsystem call. A Shipping build without editor overhead tends to come in lower — treat these as orders of magnitude, not guarantees, and re-measure on your target hardware.
 
 | What | Configuration | Cost | Notes |
 |---|---|---|---|
-| Subsystem tick — idle | No active dialogue | _TBD_ | Should be 0 — subsystem does not tick while `ActiveDialogues.Num() == 0`. |
-| Subsystem tick — active | 1 active dialogue, no async work this frame | _TBD_ | `SubsystemTick` + one `InstanceTick`. |
-| Instance tick — active | 1 instance, auto-advance/focus tracking running | _TBD_ | `InstanceTick`. |
-| Babel synth — per active voice | 1 Continuous-mode Babel voice | _TBD_ | `BabelSynthTick`, per-voice CPU. |
-| Memory — per active dialogue | 1 `UMayDialogueInstance` + async state | _TBD_ | Instance object + per-node AsyncState entries. |
-| Widget construct cost | First UMG widget auto-spawn at `StartDialogue` | _TBD_ | One-time per subsystem lifetime (reused after). |
-| StartDialogue (cold) | First start of an asset, assets not resident | _TBD_ | Dominated by `StartDialogue_PreWarm` request + first-node execution. |
-| StartDialogue (warm) | Asset already resident | _TBD_ | Pre-warm finds everything in cache. |
+| Subsystem tick — idle | No active dialogue | **0** (does not tick) | Confirmed: the counter does not appear in the idle dump at all — the subsystem does not tick while `ActiveDialogues.Num() == 0`. |
+| Subsystem tick — active | 1 active dialogue, no async work this frame | **~0.004 ms** | `SubsystemTick` (includes the fan-out); plus one `InstanceTick`. |
+| Instance tick — active | 1 instance, auto-advance/focus tracking running | **~0.001 ms** | `InstanceTick`. |
+| Babel synth — per active voice | 1 Continuous-mode Babel voice | **~0.004 ms** | `BabelSynthTick`, per-voice CPU. In typewriter-sync mode (the default of every sample profile) the synth does not self-tick at all — 0. |
+| Memory — per active dialogue | 1 `UMayDialogueInstance` + async state | **~2 KB + ~0.1 KB per AsyncState** | `obj list`: instance 1.74 KB (max 2.05 KB), one `MayDialogueNodeAsyncState` 0.11 KB. |
+| Widget construct cost | First UMG widget auto-spawn at `StartDialogue` | **~4.6 ms** (one-time) | Delta of first vs. second start (8.4 − 3.8 ms). One-time per subsystem lifetime (reused after). |
+| StartDialogue (cold) | First start in the level (incl. the one-time widget spawn) | **~8.4 ms** | Instance creation + `StartDialogue_PreWarm` request + first node + widget spawn. Disk loads for soft refs run asynchronously via pre-warm and are not part of this number. |
+| StartDialogue (warm) | Widget up, asset resident | **~3.8 ms** | Second dialogue in the same level; pre-warm finds everything in cache. |

@@ -64,7 +64,7 @@ Die Counter oben sind **ereignisgetrieben** — sie feuern nur, wenn eine Node l
 | **ActiveDialogues** (Gauge) | Die Länge des `ActiveDialogues`-Arrays am Subsystem | Eine *Anzahl*, keine Zeit — wie viele Dialoge in diesem Frame gleichzeitig laufen. |
 
 {% hint style="info" %}
-Die vier Tick-/Gauge-Counter in der Tabelle direkt darüber (`SubsystemTick`, `InstanceTick`, `BabelSynthTick` und das `ActiveDialogues`-Gauge) sind **jetzt schon in der Quelle vorhanden** — sie sind in `MayDialogueStats.h` neben den Hot-Path-Countern deklariert. Die Funktionen, die sie umschließen (`UMayDialogueSubsystem::Tick`, `UMayDialogueInstance::Tick`, `UMayDialogueBabelSynth::Tick`), ticken heute. Nur die repräsentativen *Messwerte* in der Tabelle am Ende dieser Seite stehen noch unter Vorbehalt des 1.0-Perf-Durchlaufs.
+Die vier Tick-/Gauge-Counter in der Tabelle direkt darüber (`SubsystemTick`, `InstanceTick`, `BabelSynthTick` und das `ActiveDialogues`-Gauge) sind **jetzt schon in der Quelle vorhanden** — sie sind in `MayDialogueStats.h` neben den Hot-Path-Countern deklariert. Die Funktionen, die sie umschließen (`UMayDialogueSubsystem::Tick`, `UMayDialogueInstance::Tick`, `UMayDialogueBabelSynth::Tick`), ticken heute. Die repräsentativen *Messwerte* in der Tabelle am Ende dieser Seite stammen aus dem 1.0-Perf-Durchlauf (2026-06).
 {% endhint %}
 
 ---
@@ -137,17 +137,15 @@ Pre-Warm ist **Best-Effort**, keine Garantie. Wenn ein Spieler schneller durch e
 
 ## Messwerte
 
-Die Struktur liefert jetzt; die Zahlen kommen mit dem 1.0-Performance-Durchlauf auf repräsentativer Zielhardware.
-
-> Messwerte werden im 1.0-Perf-Durchlauf gefüllt
+Gemessen im 1.0-Perf-Durchlauf (2026-06): UE 5.7, Win64 **Development-Editor-PIE**, AMD Ryzen 9 9950X3D, Sample-Map `L_DialogueShowcase` mit Sample-Dialogen. Per-Frame-Werte sind `stat DumpAve`-Mittel über 60–120 Frames; die `StartDialogue`-Zeiten sind In-Prozess-Messungen um den Subsystem-Aufruf. Ein Shipping-Build ohne Editor-Overhead liegt eher darunter — nimm die Werte als Größenordnung, nicht als Garantie, und miss auf deiner Zielhardware nach.
 
 | Was | Konfiguration | Kosten | Notizen |
 |---|---|---|---|
-| Subsystem-Tick — Idle | Kein aktiver Dialog | _TBD_ | Sollte 0 sein — das Subsystem tickt nicht, solange `ActiveDialogues.Num() == 0`. |
-| Subsystem-Tick — aktiv | 1 aktiver Dialog, keine Async-Arbeit in diesem Frame | _TBD_ | `SubsystemTick` + ein `InstanceTick`. |
-| Instance-Tick — aktiv | 1 Instance, Auto-Advance/Focus-Tracking läuft | _TBD_ | `InstanceTick`. |
-| Babel-Synth — pro aktiver Stimme | 1 Babel-Stimme im Continuous-Modus | _TBD_ | `BabelSynthTick`, CPU pro Stimme. |
-| Speicher — pro aktivem Dialog | 1 `UMayDialogueInstance` + Async-State | _TBD_ | Instance-Objekt + Per-Node-AsyncState-Einträge. |
-| Widget-Konstruktionskosten | Erster UMG-Widget-Auto-Spawn bei `StartDialogue` | _TBD_ | Einmalig pro Subsystem-Lebensdauer (danach wiederverwendet). |
-| StartDialogue (kalt) | Erster Start eines Assets, Assets nicht resident | _TBD_ | Dominiert von `StartDialogue_PreWarm`-Request + Ausführung der ersten Node. |
-| StartDialogue (warm) | Asset bereits resident | _TBD_ | Pre-Warm findet alles im Cache. |
+| Subsystem-Tick — Idle | Kein aktiver Dialog | **0** (tickt nicht) | Bestätigt: Der Counter taucht im Idle-Dump gar nicht auf — das Subsystem tickt nicht, solange `ActiveDialogues.Num() == 0`. |
+| Subsystem-Tick — aktiv | 1 aktiver Dialog, keine Async-Arbeit in diesem Frame | **~0,004 ms** | `SubsystemTick` (enthält den Fan-out); dazu ein `InstanceTick`. |
+| Instance-Tick — aktiv | 1 Instance, Auto-Advance/Focus-Tracking läuft | **~0,001 ms** | `InstanceTick`. |
+| Babel-Synth — pro aktiver Stimme | 1 Babel-Stimme im Continuous-Modus | **~0,004 ms** | `BabelSynthTick`, CPU pro Stimme. Im Typewriter-Sync-Modus (Default aller Sample-Profile) tickt der Synth gar nicht selbst — 0. |
+| Speicher — pro aktivem Dialog | 1 `UMayDialogueInstance` + Async-State | **~2 KB + ~0,1 KB je AsyncState** | `obj list`: Instance 1,74 KB (Max 2,05 KB), ein `MayDialogueNodeAsyncState` 0,11 KB. |
+| Widget-Konstruktionskosten | Erster UMG-Widget-Auto-Spawn bei `StartDialogue` | **~4,6 ms** (einmalig) | Differenz erster vs. zweiter Start (8,4 − 3,8 ms). Einmalig pro Subsystem-Lebensdauer (danach wiederverwendet). |
+| StartDialogue (kalt) | Erster Start im Level (inkl. einmaligem Widget-Spawn) | **~8,4 ms** | Instanz-Erzeugung + `StartDialogue_PreWarm`-Request + erste Node + Widget-Spawn. Disk-Loads für Soft-Refs laufen asynchron via Pre-Warm und stecken nicht in dieser Zahl. |
+| StartDialogue (warm) | Widget steht, Asset resident | **~3,8 ms** | Zweiter Dialog im selben Level; Pre-Warm findet alles im Cache. |
