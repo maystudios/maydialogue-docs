@@ -21,17 +21,18 @@ On the first SayLine of a speaker, the plugin creates a `UAudioComponent`, attac
 
 Default mode: the sound plays at the actor's transform. If the player turns away, the character sounds quieter. If a wall is in between, occlusion kicks in.
 
-### 3. Three-Level Fallback
+### 3. Layered Fallback
 
-Every audio property can be set at three levels — from coarse to fine:
+Audio properties resolve through a layered chain — from coarse to fine:
 
 | Level | Where to set it | Applies to |
 |---|---|---|
 | Plugin Default | Project Settings | The entire project |
 | Speaker Override | Speakers panel in the dialogue asset | All SayLines of that speaker |
+| Participant Override | `AttenuationOverride` on the actor's Participant component | This actor (attenuation only, when the speaker set none) |
 | Node Override | SayLine / PlaySound in the graph | Exactly this one line |
 
-The more specific level wins. Details: [Three-Level Fallback](three-level-fallback.md).
+The more specific level wins. Details: [Layered Fallback](three-level-fallback.md).
 
 ### 4. Babel as a Placeholder or Permanent Style
 
@@ -46,7 +47,7 @@ If no voice asset is set for a line, Babel kicks in: a procedural nonsense-voice
 - Voice playback as `USoundBase` (SoundWave, SoundCue, MetaSound)
 - Culture-based voice resolution (one map per SayLine)
 - Babel synthesis (BlipPerCharacter and PhonemeBase)
-- Volume, pitch, SoundClass, and attenuation overrides at three levels
+- Volume, pitch, SoundClass, and attenuation overrides across the layered chain (plugin → speaker → participant → node)
 
 ## What the Plugin Does Not Do
 
@@ -59,7 +60,7 @@ If no voice asset is set for a line, Babel kicks in: a procedural nonsense-voice
 
 ## Chapter Overview
 
-- [Three-Level Fallback](three-level-fallback.md) — Plugin / Speaker / Node working together
+- [Layered Fallback](three-level-fallback.md) — Plugin / Speaker / Participant / Node working together
 - [Speaker Overrides](speaker-overrides.md) — individual sonic identity per speaker
 - [Node Overrides](node-overrides.md) — exceptions per SayLine or PlaySound
 - [Localization (VoicePerCulture)](localization.md) — a different voice asset per culture

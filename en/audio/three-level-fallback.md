@@ -2,20 +2,25 @@
 description: How the plugin default, speaker override, and node override interact — and which level wins when.
 ---
 
-# Three-Level Fallback
+# Layered Fallback
 
-Audio settings are applied at three levels. The more specific level always wins.
+Audio settings resolve through a layered fallback. The more specific level always wins. The two levels you configure most are the plugin default and the speaker override; a participant-component level and the per-node override complete the chain (four levels in total).
 
-> 📸 **Image placeholder:** `audio-three-level-diagram.png` — Arrow diagram of the three levels.
-> *Setup:* Graphic (not an editor screenshot). Left to right, three boxes with arrows: `[Plugin Default]` → `[Speaker Override]` → `[Node Override]` → `[Effective Audio Config]`. Below each box an italic label: "Project Settings", "Speakers panel in the dialogue asset", "SayLine / PlaySound node". Arrows in dark blue, boxes light grey with white text.
+> 📸 **Image placeholder:** `audio-three-level-diagram.png` — Arrow diagram of the resolution levels.
+> *Setup:* Graphic (not an editor screenshot). Left to right, four boxes with arrows: `[Plugin Default]` → `[Speaker Override]` → `[Participant Override]` → `[Node Override]` → `[Effective Audio Config]`. Below each box an italic label: "Project Settings", "Speakers panel in the dialogue asset", "Participant component (attenuation)", "SayLine / PlaySound node". Arrows in dark blue, boxes light grey with white text.
 
-## The Three Levels at a Glance
+## The Levels at a Glance
+
+The resolution chain actually has **four** levels — the speaker level is followed by a participant-component level before the node has the final say:
 
 | Level | Where to configure | Priority |
 |---|---|---|
 | **Plugin Default** | Project Settings → MayDialogue | Lowest |
-| **Speaker Override** | Speakers panel in the dialogue asset | Medium |
+| **Speaker Override** | Speakers panel in the dialogue asset | Low |
+| **Participant Override** | `AttenuationOverride` on the speaking actor's `UMayDialogueParticipant` component | Medium |
 | **Node Override** | SayLine or PlaySound node | Highest |
+
+The participant level is narrow on purpose: it only supplies the **3D attenuation** when the speaker left `AttenuationOverride` empty, so a level can carry per-actor spatialization without editing the asset.
 
 ## Level 1 — Plugin Default
 
@@ -49,7 +54,15 @@ Properties in the Speakers panel:
 | `PitchMultiplier` | float | Pitch scale of the speaker |
 | `BabelProfile` | BabelProfile asset | Profile for Babel synthesis |
 
-## Level 3 — Node Override
+## Level 3 — Participant Override
+
+Lives on the speaking actor's `UMayDialogueParticipant` component, not in the asset. It contributes a single thing: a 3D `AttenuationOverride` that is used **only when the speaker entry left its own `AttenuationOverride` empty**. This lets a placed actor carry its own spatialization (e.g. a specific room's reverb radius) without touching the shared dialogue asset.
+
+| Property | Type | Effect |
+|---|---|---|
+| `AttenuationOverride` | Attenuation asset | 3D spatialization for this actor, applied only when the speaker provided none |
+
+## Level 4 — Node Override
 
 Finest control. Applies only to this one SayLine or PlaySound node.
 
@@ -70,12 +83,13 @@ Available on **PlaySound**:
 
 ## Resolution Algorithm
 
-For every SayLine the plugin runs this sequence:
+For every SayLine the plugin runs this sequence (`ResolveAudioSettings`):
 
 1. Start with plugin defaults
 2. Does the speaker have an override? → overwrite the relevant fields
-3. Does the node have an override? → overwrite once more
-4. Hand the resulting config to the `UAudioComponent`
+3. Did the speaker leave attenuation empty but the participant component sets `AttenuationOverride`? → fill in the attenuation
+4. Does the node have an override? → overwrite once more
+5. Hand the resulting config to the `UAudioComponent`
 
 ## Volume and Pitch Multiply
 

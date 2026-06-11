@@ -21,17 +21,18 @@ Beim ersten SayLine eines Sprechers erzeugt das Plugin einen `UAudioComponent`, 
 
 Standard-Modus: der Sound spielt am Actor-Transform. Dreht sich der Spieler weg, klingt der Charakter leiser. Steht eine Wand dazwischen, greift Occlusion.
 
-### 3. Drei-Ebenen-Fallback
+### 3. Gestaffelter Fallback
 
-Jede Audio-Eigenschaft kann auf drei Ebenen gesetzt werden – von grob nach fein:
+Audio-Eigenschaften lösen über eine gestaffelte Kette auf – von grob nach fein:
 
 | Ebene | Wo eingestellt | Gilt für |
 |---|---|---|
 | Plugin-Default | Project Settings | Das ganze Projekt |
 | Speaker-Override | Speakers-Panel im Dialog-Asset | Alle SayLines dieses Sprechers |
+| Participant-Override | `AttenuationOverride` an der Participant-Komponente des Actors | Diesen Actor (nur Attenuation, wenn der Speaker keine gesetzt hat) |
 | Node-Override | SayLine / PlaySound im Graph | Genau diese eine Zeile |
 
-Die spezifischere Ebene gewinnt. Details: [Drei-Ebenen-Fallback](three-level-fallback.md).
+Die spezifischere Ebene gewinnt. Details: [Gestaffelter Fallback](three-level-fallback.md).
 
 ### 4. Babel als Platzhalter oder dauerhafter Stil
 
@@ -46,7 +47,7 @@ Fehlt ein Voice-Asset für eine Zeile, greift Babel: eine prozedurale Nonsense-S
 - Voice-Wiedergabe als `USoundBase` (SoundWave, SoundCue, MetaSound)
 - Kultur-basierte Voice-Auflösung (eine Map pro SayLine)
 - Babel-Synthese (BlipPerCharacter und PhonemeBase)
-- Volume-, Pitch-, SoundClass- und Attenuation-Overrides auf drei Ebenen
+- Volume-, Pitch-, SoundClass- und Attenuation-Overrides über die gestaffelte Kette (Plugin → Speaker → Participant → Node)
 
 ## Was das Plugin nicht macht
 
@@ -59,7 +60,7 @@ Fehlt ein Voice-Asset für eine Zeile, greift Babel: eine prozedurale Nonsense-S
 
 ## Kapitel-Überblick
 
-- [Drei-Ebenen-Fallback](three-level-fallback.md) — Plugin / Speaker / Node im Zusammenspiel
+- [Gestaffelter Fallback](three-level-fallback.md) — Plugin / Speaker / Participant / Node im Zusammenspiel
 - [Speaker-Overrides](speaker-overrides.md) — pro Sprecher individuelle Klang-Identität
 - [Node-Overrides](node-overrides.md) — Ausnahmen pro SayLine oder PlaySound
 - [Lokalisierung (VoicePerCulture)](localization.md) — pro Kultur ein anderes Voice-Asset

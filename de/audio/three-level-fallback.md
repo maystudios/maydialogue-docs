@@ -2,20 +2,25 @@
 description: Wie Plugin-Default, Speaker-Override und Node-Override zusammenspielen – und welche Ebene wann gewinnt.
 ---
 
-# Drei-Ebenen-Fallback
+# Gestaffelter Fallback
 
-Audio-Einstellungen werden auf drei Ebenen gesetzt. Die spezifischere Ebene gewinnt immer.
+Audio-Einstellungen lösen über einen gestaffelten Fallback auf. Die spezifischere Ebene gewinnt immer. Die beiden Ebenen, die du am häufigsten konfigurierst, sind der Plugin-Default und der Speaker-Override; eine Participant-Komponenten-Ebene und der Node-Override vervollständigen die Kette (insgesamt vier Ebenen).
 
-> 📸 **Bild-Platzhalter:** `audio-three-level-diagram.png` — Pfeil-Diagramm der drei Ebenen.
-> *Setup:* Grafik (kein Editor-Screenshot). Von links nach rechts drei Kästen mit Pfeilen: `[Plugin-Default]` → `[Speaker-Override]` → `[Node-Override]` → `[Effektiver Audio-Config]`. Unter jedem Kasten eine kursive Beschriftung: "Project Settings", "Speakers-Panel im Dialog-Asset", "SayLine / PlaySound-Node". Pfeile in dunkelblau, Kästen hellgrau mit weißem Text.
+> 📸 **Bild-Platzhalter:** `audio-three-level-diagram.png` — Pfeil-Diagramm der Auflösungs-Ebenen.
+> *Setup:* Grafik (kein Editor-Screenshot). Von links nach rechts vier Kästen mit Pfeilen: `[Plugin-Default]` → `[Speaker-Override]` → `[Participant-Override]` → `[Node-Override]` → `[Effektiver Audio-Config]`. Unter jedem Kasten eine kursive Beschriftung: "Project Settings", "Speakers-Panel im Dialog-Asset", "Participant-Komponente (Attenuation)", "SayLine / PlaySound-Node". Pfeile in dunkelblau, Kästen hellgrau mit weißem Text.
 
-## Die drei Ebenen auf einen Blick
+## Die Ebenen auf einen Blick
+
+Die Auflösungskette hat tatsächlich **vier** Ebenen — auf die Speaker-Ebene folgt eine Participant-Komponenten-Ebene, bevor der Node das letzte Wort hat:
 
 | Ebene | Wo konfigurieren | Priorität |
 |---|---|---|
 | **Plugin-Default** | Project Settings → MayDialogue | Niedrigste |
-| **Speaker-Override** | Speakers-Panel im Dialog-Asset | Mittel |
+| **Speaker-Override** | Speakers-Panel im Dialog-Asset | Niedrig |
+| **Participant-Override** | `AttenuationOverride` an der `UMayDialogueParticipant`-Komponente des sprechenden Actors | Mittel |
 | **Node-Override** | SayLine- oder PlaySound-Node | Höchste |
+
+Die Participant-Ebene ist bewusst eng: Sie liefert nur die **3D-Attenuation**, wenn der Sprecher `AttenuationOverride` leer gelassen hat — so kann eine Ebene per-Actor-Räumlichkeit tragen, ohne das Asset zu bearbeiten.
 
 ## Ebene 1 — Plugin-Default
 
@@ -49,7 +54,15 @@ Properties im Speakers-Panel:
 | `PitchMultiplier` | float | Tonhöhe-Skala des Sprechers |
 | `BabelProfile` | BabelProfile-Asset | Profil für Babel-Synthese |
 
-## Ebene 3 — Node-Override
+## Ebene 3 — Participant-Override
+
+Liegt an der `UMayDialogueParticipant`-Komponente des sprechenden Actors, nicht im Asset. Sie steuert genau eine Sache bei: eine 3D-`AttenuationOverride`, die **nur verwendet wird, wenn der Speaker-Eintrag seine eigene `AttenuationOverride` leer gelassen hat**. So kann ein platzierter Actor seine eigene Räumlichkeit tragen (z.B. der Hall-Radius eines bestimmten Raums), ohne das geteilte Dialog-Asset anzufassen.
+
+| Property | Typ | Wirkung |
+|---|---|---|
+| `AttenuationOverride` | Attenuation-Asset | 3D-Räumlichkeit für diesen Actor, nur angewandt wenn der Speaker keine gesetzt hat |
+
+## Ebene 4 — Node-Override
 
 Feinste Kontrolle. Gilt nur für diese eine SayLine oder diesen PlaySound-Node.
 
@@ -70,12 +83,13 @@ Auf **PlaySound** verfügbar:
 
 ## Auflösungs-Algorithmus
 
-Für jede SayLine läuft das Plugin diesen Ablauf:
+Für jede SayLine läuft das Plugin diesen Ablauf (`ResolveAudioSettings`):
 
 1. Start mit Plugin-Defaults
 2. Hat der Speaker einen Override? → entsprechende Felder überschreiben
-3. Hat der Node einen Override? → noch einmal überschreiben
-4. Resultierenden Config an den `UAudioComponent` übergeben
+3. Hat der Speaker keine Attenuation gesetzt, die Participant-Komponente aber `AttenuationOverride`? → Attenuation ergänzen
+4. Hat der Node einen Override? → noch einmal überschreiben
+5. Resultierenden Config an den `UAudioComponent` übergeben
 
 ## Volume und Pitch multiplizieren sich
 
