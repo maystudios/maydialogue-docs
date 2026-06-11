@@ -58,14 +58,13 @@ From the SayLine output → **Create Node → Apply Effect**.
 | Property | Value |
 |----------|------|
 | `EffectClass` | `GE_PriestHeal` |
-| `TargetParticipantTag` | `Dialogue.Participant.Player` |
 | `EffectLevel` | `1.0` |
-| `bApplyFromInstigator` | `true` |
+| `bApplyToInstigator` | `true` |
 
-`bApplyFromInstigator = true` → the player is the Instigator of the effect (Source = player ASC). Important for Magnitude calculators that read from Source attributes.
+`bApplyToInstigator = true` → the effect is applied to the Instigator (the player who started the dialogue). Set it to `false` to apply the effect to the Target actor instead.
 
 > 📸 **Image placeholder:** `apply-gameplay-effect-node-details.png` — Details panel of the ApplyEffect node.
-> *Setup:* ApplyEffect node selected. Details: `EffectClass = GE_PriestHeal`, `TargetParticipantTag = Dialogue.Participant.Player`, `EffectLevel = 1.0`, `bApplyFromInstigator = true (checkbox)`.
+> *Setup:* ApplyEffect node selected. Details: `EffectClass = GE_PriestHeal`, `EffectLevel = 1.0`, `bApplyToInstigator = true (checkbox)`.
 
 ### 4. Compile and Test
 
@@ -75,11 +74,11 @@ In PIE: start the dialogue. After the ApplyEffect node, the player's Health attr
 
 When the priest buffs themselves or the witch curses the player:
 
-| Scenario | `TargetParticipantTag` | `bApplyFromInstigator` |
-|----------|----------------------|-----------------------|
-| Player heals player | `Dialogue.Participant.Player` | `true` |
-| NPC buffs NPC | `Dialogue.Participant.Priest` | `false` |
-| Witch curses player | `Dialogue.Participant.Player` | `false` (Witch = Source) |
+| Scenario | `bApplyToInstigator` | Effect lands on |
+|----------|----------------------|-----------------|
+| Player heals player | `true` | Instigator (player) |
+| NPC buffs NPC | `false` | Target (the NPC) |
+| Witch curses player | `true` | Instigator (player) |
 
 ## Multiple Effects in Sequence
 
@@ -130,4 +129,4 @@ Add **SideEffect → ApplyEffect** to the SayLine node. The SayLine runs, the ef
 The GameplayEffect uses no Level-dependent Magnitude (ScalableFloat). Level scaling must be explicitly configured in the GE asset.
 
 **Effect applied to the wrong actor.**
-`TargetParticipantTag` points to the NPC instead of the player. Check tags in the Speakers/Participants panel.
+`bApplyToInstigator` is set wrong — `true` targets the Instigator (player), `false` targets the Target actor. Flip the checkbox to land the effect on the intended actor.

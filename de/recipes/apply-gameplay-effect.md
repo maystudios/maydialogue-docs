@@ -58,14 +58,13 @@ Vom SayLine-Output → **Create Node → Apply Effect**.
 | Property | Wert |
 |----------|------|
 | `EffectClass` | `GE_PriestHeal` |
-| `TargetParticipantTag` | `Dialogue.Participant.Player` |
 | `EffectLevel` | `1.0` |
-| `bApplyFromInstigator` | `true` |
+| `bApplyToInstigator` | `true` |
 
-`bApplyFromInstigator = true` → der Spieler ist Instigator des Effekts (Source = Spieler-ASC). Wichtig für Magnitude-Calculatoren, die von Source-Attributen lesen.
+`bApplyToInstigator = true` → der Effekt wird auf den Instigator angewendet (den Spieler, der den Dialog gestartet hat). Auf `false` setzen, um den Effekt stattdessen auf den Target-Actor anzuwenden.
 
 > 📸 **Bild-Platzhalter:** `apply-gameplay-effect-node-details.png` — Details-Panel des ApplyEffect-Nodes.
-> *Setup:* ApplyEffect-Node ausgewählt. Details: `EffectClass = GE_PriestHeal`, `TargetParticipantTag = Dialogue.Participant.Player`, `EffectLevel = 1.0`, `bApplyFromInstigator = true (Checkbox)`.
+> *Setup:* ApplyEffect-Node ausgewählt. Details: `EffectClass = GE_PriestHeal`, `EffectLevel = 1.0`, `bApplyToInstigator = true (Checkbox)`.
 
 ### 4. Compile und testen
 
@@ -75,11 +74,11 @@ Im PIE: Dialog starten. Nach dem ApplyEffect-Node sollte das Health-Attribut des
 
 Wenn der Priester sich selbst bufft oder die Hexe den Spieler verflucht:
 
-| Szenario | `TargetParticipantTag` | `bApplyFromInstigator` |
-|----------|----------------------|-----------------------|
-| Spieler heilt Spieler | `Dialogue.Participant.Player` | `true` |
-| NPC bufft NPC | `Dialogue.Participant.Priest` | `false` |
-| Hexe verflucht Spieler | `Dialogue.Participant.Player` | `false` (Hexe = Source) |
+| Szenario | `bApplyToInstigator` | Effekt landet auf |
+|----------|----------------------|-------------------|
+| Spieler heilt Spieler | `true` | Instigator (Spieler) |
+| NPC bufft NPC | `false` | Target (der NPC) |
+| Hexe verflucht Spieler | `true` | Instigator (Spieler) |
 
 ## Mehrere Effekte hintereinander
 
@@ -130,4 +129,4 @@ Am SayLine-Node **SideEffect → ApplyEffect** hinzufügen. Die SayLine läuft, 
 Der GameplayEffect nutzt keine Level-abhängige Magnitude (ScalableFloat). Level-Scaling muss explizit im GE-Asset konfiguriert sein.
 
 **Effekt auf falschen Actor angewendet.**
-`TargetParticipantTag` zeigt auf den NPC statt den Spieler. Tags im Speakers/Participants-Panel prüfen.
+`bApplyToInstigator` ist falsch gesetzt – `true` zielt auf den Instigator (Spieler), `false` auf den Target-Actor. Die Checkbox umstellen, damit der Effekt auf dem gewünschten Actor landet.

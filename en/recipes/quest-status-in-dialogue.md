@@ -25,13 +25,11 @@ A quest giver reacts differently depending on whether the player hasn't accepted
 [Entry]
    │
    ▼
-[Branch]
-   ├─ BP1: HasTag(Quest.FindArtifact.Completed)
-   │       → [SayLine: "Excellent! You found the artifact! Here is your reward."] → [ApplyEffect: GE_QuestReward] → [Exit: Completed]
-   ├─ BP2: HasTag(Quest.FindArtifact.Active)
-   │       → [SayLine: "You're still on it. The artifact is south of the tower."] → [Exit]
-   └─ BP3: <Fallback>
-           → [SayLine: "I need your help. Do you want a job?"] → [PlayerChoice: Accept/Decline]
+[Branch A: Condition = HasTag(Quest.FindArtifact.Completed)]
+   ├─ True  → [SayLine: "Excellent! You found the artifact! Here is your reward."] → [ApplyEffect: GE_QuestReward] → [Exit: Completed]
+   └─ False → [Branch B: Condition = HasTag(Quest.FindArtifact.Active)]
+                 ├─ True  → [SayLine: "You're still on it. The artifact is south of the tower."] → [Exit]
+                 └─ False → [SayLine: "I need your help. Do you want a job?"] → [PlayerChoice: Accept/Decline]
 ```
 
 > 📸 **Image placeholder:** `quest-status-in-dialogue-graph-overview.png` — Asset Editor with two chained Branch nodes.

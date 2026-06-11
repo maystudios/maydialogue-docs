@@ -26,9 +26,9 @@ Ein Wachmann am Stadttor reagiert unterschiedlich, je nachdem ob der Spieler den
 [Entry]
    │
    ▼
-[Branch]
-   ├─ BP1: HasTag(Story.Pass.CityGate) → [SayLine: "Willkommen zurück."] → [Exit: Completed]
-   └─ BP2: <Fallback>                  → [SayLine: "Halt! Wer geht da?"] → [PlayerChoice]
+[Branch: Condition = HasTag(Story.Pass.CityGate)]
+   ├─ True  → [SayLine: "Willkommen zurück."] → [Exit: Completed]
+   └─ False → [SayLine: "Halt! Wer geht da?"] → [PlayerChoice]
                                                                                ├─ "Ich habe keinen Pass." → [Exit: Failed]
                                                                                └─ "Ich suche den Torvorsteher." → [SayLine: "Kammer links."] → [Exit: Completed]
 ```

@@ -61,12 +61,12 @@ An Choice 2 unter **Requirements → Add → CheckAttribute**:
 | `Attribute` | `UVHSAttributeSet::Stamina` (Dropdown) |
 | `ComparisonOp` | `>=` |
 | `ComparisonValue` | `50.0` |
-| `FailureResult` | `FailedButVisible` |
+| `FailResult` | `FailedButVisible` |
 | `UnavailableReason` | *„Du bist zu erschöpft."* |
 | `bCheckOnInstigator` | `true` |
 
 > 📸 **Bild-Platzhalter:** `choice-with-attribute-requirement-details.png` — Details-Panel der zweiten Choice mit CheckAttribute-Requirement.
-> *Setup:* PlayerChoice ausgewählt, Choice 2 ausgeklappt. `ChoiceText = "Den starken Trank."`. Requirements: `CheckAttribute: Attribute = Stamina, ComparisonOp = >=, ComparisonValue = 50.0, FailureResult = FailedButVisible, UnavailableReason = "Du bist zu erschöpft."`.
+> *Setup:* PlayerChoice ausgewählt, Choice 2 ausgeklappt. `ChoiceText = "Den starken Trank."`. Requirements: `CheckAttribute: Attribute = Stamina, ComparisonOp = >=, ComparisonValue = 50.0, FailResult = FailedButVisible, UnavailableReason = "Du bist zu erschöpft."`.
 
 ### 4. Outputs verdrahten
 

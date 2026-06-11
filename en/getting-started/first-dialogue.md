@@ -119,10 +119,10 @@ Choice 0 should only appear if the player has the tag `Story.Secret.HeardPasswor
 2. **Add Requirement → HasTag**.
 3. `RequiredTag`: `Story.Secret.HeardPassword`.
 4. `CheckOnInstigator`: `true` (the player is the instigator).
-5. `FailureResult`: `FailedAndHidden`. The choice disappears entirely if the condition is not met.
+5. `FailResult`: `FailedAndHidden`. The choice disappears entirely if the condition is not met.
 
 > 📸 **Image placeholder:** `walkthrough-06-requirement-hastag.png`: Details panel of the HasTag requirement on Choice 0.
-> *Setup:* Choice 0 of the PlayerChoice node selected. Details panel shows: `RequiredTag = Story.Secret.HeardPassword`, `CheckOnInstigator = true`, `FailureResult = FailedAndHidden`. Red arrow on `FailureResult`.
+> *Setup:* Choice 0 of the PlayerChoice node selected. Details panel shows: `RequiredTag = Story.Secret.HeardPassword`, `CheckOnInstigator = true`, `FailResult = FailedAndHidden`. Red arrow on `FailResult`.
 
 This is the classic RPG pattern: you only see the password option if you have actually heard the password.
 
@@ -138,11 +138,11 @@ Choice 1 should be visible but not selectable if reputation is too low.
 4. `ComparisonOp`: `>=`.
 5. `ComparisonValue`: `50`.
 6. `CheckOnInstigator`: `true`.
-7. `FailureResult`: `FailedButVisible`. The choice appears greyed out but cannot be selected.
+7. `FailResult`: `FailedButVisible`. The choice appears greyed out but cannot be selected.
 8. `UnavailableReason`: `Your reputation with the guards is too low.` (shown as a tooltip).
 
 > 📸 **Image placeholder:** `walkthrough-07-requirement-attribute.png`: Details panel of the CheckAttribute requirement on Choice 1.
-> *Setup:* Choice 1 of the PlayerChoice node selected. Details panel shows: `Attribute = Reputation.Guards`, `ComparisonOp = >=`, `ComparisonValue = 50`, `CheckOnInstigator = true`, `FailureResult = FailedButVisible`, `UnavailableReason = "Your reputation with the guards is too low."`. Red arrow on `FailedButVisible`.
+> *Setup:* Choice 1 of the PlayerChoice node selected. Details panel shows: `Attribute = Reputation.Guards`, `ComparisonOp = >=`, `ComparisonValue = 50`, `CheckOnInstigator = true`, `FailResult = FailedButVisible`, `UnavailableReason = "Your reputation with the guards is too low."`. Red arrow on `FailedButVisible`.
 
 > 📸 **Image placeholder:** `walkthrough-08-ingame-choices.png`: In-game screenshot of the PlayerChoice widget with a greyed-out choice.
 > *Setup:* PIE running. Widget shows three choices: Choice 0 is missing (because HasHeardPassword is not set), Choice 1 is visible but greyed out with tooltip "Your reputation with the guards is too low.", Choice 2 is normally clickable "That's none of your business." Red arrow on the greyed-out Choice 1.

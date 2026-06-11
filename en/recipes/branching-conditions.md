@@ -26,9 +26,9 @@ A guard at the city gate reacts differently depending on whether the player has 
 [Entry]
    │
    ▼
-[Branch]
-   ├─ BP1: HasTag(Story.Pass.CityGate) → [SayLine: "Welcome back."] → [Exit: Completed]
-   └─ BP2: <Fallback>                  → [SayLine: "Halt! Who goes there?"] → [PlayerChoice]
+[Branch: Condition = HasTag(Story.Pass.CityGate)]
+   ├─ True  → [SayLine: "Welcome back."] → [Exit: Completed]
+   └─ False → [SayLine: "Halt! Who goes there?"] → [PlayerChoice]
                                                                                ├─ "I have no pass." → [Exit: Failed]
                                                                                └─ "I'm looking for the gatekeeper." → [SayLine: "Chamber on the left."] → [Exit: Completed]
 ```

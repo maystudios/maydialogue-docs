@@ -61,12 +61,12 @@ On Choice 2 under **Requirements → Add → CheckAttribute**:
 | `Attribute` | `UVHSAttributeSet::Stamina` (dropdown) |
 | `ComparisonOp` | `>=` |
 | `ComparisonValue` | `50.0` |
-| `FailureResult` | `FailedButVisible` |
+| `FailResult` | `FailedButVisible` |
 | `UnavailableReason` | *"You are too exhausted."* |
 | `bCheckOnInstigator` | `true` |
 
 > 📸 **Image placeholder:** `choice-with-attribute-requirement-details.png` — Details panel of the second choice with CheckAttribute Requirement.
-> *Setup:* PlayerChoice selected, Choice 2 expanded. `ChoiceText = "The powerful potion."`. Requirements: `CheckAttribute: Attribute = Stamina, ComparisonOp = >=, ComparisonValue = 50.0, FailureResult = FailedButVisible, UnavailableReason = "You are too exhausted."`.
+> *Setup:* PlayerChoice selected, Choice 2 expanded. `ChoiceText = "The powerful potion."`. Requirements: `CheckAttribute: Attribute = Stamina, ComparisonOp = >=, ComparisonValue = 50.0, FailResult = FailedButVisible, UnavailableReason = "You are too exhausted."`.
 
 ### 4. Wire Up the Outputs
 

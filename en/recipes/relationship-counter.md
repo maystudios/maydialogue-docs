@@ -26,9 +26,9 @@ You want an important NPC to remember how often and how the player has spoken wi
 [Entry]
    │
    ▼
-[Branch]
-   ├─ BP1: CheckVariable(Relationship >= 10) → [SayLine: "I trust you now. Here is the quest."] → [Exit: QuestGranted]
-   └─ BP2: <Fallback>                         → [SayLine: "How can I help you?"] → [PlayerChoice]
+[Branch: Condition = CheckVariable(Relationship >= 10)]
+   ├─ True  → [SayLine: "I trust you now. Here is the quest."] → [Exit: QuestGranted]
+   └─ False → [SayLine: "How can I help you?"] → [PlayerChoice]
 
 [PlayerChoice]
    ├─ "Reply kindly."     → SideEffect: Relationship += 2   → [Exit]

@@ -11,7 +11,7 @@ An NPC nods in agreement while making a statement. Another points at a map on th
 ## What You Will Learn
 
 - Link a PlayAnimation node to a gesture montage.
-- `bWaitForEnd = false` for parallel execution vs. `true` for sequential.
+- `bWaitForMontageEnd = false` for parallel execution vs. `true` for sequential.
 - Choreograph multiple animations in one dialogue.
 - Use `AdvanceMode = AfterAnimation` on a SayLine.
 
@@ -43,7 +43,7 @@ An NPC nods in agreement while making a statement. Another points at a map on th
 ```
 
 > 📸 **Image placeholder:** `npc-animation-during-line-graph-overview.png` — Dialogue graph with two PlayAnimation nodes before the SayLines.
-> *Setup:* Asset `DA_Guide_Explanation` open. Entry → PlayAnimation "Nod" (orange box) → SayLine → PlayAnimation "PointRight" (orange box) → SayLine → Exit. `bWaitForEnd = false` visible on both PlayAnimation nodes in the Details panel.
+> *Setup:* Asset `DA_Guide_Explanation` open. Entry → PlayAnimation "Nod" (orange box) → SayLine → PlayAnimation "PointRight" (orange box) → SayLine → Exit. `bWaitForMontageEnd = false` visible on both PlayAnimation nodes in the Details panel.
 
 ## Step by Step
 
@@ -53,15 +53,15 @@ From the Entry output → **Create Node → Play Animation**:
 
 | Property | Value |
 |----------|------|
-| `TargetParticipantTag` | `Dialogue.Speaker.Guide` |
+| `AnimationTargetTag` | `Dialogue.Speaker.Guide` |
 | `Montage` | `AM_NPC_Nod` |
 | `StartSection` | `Default` |
-| `bWaitForEnd` | `false` |
+| `bWaitForMontageEnd` | `false` |
 
-`bWaitForEnd = false` → the dialogue flow immediately moves to the next node; the montage runs in parallel.
+`bWaitForMontageEnd = false` → the dialogue flow immediately moves to the next node; the montage runs in parallel.
 
 > 📸 **Image placeholder:** `npc-animation-during-line-anim-details.png` — Details panel of the PlayAnimation node.
-> *Setup:* PlayAnimation node selected. Details: `TargetParticipantTag = Dialogue.Speaker.Guide`, `Montage = AM_NPC_Nod`, `StartSection = "Default"`, `bWaitForEnd = false (checkbox empty)`.
+> *Setup:* PlayAnimation node selected. Details: `AnimationTargetTag = Dialogue.Speaker.Guide`, `Montage = AM_NPC_Nod`, `StartSection = "Default"`, `bWaitForMontageEnd = false (checkbox empty)`.
 
 ### 2. SayLine with AfterVoice
 
@@ -72,7 +72,7 @@ This way the gesture runs exactly during the voice playback.
 
 ### 3. Second Gesture Animation
 
-From the SayLine output → second PlayAnimation node (`AM_NPC_PointRight`, `bWaitForEnd = false`) → second SayLine.
+From the SayLine output → second PlayAnimation node (`AM_NPC_PointRight`, `bWaitForMontageEnd = false`) → second SayLine.
 
 ### 4. Ensure the Montage Slot
 
@@ -82,18 +82,18 @@ For the PlayAnimation node to work, the NPC's AnimInstance must have an animatio
 
 In PIE: start the dialogue. Each PlayAnimation node plays the montage on the NPC while the SayLine runs. No click needed between gesture and line.
 
-## bWaitForEnd = true – Sequential
+## bWaitForMontageEnd = true – Sequential
 
 If the SayLine should only start after the animation:
 
 ```text
-[PlayAnimation: AM_NPC_ThinkingPose  WaitForEnd: true]
+[PlayAnimation: AM_NPC_ThinkingPose  WaitForMontageEnd: true]
    │
    ▼
 [SayLine: "Hmm... I think..."]
 ```
 
-With `bWaitForEnd = true`, the dialogue flow stops at PlayAnimation and waits for the montage to end. Only then does the SayLine follow. Good for dramatic pauses.
+With `bWaitForMontageEnd = true`, the dialogue flow stops at PlayAnimation and waits for the montage to end. Only then does the SayLine follow. Good for dramatic pauses.
 
 ## AdvanceMode = AfterAnimation on SayLine
 
@@ -115,7 +115,7 @@ As an alternative to PlayAnimation as its own node: set `AdvanceModeOverride = A
 
 ## Variations / Going Further
 
-- Player animation instead of NPC: `TargetParticipantTag = Dialogue.Participant.Player` — the player character performs a reaction animation.
+- Player animation instead of NPC: `AnimationTargetTag = Dialogue.Participant.Player` — the player character performs a reaction animation.
 - Combine jump-scare montage + CameraShake → [Jump Scare with Camera Shake](jump-scare-shake.md).
 - Choose animation based on a quest variable: a Branch before PlayAnimation that selects `AM_Friendly` or `AM_Aggressive` depending on the variable.
 
@@ -127,5 +127,5 @@ Participant tag doesn't match the NPC actor tag. NPC AnimInstance doesn't have `
 **Animation ends immediately.**
 Montage length is very short, or `EndSection` in the montage asset jumps directly to the end. Check the montage in the AnimInstance preview.
 
-**Dialogue flow stops at PlayAnimation even though bWaitForEnd = false.**
-`bWaitForEnd` is set to `true` in the Details panel. Check the checkbox state.
+**Dialogue flow stops at PlayAnimation even though bWaitForMontageEnd = false.**
+`bWaitForMontageEnd` is set to `true` in the Details panel. Check the checkbox state.

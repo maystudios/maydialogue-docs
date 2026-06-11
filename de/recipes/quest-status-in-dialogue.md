@@ -25,13 +25,11 @@ Ein Questgeber reagiert unterschiedlich, je nachdem ob der Spieler die zugehöri
 [Entry]
    │
    ▼
-[Branch]
-   ├─ BP1: HasTag(Quest.FindArtifact.Completed)
-   │       → [SayLine: "Exzellent! Du hast das Artefakt! Hier deine Belohnung."] → [ApplyEffect: GE_QuestReward] → [Exit: Completed]
-   ├─ BP2: HasTag(Quest.FindArtifact.Active)
-   │       → [SayLine: "Du bist noch dran. Das Artefakt liegt südlich vom Turm."] → [Exit]
-   └─ BP3: <Fallback>
-           → [SayLine: "Ich brauche deine Hilfe. Willst du einen Auftrag?"] → [PlayerChoice: Annehmen/Ablehnen]
+[Branch A: Condition = HasTag(Quest.FindArtifact.Completed)]
+   ├─ True  → [SayLine: "Exzellent! Du hast das Artefakt! Hier deine Belohnung."] → [ApplyEffect: GE_QuestReward] → [Exit: Completed]
+   └─ False → [Branch B: Condition = HasTag(Quest.FindArtifact.Active)]
+                 ├─ True  → [SayLine: "Du bist noch dran. Das Artefakt liegt südlich vom Turm."] → [Exit]
+                 └─ False → [SayLine: "Ich brauche deine Hilfe. Willst du einen Auftrag?"] → [PlayerChoice: Annehmen/Ablehnen]
 ```
 
 > 📸 **Bild-Platzhalter:** `quest-status-in-dialogue-graph-overview.png` — Asset-Editor mit zwei verketteten Branch-Nodes.

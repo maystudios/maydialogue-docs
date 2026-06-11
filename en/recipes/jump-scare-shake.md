@@ -69,13 +69,13 @@ From the SayLine output → **Create Node → Play Animation**:
 
 | Property | Value |
 |----------|------|
-| `TargetParticipantTag` | `Dialogue.Speaker.HorrorNPC` |
+| `AnimationTargetTag` | `Dialogue.Speaker.HorrorNPC` |
 | `Montage` | `AM_NPC_LungeForward` |
 | `StartSection` | `Default` |
-| `bWaitForEnd` | `false` (dialogue flow continues immediately, animation runs in parallel) |
+| `bWaitForMontageEnd` | `false` (dialogue flow continues immediately, animation runs in parallel) |
 
 > 📸 **Image placeholder:** `jump-scare-shake-animation-details.png` — Details panel of the PlayAnimation node.
-> *Setup:* PlayAnimation node selected. Details: `TargetParticipantTag = Dialogue.Speaker.HorrorNPC`, `Montage = AM_NPC_LungeForward`, `bWaitForEnd = false`.
+> *Setup:* PlayAnimation node selected. Details: `AnimationTargetTag = Dialogue.Speaker.HorrorNPC`, `Montage = AM_NPC_LungeForward`, `bWaitForMontageEnd = false`.
 
 ### 3. Configure the CameraShake Node
 
@@ -85,10 +85,9 @@ From the PlayAnimation output → **Create Node → Camera Shake**:
 |----------|------|
 | `ShakeClass` | `BS_HorrorShake` |
 | `Scale` | `1.5` |
-| `PlaySpace` | `CameraLocal` |
-| `bAttenuateWithRadius` | `true` |
-| `Radius` | `500.0` |
-| `TargetActor` | *(empty = always play)* |
+| `SpatialRadius` | `500.0` |
+| `FalloffInnerRadius` | `100.0` |
+| `EpicenterParticipantTag` | `Dialogue.Speaker.HorrorNPC` |
 
 ### 4. PlaySound Node for the Stinger
 
@@ -117,7 +116,7 @@ In PIE: start the dialogue. At the second SayLine, the montage should play, the 
 
 If the shake and sound come a frame too early:
 - Insert a SayLine before the shake with `AdvanceMode = Timer` and `AutoAdvanceDelay = 0.1` (micro-pause before shake).
-- Or use PlayAnimation with `bWaitForEnd = true` → shake fires only when the montage finishes.
+- Or use PlayAnimation with `bWaitForMontageEnd = true` → shake fires only when the montage finishes.
 
 ## Blueprint Triggering
 
@@ -142,7 +141,7 @@ If the shake and sound come a frame too early:
 The player camera is not a `APlayerCameraManager`-supported camera system. Check if `GetPlayerCameraManager()` returns a valid value. With custom camera logic: trigger CameraShake manually via `PlayCameraShake` in the OnDialogueEvent handler.
 
 **Animation plays, but shake doesn't happen.**
-`bWaitForEnd = true` on the PlayAnimation node and the montage is very long. Set `bWaitForEnd = false`.
+`bWaitForMontageEnd = true` on the PlayAnimation node and the montage is very long. Set `bWaitForMontageEnd = false`.
 
 **Stinger is too loud.**
 Reduce `VolumeMultiplier` or configure a ducking channel for dialogue stingers in the Sound Mix.

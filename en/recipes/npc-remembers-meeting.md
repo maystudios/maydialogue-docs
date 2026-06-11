@@ -26,11 +26,9 @@ An informant reacts with surprise at the first meeting. At the second conversati
 [Entry]
    │
    ▼
-[Branch]
-   ├─ BP1: CheckVariable(HasMetBefore = true)
-   │       → [SayLine: "Ah, you again! What do you bring me?"] → [PlayerChoice: ...]
-   └─ BP2: <Fallback>
-           → [SayLine: "Who are you? I don't know you."]
+[Branch: Condition = CheckVariable(HasMetBefore == true)]
+   ├─ True  → [SayLine: "Ah, you again! What do you bring me?"] → [PlayerChoice: ...]
+   └─ False → [SayLine: "Who are you? I don't know you."]
            → [SayLine: "...fine. My name is Corvus."]
            → [PlayerChoice: ...]
 

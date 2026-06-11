@@ -76,7 +76,7 @@ Am fünften Entry unter **Requirements → Add → CheckParticipantVariable**:
 |----------|------|
 | `VariableName` | `LastGreetingRecent` |
 | `ExpectedValue` | `false` |
-| `FailureResult` | `FailedAndHidden` |
+| `FailResult` | `FailedAndHidden` |
 
 Wenn die Variable `true` ist (gerade gesprochen), wird der Eintrag vollständig ausgeblendet.
 

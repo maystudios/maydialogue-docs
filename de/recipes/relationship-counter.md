@@ -26,9 +26,9 @@ Du willst, dass ein wichtiger NPC sich merkt, wie oft und wie der Spieler mit ih
 [Entry]
    │
    ▼
-[Branch]
-   ├─ BP1: CheckVariable(Relationship >= 10) → [SayLine: "Ich vertraue dir jetzt. Hier die Quest."] → [Exit: QuestGranted]
-   └─ BP2: <Fallback>                         → [SayLine: "Wie kann ich dir helfen?"] → [PlayerChoice]
+[Branch: Condition = CheckVariable(Relationship >= 10)]
+   ├─ True  → [SayLine: "Ich vertraue dir jetzt. Hier die Quest."] → [Exit: QuestGranted]
+   └─ False → [SayLine: "Wie kann ich dir helfen?"] → [PlayerChoice]
 
 [PlayerChoice]
    ├─ "Freundlich antworten."  → SideEffect: Relationship += 2   → [Exit]

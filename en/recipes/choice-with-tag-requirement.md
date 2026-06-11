@@ -59,12 +59,12 @@ Choice 4: `ChoiceText = "Guild discount, please."`. Under **Requirements → Add
 |----------|------|
 | `RequiredTag` | `Guild.Member.Active` |
 | `bCheckOnInstigator` | `true` |
-| `FailureResult` | `FailedAndHidden` |
+| `FailResult` | `FailedAndHidden` |
 
 `FailedAndHidden` = the choice doesn't appear in the list at all for non-members.
 
 > 📸 **Image placeholder:** `choice-with-tag-requirement-choice-details.png` — Details panel of Choice 4 with HasTag Requirement.
-> *Setup:* PlayerChoice node selected, Choice 4 expanded in the Details panel. `ChoiceText = "Guild discount, please."`, below it Requirements: `HasTag: RequiredTag = Guild.Member.Active, bCheckOnInstigator = true, FailureResult = FailedAndHidden`.
+> *Setup:* PlayerChoice node selected, Choice 4 expanded in the Details panel. `ChoiceText = "Guild discount, please."`, below it Requirements: `HasTag: RequiredTag = Guild.Member.Active, bCheckOnInstigator = true, FailResult = FailedAndHidden`.
 
 ### 4. Wire Up the Output
 
@@ -125,7 +125,7 @@ No special code — standard dialogue start:
 `bCheckOnInstigator = false` → tag is checked on the NPC instead of the player. Set to `true`.
 
 **Choice always visible, even though the tag is missing.**
-`FailureResult = FailedButVisible` instead of `FailedAndHidden`. Or `RequiredTag` has a typo — the Requirement matches nothing and returns `Passed`.
+`FailResult = FailedButVisible` instead of `FailedAndHidden`. Or `RequiredTag` has a typo — the Requirement matches nothing and returns `Passed`.
 
 **Multiple Requirements, choice never selectable.**
 AND logic: all Requirements must return `Passed`. Check each Requirement status individually in the Debugger.

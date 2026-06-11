@@ -67,12 +67,13 @@ At the end of both choice paths, connections converge into an **AddTag** action 
 
 | Property | Value |
 |----------|------|
-| `TargetParticipantTag` | `Dialogue.Participant.Player` |
-| `Tag` | `Quest.WitnessInterviewed` |
-| `bApplyPermanent` | `true` |
+| `TagToAdd` | `Quest.WitnessInterviewed` |
+| `bAddToInstigator` | `true` |
+
+`bAddToInstigator = true` → the tag is granted to the Instigator's ASC (the player); set it to `false` to grant it to the Target NPC instead. The AddTag node sets a **loose** gameplay tag — it is not, on its own, save-surviving. If the quest flag must persist across saves, apply an Infinite-Duration GameplayEffect with the quest tag in its `GrantedTags` (via the ApplyEffect node) instead.
 
 > 📸 **Image placeholder:** `dialogue-sets-quest-progress-addtag-details.png` — Details panel of the AddTag node.
-> *Setup:* AddTag node selected. Details: `TargetParticipantTag = Dialogue.Participant.Player`, `Tag = Quest.WitnessInterviewed`, `bApplyPermanent = true`.
+> *Setup:* AddTag node selected. Details: `TagToAdd = Quest.WitnessInterviewed`, `bAddToInstigator = true`.
 
 ### 4. FireEvent Node for External Systems
 

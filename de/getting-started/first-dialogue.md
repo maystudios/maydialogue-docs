@@ -119,10 +119,10 @@ Choice 0 soll nur erscheinen, wenn der Spieler den Tag `Story.Secret.HeardPasswo
 2. **Add Requirement → HasTag**.
 3. `RequiredTag`: `Story.Secret.HeardPassword`.
 4. `CheckOnInstigator`: `true` (der Spieler ist der Instigator).
-5. `FailureResult`: `FailedAndHidden`. Die Choice verschwindet komplett, wenn die Bedingung nicht erfüllt ist.
+5. `FailResult`: `FailedAndHidden`. Die Choice verschwindet komplett, wenn die Bedingung nicht erfüllt ist.
 
 > 📸 **Bild-Platzhalter:** `walkthrough-06-requirement-hastag.png`: Details-Panel der HasTag-Requirement auf Choice 0.
-> *Setup:* Choice 0 des PlayerChoice-Nodes ausgewählt. Details-Panel zeigt: `RequiredTag = Story.Secret.HeardPassword`, `CheckOnInstigator = true`, `FailureResult = FailedAndHidden`. Roter Pfeil auf `FailureResult`.
+> *Setup:* Choice 0 des PlayerChoice-Nodes ausgewählt. Details-Panel zeigt: `RequiredTag = Story.Secret.HeardPassword`, `CheckOnInstigator = true`, `FailResult = FailedAndHidden`. Roter Pfeil auf `FailResult`.
 
 Das ist das klassische RPG-Muster: Die Passwort-Option siehst du nur, wenn du das Passwort tatsächlich gehört hast.
 
@@ -138,11 +138,11 @@ Choice 1 soll sichtbar, aber nicht wählbar sein, wenn die Reputation zu niedrig
 4. `ComparisonOp`: `>=`.
 5. `ComparisonValue`: `50`.
 6. `CheckOnInstigator`: `true`.
-7. `FailureResult`: `FailedButVisible`. Die Choice erscheint gegraut, ist aber nicht wählbar.
+7. `FailResult`: `FailedButVisible`. Die Choice erscheint gegraut, ist aber nicht wählbar.
 8. `UnavailableReason`: `Deine Reputation bei den Wachen ist zu niedrig.` (erscheint als Tooltip).
 
 > 📸 **Bild-Platzhalter:** `walkthrough-07-requirement-attribute.png`: Details-Panel des CheckAttribute-Requirements auf Choice 1.
-> *Setup:* Choice 1 des PlayerChoice-Nodes ausgewählt. Details-Panel zeigt: `Attribute = Reputation.Guards`, `ComparisonOp = >=`, `ComparisonValue = 50`, `CheckOnInstigator = true`, `FailureResult = FailedButVisible`, `UnavailableReason = "Deine Reputation bei den Wachen ist zu niedrig."`. Roter Pfeil auf `FailedButVisible`.
+> *Setup:* Choice 1 des PlayerChoice-Nodes ausgewählt. Details-Panel zeigt: `Attribute = Reputation.Guards`, `ComparisonOp = >=`, `ComparisonValue = 50`, `CheckOnInstigator = true`, `FailResult = FailedButVisible`, `UnavailableReason = "Deine Reputation bei den Wachen ist zu niedrig."`. Roter Pfeil auf `FailedButVisible`.
 
 > 📸 **Bild-Platzhalter:** `walkthrough-08-ingame-choices.png`: In-Game-Screenshot des PlayerChoice-Widgets mit einer grauen Choice.
 > *Setup:* PIE läuft. Widget zeigt: Choice 0 fehlt (HasHeardPassword nicht gesetzt), Choice 1 sichtbar aber ausgegraut mit Tooltip "Deine Reputation bei den Wachen ist zu niedrig.", Choice 2 normal klickbar "Das geht dich nichts an.". Roter Pfeil auf die graue Choice 1.

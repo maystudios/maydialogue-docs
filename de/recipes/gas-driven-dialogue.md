@@ -14,7 +14,7 @@ Ein Kräuterweib bietet dem Spieler einen Heiltrank an. Sie prüft seinen Gesund
 - CheckAttribute-Requirement an einer Choice.
 - ApplyEffect-Action-Node für einen Heiltrank.
 - SideEffect-Sub-Node für einen Zähler-Increment.
-- AddTag dauerhaft via GAS-Variante setzen.
+- Einen Story-Tag mit dem AddTag-Node setzen (und wann stattdessen ein Infinite-GE für Persistenz sinnvoll ist).
 
 ## Voraussetzungen
 
@@ -27,9 +27,9 @@ Ein Kräuterweib bietet dem Spieler einen Heiltrank an. Sie prüft seinen Gesund
 [Entry]
    │
    ▼
-[Branch]
-   ├─ BP1: HasTag(Story.Met.Herbwoman) → [SayLine: "Schön, dich wiederzusehen."]
-   └─ BP2: <Fallback>                  → [SayLine: "Ich kenne dich noch nicht."]
+[Branch: Condition = HasTag(Story.Met.Herbwoman)]
+   ├─ True  → [SayLine: "Schön, dich wiederzusehen."]
+   └─ False → [SayLine: "Ich kenne dich noch nicht."]
                                                │
                                           [AddTag: Story.Met.Herbwoman → Player]
                                                │
@@ -92,7 +92,7 @@ Erster Choice-Eintrag bekommt ein **CheckAttribute**-Requirement:
 | `Attribute` | `UVHSAttributeSet::Health` |
 | `ComparisonOp` | `<` |
 | `ComparisonValue` | `50.0` |
-| `FailureResult` | `FailedButVisible` |
+| `FailResult` | `FailedButVisible` |
 | `UnavailableReason` | *„Du scheinst gesund."* |
 
 Der Spieler sieht die Option immer – kann sie aber nur wählen wenn Health < 50. Bei Hover erscheint die Begründung.
@@ -104,14 +104,14 @@ Vom Heilungs-Choice-Output → **ApplyEffect**-Node:
 | Property | Wert |
 |----------|------|
 | `EffectClass` | `GE_SmallHeal` |
-| `TargetParticipantTag` | `Dialogue.Participant.Player` |
 | `EffectLevel` | `1.0` |
+| `bApplyToInstigator` | `true` |
 
 Am ApplyEffect-Node **SideEffect → SetVariable**:
 - `Name: PotionsBought`, `Scope: Participant`, `Op: Increment`, `Value: 1`.
 
 > 📸 **Bild-Platzhalter:** `gas-driven-dialogue-applyeffect-details.png` — ApplyEffect-Node mit SideEffect-Pill.
-> *Setup:* ApplyEffect-Node ausgewählt. Details: `EffectClass = GE_SmallHeal`, `TargetParticipantTag = Dialogue.Participant.Player`. Im Node-Body unten: SideEffect-Pill `SetVariable PotionsBought += 1`.
+> *Setup:* ApplyEffect-Node ausgewählt. Details: `EffectClass = GE_SmallHeal`, `bApplyToInstigator = true`. Im Node-Body unten: SideEffect-Pill `SetVariable PotionsBought += 1`.
 
 ### 6. Compile und PIE-Test
 
