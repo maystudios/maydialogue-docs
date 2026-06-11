@@ -19,8 +19,8 @@ Die Library ist ein reiner Convenience-Layer. Sie hat keinen eigenen State und d
 | Funktion | Art | Wann nutzen |
 |---|---|---|
 | `Start Dialogue` | Callable | Dialog mit bestimmtem Asset starten. Liefert Instance oder `nullptr`. |
-| `Stop Dialogue` | Callable | Eine bestimmte Instance abbrechen. |
-| `Stop All Dialogues` | Callable | Alle aktiven Dialoge abbrechen (Spielertod, Pause, Level-Wechsel). |
+| `Abort Dialogue` | Callable | Eine bestimmte Instance abbrechen. (`Stop Dialogue` ist der deprecated Alias.) |
+| `Abort All Dialogues` | Callable | Alle aktiven Dialoge abbrechen (Spielertod, Pause, Level-Wechsel). (`Stop All Dialogues` ist der deprecated Alias.) |
 | `Get Active Dialogue` | Pure | Aktive Instance lesen (z.B. um Variablen abzufragen). |
 | `Is Any Dialogue Active` | Pure | Prüfen ob gerade ein Dialog läuft. |
 | `Get Dialogue Subsystem` | Callable | Subsystem-Referenz holen (z.B. für Delegate-Binding). |
@@ -157,7 +157,7 @@ UMayDialogueInstance* Inst = UMayDialogueLibrary::StartDialogue(
 // Prüfen ob Dialog läuft
 if (UMayDialogueLibrary::IsAnyDialogueActive(this))
 {
-    UMayDialogueLibrary::StopAllDialogues(this);
+    UMayDialogueLibrary::AbortAllDialogues(this);
 }
 
 // Subsystem holen

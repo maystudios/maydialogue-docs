@@ -71,5 +71,5 @@ When your UMG widget is ready:
 The Slate widget is now out of the workflow.
 
 {% hint style="warning" %}
-**Level travel:** The Slate widget does not automatically rebind after a level change. Call `Subsystem->StopAllDialogues()` before travel, or remove the widget from the viewport manually. In Blueprint, the `Stop All Dialogues` Node on the MayDialogue subsystem is available for this.
+**Level travel:** The Slate widget does not automatically rebind after a level change. Call `Subsystem->AbortAllDialogues()` before travel, or remove the widget from the viewport manually. In Blueprint, the `Abort All Dialogues` Node on the MayDialogue subsystem is available for this.
 {% endhint %}

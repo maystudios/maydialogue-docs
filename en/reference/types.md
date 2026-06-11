@@ -33,7 +33,7 @@ Result of a dialogue ending. Parameter in `OnDialogueEnded`.
 |---|---|
 | `Completed` | Cleanly ended — Exit node reached. |
 | `Failed` | Exit node with Failed status or Requirement abort. |
-| `Aborted` | Externally interrupted (new dialogue, level travel, `StopAllDialogues`). |
+| `Aborted` | Externally interrupted (new dialogue, level travel, `AbortAllDialogues`). |
 
 ---
 
@@ -151,18 +151,21 @@ Selects the synthesis back-end used by `UMayDialogueBabelSynth`. Configured on t
 The finished message structure delivered to the UI via `OnMessageReceived`.
 
 ```cpp
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FMayDialogueMessage
 {
-    FGameplayTag          SpeakerTag;       // Which speaker
-    FText                 DisplayName;      // Display name
-    FText                 Text;             // Dialogue text
-    USoundBase*           Voice;            // Voice asset (nullptr if none)
-    FGameplayTagContainer EmotionTags;      // Emotion context
-    EMayDialogueAdvanceMode AdvanceMode;    // How to advance after this line
-    float                 AutoAdvanceDelay; // Delay for AdvanceMode::Timer
+    FGameplayTag               SpeakerTag;         // Which speaker
+    FText                      SpeakerDisplayName; // Display name in the UI
+    FText                      Text;               // Dialogue text
+    TSoftObjectPtr<UTexture2D> SpeakerPortrait;    // Portrait (async-loaded by the widget)
+    TSoftObjectPtr<USoundBase> Voice;              // Voice asset (soft ref; IsNull() if none)
+    FGameplayTagContainer      EmotionTags;        // Emotion context
+    EMayDialogueAdvanceMode    AdvanceMode;        // How to advance after this line
+    float                      AutoAdvanceDelay;   // Delay for AdvanceMode::Timer
 };
 ```
+
+`Voice` and `SpeakerPortrait` are **soft references** (`TSoftObjectPtr`) so they survive a net RPC even when not yet loaded on the receiving client — see [Multiplayer](../runtime/multiplayer.md) for the streaming detail.
 
 ---
 
@@ -171,18 +174,24 @@ struct FMayDialogueMessage
 A single choice entry after Requirement evaluation and filtering.
 
 ```cpp
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FMayDialogueChoiceEntry
 {
-    int32                         ChoiceIndex;        // 0-based index for SelectChoice()
-    FText                         Text;               // Display text of the choice
-    FGameplayTagContainer         Tags;               // Choice tags (for analytics, styling)
-    bool                          bAvailable;         // true = selectable
+    FText                         ChoiceText;         // Display text of the choice
+    FGameplayTagContainer         ChoiceTags;         // Choice tags (for analytics, styling)
+    EMayDialogueRequirementResult AvailabilityStatus; // Passed / FailedButVisible / FailedAndHidden
     FText                         UnavailableReason;  // Reason when not selectable (for greyed UI)
+    int32                         ChoiceIndex;        // Authored index in the full choice list
     FGuid                         TargetNodeGuid;     // Target node when selected
-    EMayDialogueRequirementResult RequirementResult;  // Passed / FailedButVisible / FailedAndHidden
+    float                         Weight;             // Weighted-random default-on-timeout weight
 };
 ```
+
+Helpers `IsAvailable()` (status == `Passed`) and `IsVisible()` (status != `FailedAndHidden`) read `AvailabilityStatus`.
+
+{% hint style="warning" %}
+`ChoiceIndex` is the **authored** index in the node's full choice list. `SelectChoice` / `ServerSelectChoice` expect the **position** of the entry within the *presented visible* list, which differs when a hidden choice precedes it. Pass the entry's position in the received array, not `ChoiceIndex`, unless you know no choice is hidden.
+{% endhint %}
 
 ---
 
@@ -194,12 +203,16 @@ Entry in the Speakers panel of the dialogue asset editor.
 USTRUCT()
 struct FMayDialogueSpeaker
 {
-    FGameplayTag SpeakerTag;                               // Unique speaker identifier
-    FText        DisplayName;                              // Display name in the UI
-    TSoftObjectPtr<UTexture2D> Portrait;                   // Portrait texture
-    FGameplayTagContainer DefaultEmotionTags;              // Default emotions
-    TSoftObjectPtr<USoundClass> VoiceSoundClassOverride;   // Sound class override
-    TSoftObjectPtr<UMayDialogueBabelProfile> BabelProfileOverride; // Babel profile override
+    FGameplayTag SpeakerTag;                                  // Unique speaker identifier
+    FText        DisplayName;                                 // Display name in the UI
+    TSoftObjectPtr<UTexture2D> Portrait;                      // Portrait texture
+    FLinearColor NodeColor;                                   // Editor-only graph tint
+    EMayDialogueAudioMode AudioModeOverride;                  // Per-speaker 2D/3D override
+    TSoftObjectPtr<USoundClass> SoundClassOverride;           // Sound class override
+    TSoftObjectPtr<USoundAttenuation> AttenuationOverride;    // 3D attenuation override
+    float VolumeMultiplier;                                   // Per-speaker volume scalar (default 1.0)
+    float PitchMultiplier;                                    // Per-speaker pitch scalar (default 1.0)
+    TSoftObjectPtr<UMayDialogueBabelProfile> BabelProfile;    // Per-speaker Babel profile
 };
 ```
 
@@ -210,14 +223,17 @@ struct FMayDialogueSpeaker
 Passed to all `ExecuteNode` calls. Aggregates everything a node needs for world access.
 
 ```cpp
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FMayDialogueContext
 {
-    UMayDialogueInstance*    Instance;          // The running Instance
-    AActor*                  Instigator;        // Who started the dialogue
-    AActor*                  Target;            // Who is being spoken to
-    UMayDialogueParticipant* Speaker;           // Active speaker (Participant component)
-    FGameplayTag             CurrentSpeakerTag; // Tag of the active speaker
+    TWeakObjectPtr<UMayDialogueInstance> DialogueInstance;       // The running Instance (weak ref)
+    TObjectPtr<AActor>                   Instigator;             // Who started the dialogue
+    TObjectPtr<AActor>                   Target;                 // Who is being spoken to
+    FGuid                                CurrentNodeGuid;        // Node currently being entered (mid-traversal)
+    bool                                 bOwningNodeReachCounted; // True when the current reach is already counted
+
+    UObject* ResolveInstigatorASC() const; // Instigator's ASC, or nullptr
+    UWorld*  GetWorld() const;
 };
 ```
 
@@ -231,7 +247,10 @@ Container on the Instance for participant lookup by tag.
 USTRUCT()
 struct FMayDialogueParticipants
 {
-    TMap<FGameplayTag, TWeakObjectPtr<UMayDialogueParticipant>> ByTag;
+    TMap<FGameplayTag, TWeakObjectPtr<UMayDialogueParticipant>> ParticipantMap;
+    // Use the helpers, not the map directly:
+    UMayDialogueParticipant*          FindParticipant(const FGameplayTag& Tag) const;
+    TArray<UMayDialogueParticipant*>  GetAllParticipants() const;
 };
 ```
 
@@ -254,19 +273,19 @@ struct FMayDialogueScopeEntry
 
 ### FMayDialogueBranchPoint
 
-A single branch in a Branch node.
+A grouping struct used internally to carry a set of choice entries.
 
 ```cpp
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FMayDialogueBranchPoint
 {
-    FText Description;                           // Editorial label
-    TArray<UMayDialogueRequirement*> Requirements; // Conditions (all must return Passed)
-    FGuid TargetNodeGuid;                        // Target node when conditions are met
+    TArray<FMayDialogueChoiceEntry> Choices;
 };
 ```
 
-The order of `BranchPoints` determines evaluation priority (first match wins).
+{% hint style="info" %}
+Branch *routing* itself lives on the `UMayDialogueNode_Branch` node: it evaluates a single `Condition` requirement and takes the **True** output when it passes, the **False** output when it fails, and an optional **Default** output when `bHasFallback` is set — not on this struct. See [Branch Node](../nodes/core/branch.md).
+{% endhint %}
 
 ---
 

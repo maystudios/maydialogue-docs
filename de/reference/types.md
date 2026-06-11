@@ -33,7 +33,7 @@ Ergebnis eines Dialog-Endes. Parameter in `OnDialogueEnded`.
 |---|---|
 | `Completed` | Sauber beendet — Exit-Node reached. |
 | `Failed` | Exit-Node mit Failed-Status oder Requirement-Abort. |
-| `Aborted` | Extern unterbrochen (neuer Dialog, Level-Travel, `StopAllDialogues`). |
+| `Aborted` | Extern unterbrochen (neuer Dialog, Level-Travel, `AbortAllDialogues`). |
 
 ---
 
@@ -151,18 +151,21 @@ Wählt das Synthese-Back-End von `UMayDialogueBabelSynth`. Wird im `UMayDialogue
 Die fertige Message-Struktur, die via `OnMessageReceived` ans UI geliefert wird.
 
 ```cpp
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FMayDialogueMessage
 {
-    FGameplayTag          SpeakerTag;       // Welcher Sprecher
-    FText                 DisplayName;      // Anzeigename
-    FText                 Text;             // Dialog-Text
-    USoundBase*           Voice;            // Voice-Asset (nullptr wenn keins)
-    FGameplayTagContainer EmotionTags;      // Emotion-Kontext
-    EMayDialogueAdvanceMode AdvanceMode;    // Wie wird nach dieser Line advanced
-    float                 AutoAdvanceDelay; // Delay bei AdvanceMode::Timer
+    FGameplayTag               SpeakerTag;         // Welcher Sprecher
+    FText                      SpeakerDisplayName; // Anzeigename im UI
+    FText                      Text;               // Dialog-Text
+    TSoftObjectPtr<UTexture2D> SpeakerPortrait;    // Porträt (vom Widget async geladen)
+    TSoftObjectPtr<USoundBase> Voice;              // Voice-Asset (Soft-Ref; IsNull() wenn keins)
+    FGameplayTagContainer      EmotionTags;        // Emotion-Kontext
+    EMayDialogueAdvanceMode    AdvanceMode;        // Wie wird nach dieser Line advanced
+    float                      AutoAdvanceDelay;   // Delay bei AdvanceMode::Timer
 };
 ```
+
+`Voice` und `SpeakerPortrait` sind **Soft-Referenzen** (`TSoftObjectPtr`), sodass sie ein Netz-RPC überleben, auch wenn sie auf dem empfangenden Client noch nicht geladen sind — siehe [Multiplayer](../runtime/multiplayer.md) für das Streaming-Detail.
 
 ---
 
@@ -171,18 +174,24 @@ struct FMayDialogueMessage
 Ein einzelner Choice-Eintrag nach Requirement-Evaluation und Filter.
 
 ```cpp
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FMayDialogueChoiceEntry
 {
-    int32                         ChoiceIndex;        // 0-basierter Index für SelectChoice()
-    FText                         Text;               // Anzeigetext der Choice
-    FGameplayTagContainer         Tags;               // Tags der Choice (für Analytics, Styling)
-    bool                          bAvailable;         // true = wählbar
+    FText                         ChoiceText;         // Anzeigetext der Choice
+    FGameplayTagContainer         ChoiceTags;         // Tags der Choice (für Analytics, Styling)
+    EMayDialogueRequirementResult AvailabilityStatus; // Passed / FailedButVisible / FailedAndHidden
     FText                         UnavailableReason;  // Grund wenn nicht wählbar (für Greyed-UI)
+    int32                         ChoiceIndex;        // Authored-Index in der vollen Choice-Liste
     FGuid                         TargetNodeGuid;     // Ziel-Node bei Auswahl
-    EMayDialogueRequirementResult RequirementResult;  // Passed / FailedButVisible / FailedAndHidden
+    float                         Weight;             // Gewicht für Weighted-Random-Default bei Timeout
 };
 ```
+
+Die Helfer `IsAvailable()` (Status == `Passed`) und `IsVisible()` (Status != `FailedAndHidden`) lesen `AvailabilityStatus`.
+
+{% hint style="warning" %}
+`ChoiceIndex` ist der **authored** Index in der vollen Choice-Liste des Nodes. `SelectChoice` / `ServerSelectChoice` erwarten die **Position** des Eintrags in der *präsentierten sichtbaren* Liste, die abweicht, wenn eine versteckte Choice davor liegt. Übergib die Position des Eintrags im empfangenen Array, nicht `ChoiceIndex` — außer du weißt, dass keine Choice versteckt ist.
+{% endhint %}
 
 ---
 
@@ -194,12 +203,16 @@ Eintrag im Speakers-Panel des Dialog-Asset-Editors.
 USTRUCT()
 struct FMayDialogueSpeaker
 {
-    FGameplayTag SpeakerTag;                               // Eindeutiger Sprecher-Identifier
-    FText        DisplayName;                              // Anzeigename im UI
-    TSoftObjectPtr<UTexture2D> Portrait;                   // Porträt-Textur
-    FGameplayTagContainer DefaultEmotionTags;              // Standard-Emotions
-    TSoftObjectPtr<USoundClass> VoiceSoundClassOverride;   // Sound-Class-Überschreibung
-    TSoftObjectPtr<UMayDialogueBabelProfile> BabelProfileOverride; // Babel-Profil-Überschreibung
+    FGameplayTag SpeakerTag;                                  // Eindeutiger Sprecher-Identifier
+    FText        DisplayName;                                 // Anzeigename im UI
+    TSoftObjectPtr<UTexture2D> Portrait;                      // Porträt-Textur
+    FLinearColor NodeColor;                                   // Editor-only Graph-Tint
+    EMayDialogueAudioMode AudioModeOverride;                  // 2D/3D-Override pro Sprecher
+    TSoftObjectPtr<USoundClass> SoundClassOverride;           // Sound-Class-Überschreibung
+    TSoftObjectPtr<USoundAttenuation> AttenuationOverride;    // 3D-Attenuation-Überschreibung
+    float VolumeMultiplier;                                   // Volume-Skalar pro Sprecher (Default 1.0)
+    float PitchMultiplier;                                    // Pitch-Skalar pro Sprecher (Default 1.0)
+    TSoftObjectPtr<UMayDialogueBabelProfile> BabelProfile;    // Babel-Profil pro Sprecher
 };
 ```
 
@@ -210,14 +223,17 @@ struct FMayDialogueSpeaker
 Wird allen `ExecuteNode`-Calls mitgegeben. Aggregiert alles was ein Node für Welt-Zugriffe braucht.
 
 ```cpp
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FMayDialogueContext
 {
-    UMayDialogueInstance*    Instance;          // Die laufende Instance
-    AActor*                  Instigator;        // Wer den Dialog gestartet hat
-    AActor*                  Target;            // Mit wem gesprochen wird
-    UMayDialogueParticipant* Speaker;           // Aktiver Sprecher (Participant-Komponente)
-    FGameplayTag             CurrentSpeakerTag; // Tag des aktiven Sprechers
+    TWeakObjectPtr<UMayDialogueInstance> DialogueInstance;       // Die laufende Instance (Weak-Ref)
+    TObjectPtr<AActor>                   Instigator;             // Wer den Dialog gestartet hat
+    TObjectPtr<AActor>                   Target;                 // Mit wem gesprochen wird
+    FGuid                                CurrentNodeGuid;        // Aktuell betretener Node (mid-traversal)
+    bool                                 bOwningNodeReachCounted; // True wenn der aktuelle Reach schon gezählt ist
+
+    UObject* ResolveInstigatorASC() const; // ASC des Instigators, oder nullptr
+    UWorld*  GetWorld() const;
 };
 ```
 
@@ -231,7 +247,10 @@ Container der Instance für den Participant-Lookup per Tag.
 USTRUCT()
 struct FMayDialogueParticipants
 {
-    TMap<FGameplayTag, TWeakObjectPtr<UMayDialogueParticipant>> ByTag;
+    TMap<FGameplayTag, TWeakObjectPtr<UMayDialogueParticipant>> ParticipantMap;
+    // Nutze die Helfer, nicht die Map direkt:
+    UMayDialogueParticipant*          FindParticipant(const FGameplayTag& Tag) const;
+    TArray<UMayDialogueParticipant*>  GetAllParticipants() const;
 };
 ```
 
@@ -254,19 +273,19 @@ struct FMayDialogueScopeEntry
 
 ### FMayDialogueBranchPoint
 
-Ein einzelner Zweig in einem Branch-Node.
+Eine Gruppierungs-Struktur, die intern ein Set von Choice-Einträgen trägt.
 
 ```cpp
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FMayDialogueBranchPoint
 {
-    FText Description;                           // Redaktionelle Beschriftung
-    TArray<UMayDialogueRequirement*> Requirements; // Bedingungen (alle müssen Passed liefern)
-    FGuid TargetNodeGuid;                        // Ziel-Node wenn Bedingungen erfüllt
+    TArray<FMayDialogueChoiceEntry> Choices;
 };
 ```
 
-Die Reihenfolge der `BranchPoints` bestimmt die Auswertungs-Priorität (erster Treffer gewinnt).
+{% hint style="info" %}
+Das Branch-*Routing* selbst liegt auf dem `UMayDialogueNode_Branch`-Node: Er wertet eine einzelne `Condition`-Requirement aus und nimmt den **True**-Output, wenn sie passt, den **False**-Output, wenn sie fehlschlägt, und einen optionalen **Default**-Output, wenn `bHasFallback` gesetzt ist — nicht auf dieser Struct. Siehe [Branch-Node](../nodes/core/branch.md).
+{% endhint %}
 
 ---
 

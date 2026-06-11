@@ -47,7 +47,7 @@ Jeder am Dialog beteiligte Actor braucht eine `UMayDialogueParticipant`-Komponen
 <details>
 <summary>Ein anderer Dialog läuft bereits</summary>
 
-Mehrere Dialoge können gleichzeitig laufen (das Subsystem verwaltet alle aktiven Instanzen) — ein anderer laufender Dialog blockiert einen neuen Start also nicht per se. Wenn aber *derselbe Participant* bereits in einem Gespräch ist, kann ein zweiter Start auf ihm fehlschlagen oder überlappende UI erzeugen. Prüfe mit `MayDialogueSubsystem → IsAnyDialogueActive()` und beende bei Bedarf zuerst das laufende Gespräch des Participants mit `AbortDialogue()` (oder `StopAllDialogues()`, um alles zu beenden).
+Mehrere Dialoge können gleichzeitig laufen (das Subsystem verwaltet alle aktiven Instanzen) — ein anderer laufender Dialog blockiert einen neuen Start also nicht per se. Wenn aber *derselbe Participant* bereits in einem Gespräch ist, kann ein zweiter Start auf ihm fehlschlagen oder überlappende UI erzeugen. Prüfe mit `MayDialogueSubsystem → IsAnyDialogueActive()` und beende bei Bedarf zuerst das laufende Gespräch des Participants mit `AbortDialogue()` (oder `AbortAllDialogues()`, um alles zu beenden).
 
 </details>
 
@@ -90,7 +90,7 @@ Ein falscher oder fehlender Name erzeugt eine stille Warnung — kein Crash, abe
 <details>
 <summary>Widget nach Level-Wechsel nicht sichtbar</summary>
 
-Wenn du `StartDialogue` direkt in `BeginPlay` eines Levels aufrufst, kann das Widget den Subsystem-Init-Zeitpunkt verpassen. Rufe `Subsystem → StopAllDialogues()` beim Level-Wechsel auf (z. B. im Level-Blueprint `BeginPlay` oder im `GameMode::HandleSeamlessTravel`), damit das Widget sich korrekt neu registriert.
+Wenn du `StartDialogue` direkt in `BeginPlay` eines Levels aufrufst, kann das Widget den Subsystem-Init-Zeitpunkt verpassen. Rufe `Subsystem → AbortAllDialogues()` beim Level-Wechsel auf (z. B. im Level-Blueprint `BeginPlay` oder im `GameMode::HandleSeamlessTravel`), damit das Widget sich korrekt neu registriert.
 
 </details>
 
