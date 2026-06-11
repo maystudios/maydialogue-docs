@@ -50,10 +50,14 @@ Wie Babel mit dem Typewriter-Text synchronisiert:
 
 | Modus | Wie | Wann |
 |---|---|---|
-| **TypewriterSync** | Reagiert auf jeden enthüllten Buchstaben des Typewriters | Standard – präzise Synchronisation, jeder Blip mit dem richtigen Zeichen |
-| **Continuous** | Interner Timer, unabhängig vom Typewriter | Wenn du keinen Typewriter nutzt oder Kreatur-Groll simulierst |
+| **TypewriterSync** | Ein Blip pro Zeichen, getaktet zum Typewriter | Standard – präzise Synchronisation, jeder Blip mit dem richtigen Zeichen |
+| **Continuous** | Interner Timer, unabhängig vom Typewriter | Bewusste gestreamte/Groll-Stimmen, oder wenn das Pacing von der Text-Enthüllung entkoppelt sein soll |
 
 Der übliche Case ist **BlipPerCharacter + TypewriterSync**: ein Blip pro Zeichen, synchron mit der Textanimation.
+
+{% hint style="success" %}
+**TypewriterSync funktioniert auch ohne UI-Typewriter.** Wenn eine SayLine über den eingebauten Fallback-Pfad spielt (kein UMG-/Slate-Typewriter, der `OnCharacterRevealed` treibt — z.B. ein Projekt, das kein eigenes Text-Widget gebunden hat), degradiert ein TypewriterSync-Profil nicht mehr still zu Continuous. Stattdessen treibt der Synth einen Blip pro Zeichen aus einem Timer, der der **`TypewriterCharsPerSecond`**-Kadenz aus den Projekt-Einstellungen entspricht — das Per-Zeichen-Blip-Verhalten bleibt also mit oder ohne UI-Typewriter erhalten. (Intern ist das ein Per-Invocation-Async-State-Timer, der bei der Dialog-Instanz registriert wird.)
+{% endhint %}
 
 ## Babel pro Sprecher
 
@@ -119,7 +123,7 @@ Diese Methoden sind nützlich wenn du Babel-Ausgabe aus einem anderen System her
 {% endhint %}
 
 {% hint style="warning" %}
-**Continuous Mode im UMG-Pfad:** Der Synth tickt automatisch über Unreal Engines Tick-System (`FTickableGameObject`) — du musst nichts selbst aufrufen. Im TypewriterSync-Modus musst du jedoch jeden aufgedeckten Buchstaben über C++ an `OnCharacterRevealed` weiterleiten. Im Blueprint kannst du den Synth über die verfügbaren Nodes steuern:
+**Babel aus einem eigenen UMG-Widget treiben:** Der Synth tickt automatisch über Unreal Engines Tick-System (`FTickableGameObject`). Wenn dein **eigenes** UMG-Text-Widget den Typewriter ausführt, leite jeden aufgedeckten Buchstaben an `OnCharacterRevealed` des Synths weiter (aus C++ oder im Blueprint über die verfügbaren Nodes), damit die Blips im Gleichschritt mit deiner Enthüllung landen:
 
 ```text
 [Event On Character Revealed]  ← Typewriter-Event deines Text-Widgets
@@ -131,5 +135,5 @@ Diese Methoden sind nützlich wenn du Babel-Ausgabe aus einem anderen System her
 [Stop Speech]  ← BabelSynth bei Bedarf (z.B. Skip-Button)
 ```
 
-Für einfache Projekte ist der SayLine-Fallback-Pfad (ohne Widget) die empfohlene Option — dort startet und stoppt Babel vollautomatisch.
+Für einfache Projekte ist der SayLine-Fallback-Pfad (ohne eigenes Widget) die empfohlene Option — dort startet und stoppt Babel vollautomatisch, und ein TypewriterSync-Profil behält seine Per-Zeichen-Blips, indem es sie auf die `TypewriterCharsPerSecond`-Einstellung taktet (siehe die Erfolgs-Notiz oben). Das Slate-Debug-Widget verdrahtet das ebenfalls für dich.
 {% endhint %}

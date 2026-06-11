@@ -109,7 +109,7 @@ Fallback classes for the component-based UMG workflow. If `DefaultDialogueWidget
 
 `bColorblindSafeChoiceCues` prepends a Unicode lock glyph (🔒) to the text of unavailable choice buttons via `MayDialogue::Accessibility::GetColorblindChoicePrefix(...)`. Projects with their own non-color availability indicator may disable this.
 
-**Screen-reader support:** Both widget layers call `SetAccessibleText` on each displayed element using `MayDialogue::Accessibility::MakeSpeakerAccessibleText`, `MakeDialogueTextAccessibleText`, and `MakeChoiceAccessibleText`. The accessible text for unavailable choices includes the phrase "Locked choice" and, when a reason is provided, the requirement description — so assistive technology announces context even without the visual lock glyph.
+**Screen-reader support:** Both widget layers call `SetAccessibleBehavior(EAccessibleBehavior::Custom, ...)` on each displayed element using `MayDialogue::Accessibility::MakeSpeakerAccessibleText`, `MakeDialogueTextAccessibleText`, and `MakeChoiceAccessibleText`. The accessible text for unavailable choices includes the phrase "Locked choice" and, when a reason is provided, the requirement description — so assistive technology announces context even without the visual lock glyph.
 
 ```ini
 # DefaultGame.ini example

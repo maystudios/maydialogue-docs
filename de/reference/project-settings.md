@@ -109,7 +109,7 @@ Fallback-Klassen für den komponenten-basierten UMG-Workflow. Wenn `DefaultDialo
 
 `bColorblindSafeChoiceCues` setzt einem Unicode-Schloss-Glyph (🔒) vor den Text nicht verfügbarer Choice-Buttons via `MayDialogue::Accessibility::GetColorblindChoicePrefix(...)`. Projekte mit eigenem farbunabhängigem Verfügbarkeits-Indikator können dies deaktivieren.
 
-**Screen-Reader-Unterstützung:** Beide Widget-Schichten rufen `SetAccessibleText` für jedes angezeigte Element auf, unter Verwendung von `MayDialogue::Accessibility::MakeSpeakerAccessibleText`, `MakeDialogueTextAccessibleText` und `MakeChoiceAccessibleText`. Der Accessible-Text für nicht verfügbare Choices enthält die Phrase "Gesperrte Wahl" und, wenn ein Grund angegeben wird, die Anforderungsbeschreibung — so gibt assistive Technologie Kontext aus, auch ohne das visuelle Schloss-Glyph.
+**Screen-Reader-Unterstützung:** Beide Widget-Schichten rufen `SetAccessibleBehavior(EAccessibleBehavior::Custom, ...)` für jedes angezeigte Element auf, unter Verwendung von `MayDialogue::Accessibility::MakeSpeakerAccessibleText`, `MakeDialogueTextAccessibleText` und `MakeChoiceAccessibleText`. Der Accessible-Text für nicht verfügbare Choices enthält die Phrase "Gesperrte Wahl" und, wenn ein Grund angegeben wird, die Anforderungsbeschreibung — so gibt assistive Technologie Kontext aus, auch ohne das visuelle Schloss-Glyph.
 
 ```ini
 # DefaultGame.ini-Beispiel

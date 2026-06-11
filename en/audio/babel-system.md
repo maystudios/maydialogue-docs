@@ -50,10 +50,14 @@ How Babel synchronises with the typewriter text:
 
 | Mode | How | When |
 |---|---|---|
-| **TypewriterSync** | Reacts to every letter revealed by the typewriter | Standard — precise synchronisation, each blip with the correct character |
-| **Continuous** | Internal timer, independent of the typewriter | When you are not using a typewriter or are simulating creature growling |
+| **TypewriterSync** | One blip per character, paced to the typewriter | Standard — precise synchronisation, each blip with the correct character |
+| **Continuous** | Internal timer, independent of the typewriter | Deliberate streamed/growling voices, or when you want pacing decoupled from the text reveal |
 
 The typical case is **BlipPerCharacter + TypewriterSync**: one blip per character, in sync with the text animation.
+
+{% hint style="success" %}
+**TypewriterSync works even with no UI typewriter.** When a SayLine plays through the built-in fallback path (no UMG/Slate typewriter driving `OnCharacterRevealed` — for example a project that hasn't bound a custom text widget), a TypewriterSync profile no longer silently degrades to Continuous. Instead the synth drives one blip per character from a timer matching the **`TypewriterCharsPerSecond`** project-settings cadence, so the per-character blip behaviour is preserved with or without a UI typewriter. (Under the hood this is a per-invocation async-state timer registered with the dialogue instance.)
+{% endhint %}
 
 ## Babel per Speaker
 
@@ -119,7 +123,7 @@ These methods are useful when you control Babel output from another system — f
 {% endhint %}
 
 {% hint style="warning" %}
-**Continuous mode in the UMG path:** The synth ticks automatically via Unreal Engine's tick system (`FTickableGameObject`) — you do not need to call anything yourself. In TypewriterSync mode, however, you must forward every revealed character to `OnCharacterRevealed` via C++. In Blueprint you can control the synth using the available nodes:
+**Driving Babel from a custom UMG widget:** The synth ticks automatically via Unreal Engine's tick system (`FTickableGameObject`). If your **own** UMG text widget runs the typewriter, forward every revealed character to the synth's `OnCharacterRevealed` (from C++, or in Blueprint via the available nodes) so blips land in lockstep with your reveal:
 
 ```text
 [Event On Character Revealed]  ← typewriter event from your text widget
@@ -131,5 +135,5 @@ These methods are useful when you control Babel output from another system — f
 [Stop Speech]  ← BabelSynth if needed (e.g. skip button)
 ```
 
-For simple projects, the SayLine fallback path (without a widget) is the recommended option — Babel starts and stops fully automatically there.
+For simple projects, the SayLine fallback path (no custom widget) is the recommended option — Babel starts and stops fully automatically there, and a TypewriterSync profile keeps its per-character blips by pacing them to the `TypewriterCharsPerSecond` setting (see the success note above). The Slate debug widget likewise wires this up for you.
 {% endhint %}

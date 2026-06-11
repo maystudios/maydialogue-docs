@@ -7,6 +7,7 @@
 * [Einführung](getting-started/README.md)
 * [Installation](getting-started/installation.md)
 * [Quick Start – Dein erster Dialog in 5 Minuten](getting-started/quick-start.md)
+* [Onboarding & Editor-Komfort – Deine ersten 5 Minuten](getting-started/onboarding.md)
 * [Ein vollständiger Walkthrough](getting-started/first-dialogue.md)
 * [Projekt-Einstellungen](getting-started/project-settings.md)
 
@@ -19,6 +20,7 @@
 * [Participants & Sprecher](concepts/participants-speakers.md)
 * [Variablen & Scopes](concepts/variables-scopes.md)
 * [Emotionen & Tag-Container](concepts/emotions-tags.md)
+* [MayDialogue & CommonConversation](concepts/common-conversation.md)
 
 ## Der Editor
 
@@ -70,6 +72,9 @@
 * [Blueprint-Library](runtime/library-api.md)
 * [Bridge & Lifecycle-Events](runtime/bridge-events.md)
 * [Read/Write-API](runtime/read-write-api.md)
+* [Resume-at-Node: Speichern & Fortsetzen](runtime/resume.md)
+* [Enhanced Input Integration](runtime/enhanced-input.md)
+* [Multiplayer & Dedicated Server](runtime/multiplayer.md)
 
 ## UI-System
 
@@ -94,6 +99,8 @@
 * [Lokalisierung (VoicePerCulture)](audio/localization.md)
 * [Babel-System](audio/babel-system.md)
 * [Babel-Profile](audio/babel-profiles.md)
+* [CSV-Writer-Pipeline (Export/Lektorat/Import)](audio/csv-pipeline.md)
+* [VO-Profi-Hooks: Voice-Line-Events & MetaSound](audio/vo-hooks.md)
 
 ## GAS-Integration
 
@@ -136,6 +143,8 @@
 * [Beziehungs-Score tracken](recipes/relationship-counter.md)
 * [NPC erinnert sich beim 2. Treffen](recipes/npc-remembers-meeting.md)
 * [Mehrsprachigkeit](recipes/multilingual-dialogue.md)
+* [Dialoge lokalisieren](recipes/localization.md)
+* [Lip-Sync anbinden (Bridge-Rezept)](recipes/lip-sync-bridge.md)
 * [Innerer Monolog mit 2D-Audio](recipes/inner-monologue-2d.md)
 * [Kamera-Schwenk auf Sprecher](recipes/camera-pan-on-speaker.md)
 * [Jump-Scare mit Camera-Shake](recipes/jump-scare-shake.md)
@@ -165,4 +174,6 @@
 ## Anhang
 
 * [Roadmap](appendix/roadmap.md)
+* [Performance](appendix/performance.md)
 * [Glossar](appendix/glossary.md)
+* [Barrierefreiheit](appendix/accessibility.md)
