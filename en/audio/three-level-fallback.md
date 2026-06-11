@@ -79,7 +79,7 @@ Available on **PlaySound**:
 | `Sound` | SoundBase asset | Explicit sound for this node |
 | `VolumeMultiplier` | float | Volume scale for this sound |
 | `PitchMultiplier` | float | Pitch scale for this sound |
-| `bForce2D` | bool | Force 2D playback |
+| `NodeAudioMode` | Enum | `Default` / `Spatial3D` / `Force2D` (the tri-state that superseded the old `bForce2D` boolean) |
 
 ## Resolution Algorithm
 

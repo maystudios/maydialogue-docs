@@ -30,15 +30,15 @@ Volume and pitch overrides exist at the speaker level. If you want to make indiv
 The `PlaySound` node can play audio independently — separate from SayLines. It has full override control.
 
 > 📸 **Image placeholder:** `node-overrides-playsound-details.png` — Details panel of a PlaySound node with filled values.
-> *Setup:* Select a PlaySound node in the graph. Details panel on the right shows: `Sound = SFX_Heartbeat`, `VolumeMultiplier = 0.4`, `PitchMultiplier = 1.0`, `bForce2D = false`, `TargetTag = Dialogue.Speaker.Guard`. All fields filled, red arrow on `VolumeMultiplier`.
+> *Setup:* Select a PlaySound node in the graph. Details panel on the right shows: `Sound = SFX_Heartbeat`, `VolumeMultiplier = 0.4`, `PitchMultiplier = 1.0`, `NodeAudioMode = Force2D`. All fields filled, red arrow on `VolumeMultiplier`.
 
 | Property | Type | Effect |
 |---|---|---|
 | `Sound` | USoundBase | The sound to play (SoundWave, SoundCue, MetaSound) |
 | `VolumeMultiplier` | float | Volume scale for this sound |
 | `PitchMultiplier` | float | Pitch scale for this sound |
-| `bForce2D` | bool | 2D playback (ignores attenuation) |
-| `TargetTag` | FGameplayTag | Optional: play the sound at the actor of this speaker |
+| `NodeAudioMode` | EMayDialogueAudioMode | `Default` / `Force2D` / `Spatial3D` — the tri-state mode that superseded the old `bForce2D` boolean |
+| `AttenuationOverride` | USoundAttenuation | Node-specific attenuation; only active in `Spatial3D` mode |
 
 ## Advance Mode and Audio Timing
 
@@ -74,7 +74,7 @@ This line plays directly into the player's ear without spatial positioning — c
 PlaySound
   Sound            = SFX_AmbientDrip
   VolumeMultiplier = 0.4
-  bForce2D         = false
+  NodeAudioMode    = Default
 ```
 
 The dripping sound should stay in the background, not dominate.
