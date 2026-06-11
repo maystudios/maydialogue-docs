@@ -67,7 +67,7 @@ Fertig. Beim nächsten Dialog-Start erscheint das Theme. Um ein Theme pro Level 
 - Gesperrte-aber-sichtbare Choices (`FailedButVisible`): **Lock-Icon** wird eingeblendet, Text wechselt auf die Disabled-Farbe (`#8A857E`).
 
 > 📸 **Bild-Platzhalter:** `theme-horror-choice-hover.png` — PIE-Viewport, Horror-Theme, PlayerChoice aktiv. Button 1 gehovered (Hover-Textur + aufgehellter Text). Ein gesperrter Button mit Lock-Icon und abgedunkeltem Text. Maus-Cursor sichtbar.
-> *Setup:* Horror-Theme, PlayerChoice-Node mit 3 Choices (1 davon mit nicht erfülltem Requirement, FailResult = Failed But Visible), Maus über Button 1 hovern, Screenshot.
+> *Setup:* Horror-Theme, PlayerChoice-Node mit 3 Choices (1 davon mit nicht erfülltem Requirement, FailResult = FailedButVisible), Maus über Button 1 hovern, Screenshot.
 
 ---
 

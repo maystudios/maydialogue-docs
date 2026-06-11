@@ -67,7 +67,7 @@ Done. The theme appears the next time a dialogue starts. To apply a theme per le
 - Locked-but-visible choices (`FailedButVisible`): a **lock icon** appears and the text switches to the disabled colour (`#8A857E`).
 
 > 📸 **Image placeholder:** `theme-horror-choice-hover.png` — PIE viewport, Horror theme, PlayerChoice active. Button 1 hovered (hover texture + brightened text). One locked button with lock icon and dimmed text. Mouse cursor visible.
-> *Setup:* Horror theme, PlayerChoice node with 3 choices (one with an unmet requirement, FailResult = Failed But Visible), hover the mouse over button 1, take a screenshot.
+> *Setup:* Horror theme, PlayerChoice node with 3 choices (one with an unmet requirement, FailResult = FailedButVisible), hover the mouse over button 1, take a screenshot.
 
 ---
 
