@@ -75,12 +75,13 @@ Nach der einführenden SayLine ein **AddTag**-Action-Node:
 
 | Property | Wert |
 |----------|------|
-| `TargetParticipantTag` | `Dialogue.Participant.Player` |
-| `Tag` | `Story.Met.Herbwoman` |
-| `bApplyPermanent` | `true` (via Infinite-GE) |
+| `TagToAdd` | `Story.Met.Herbwoman` |
+| `bAddToInstigator` | `true` (fügt den Tag dem Player-ASC hinzu; `false` würde den NPC adressieren) |
+
+Der AddTag-Node setzt einen **Loose** Gameplay-Tag (`AddLooseGameplayTag`) — er bleibt, bis er explizit entfernt wird, wird aber von GAS selbst nicht gespeichert. Für einen Tag, der ein Savegame überlebt, nutze stattdessen einen Infinite-Duration-GameplayEffect mit `GrantedTags` (siehe [Add Tag](../nodes/actions/add-tag.md)).
 
 > 📸 **Bild-Platzhalter:** `gas-driven-dialogue-addtag-details.png` — Details-Panel des AddTag-Nodes.
-> *Setup:* AddTag-Node ausgewählt. Details: `TargetParticipantTag = Dialogue.Participant.Player`, `Tag = Story.Met.Herbwoman`, `bApplyPermanent = true`.
+> *Setup:* AddTag-Node ausgewählt. Details: `TagToAdd = Story.Met.Herbwoman`, `bAddToInstigator = true`.
 
 ### 4. PlayerChoice mit Attribut-Gate
 
