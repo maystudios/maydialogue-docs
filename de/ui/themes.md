@@ -10,8 +10,8 @@ description: Horror-, Visual-Novel- und RPG-Theme — wie du ein Theme wählst, 
 
 MayDialogue liefert das Widget-Framework und obendrauf fertige Themes. Die **visuellen Themes** sind Blueprint-Subklassen — jedes ist ein vollständiger Satz Widget-Klassen, der das Aussehen deines Dialogs bestimmt.
 
-> 📸 **Bild-Platzhalter:** `themes-overview-comparison.png` — Drei PIE-Viewport-Screenshots nebeneinander: links Horror-Theme (dunkel, blutrote Akzente), Mitte VN-Theme (helles Panel unten, großes Portrait links), rechts RPG-Theme (pergament-farbenes Banner, kleines Portrait). Gleicher Dialog-Text in allen drei.
-> *Setup:* Denselben Dialog dreimal mit unterschiedlichen Widget-Klassen starten. Screenshots in PIE.
+> 📸 **Bild-Platzhalter:** `themes-overview-comparison.png` — Drei PIE-Viewport-Screenshots nebeneinander: links Horror-Theme (fast schwarzes Panel, Typewriter-Schrift im Nameplate), Mitte VN-Theme (tiefviolettes Panel, Name-Pill, helle Sans-Serif), rechts RPG-Theme (dunkles Slate-Panel mit Gilt-Rahmen, Cinzel-Nameplate, elfenbeinfarbener Text). Gleicher Dialog-Text in allen drei.
+> *Setup:* Denselben Dialog dreimal mit unterschiedlichen Widget-Klassen starten (je Sample-Map einmal anspielen — der ThemeSetter setzt das Theme automatisch). Screenshots in PIE.
 
 ## Welche Themes gibt es?
 
@@ -19,9 +19,9 @@ Drei Themes liegen fertig nutzbar unter `/MayDialogue/Themes`. Jedes ist ein vol
 
 | Theme | Composite-Widget | Stil | Genre |
 |---|---|---|---|
-| **Horror** — *Pale Static* | `WBP_MayDlg_Theme_Horror` | Dunkel, blutrote Akzente, grober Rahmen, nervöser Typewriter | Horror, Mystery |
-| **Visual Novel** — *Daybreak* | `WBP_MayDlg_Theme_VN` | Großer Portrait-Bereich, zentrierte Text-Box, weiche Animationen | VN, Story-Adventures |
-| **RPG** — *Gilded Slate* | `WBP_MayDlg_Theme_RPG` | Klassische Dialog-Box, Name-Plate, Inventar-kompatibles Layout | RPG, Adventure |
+| **Horror** — *Pale Static* | `WBP_MayDlg_Theme_Horror` | Fast schwarzes Panel, fahler Text, Typewriter-Schrift (Special Elite) im Nameplate, CRT-Flicker beim Einblenden | Horror, Mystery |
+| **Visual Novel** — *Daybreak* | `WBP_MayDlg_Theme_VN` | Tiefviolettes, breites Panel, Name-Pill (Quicksand), Nunito-Sans-Fließtext, Choices schweben mittig im Bild | VN, Story-Adventures |
+| **RPG** — *Gilded Slate* | `WBP_MayDlg_Theme_RPG` | Dunkles Slate-Panel mit Gilt-Rahmen, Cinzel-Nameplate, elfenbeinfarbener Text, Lock-Icon auf gesperrten Choices | RPG, Adventure |
 
 Ein neutrales `WBP_DialogueTheme_Default` (unter `/MayDialogue/Samples/UI`) ist die schlichte Basis, die genutzt wird, wenn kein Theme gesetzt ist. Die Widget-Klassen sind subclassbar — du nimmst ein beliebiges Theme als Ausgangspunkt und passt es an.
 
@@ -45,81 +45,78 @@ Fertig. Beim nächsten Dialog-Start erscheint das Theme. Um ein Theme pro Level 
 
 ## Horror-Theme
 
-> 📸 **Bild-Platzhalter:** `theme-horror-ingame.png` — PIE-Viewport, Horror-Theme aktiv. Dunkles Panel unten mit subtilen Rausch-Partikeln im Hintergrund, dünne blutrote Rahmenlinien, Speaker-Name in verwitterter Hand-Lettering-Schrift, Text mit Shake-Effekt auf einem Wort. Einblend-Animation fast fertig (Flicker-Fade).
-> *Setup:* Horror-Theme-Widget setzen, Dialog mit `<shake>`-Tag und Emotion-Tag "Dialogue.Emotion.Scared" starten. Screenshot kurz nach dem Einblenden.
+> 📸 **Bild-Platzhalter:** `theme-horror-ingame.png` — PIE-Viewport, Horror-Theme aktiv (Sample-Map `L_Horror_Corridor` anspielen). Fast schwarzes Panel (1120×240) unten zentriert, Speaker-Nameplate links darüber in Special-Elite-Typewriter-Schrift, fahler grauweißer Text. Einblend-Animation fast fertig (CRT-Flicker-Fade).
+> *Setup:* `L_Horror_Corridor` in PIE starten, an den NPC herantreten (Proximity-Start). Screenshot kurz nach dem Einblenden.
 
 **Dialog Frame**
-- Hintergrund: pitch-black, subtiles Noise-Overlay.
-- Rahmen: dünne blutrote Linien, leicht asymmetrisch.
-- Einblend-Animation: schneller Flicker-Fade (200 ms).
-- Ausblend-Animation: Glitch-Effekt (Pixel verschieben sich kurz, Fade-Out).
+- Panel: fast schwarz (`#131316`), 1120×240 @1080p, unten zentriert.
+- Einblend-Animation: CRT-Flicker-Fade (~220 ms — die Deckkraft springt mehrfach, bevor sie steht).
+- Ausblend-Animation: schneller Fade (~160 ms).
 
 **Speaker**
-- Portrait-Frame: Cracked-Glass-Look.
-- Name-Font: Hand-Lettering oder leicht schief gesetzt.
-- Emotion "Scared": Portrait wechselt + Shake-Animation.
+- Nameplate links über dem Frame; Name in **Special Elite** (Typewriter-Look), 20 pt, gesperrte Laufweite.
+- Ein `PortraitImage`-Slot (96×96) existiert im Widget, ist aber standardmäßig collapsed — hänge eine Textur per Subclass an, wenn du Portraits willst.
 
 **Text**
-- Typewriter: leicht unregelmäßig (Variation mit `<speed>`-Tags im Inhalt).
-- Font: Serif, leicht verwittert.
-- Shake bei emotionalen Wörtern empfohlen: `<shake>Tot.</shake>`.
+- Body-Font: Roboto 18 pt in fahlem Grauweiß (`#D8D4CC`).
+- Typewriter-Effekte über Rich-Text-Tags im Zeilentext: `<shake>Tot.</shake>`, `<speed>`-Variationen — siehe [Rich-Text-Tags](rich-text-tags.md).
 
 **Choice-Buttons**
-- Hover: roter Glow, kurzes Zucken.
-- Disabled: fast unsichtbar, Tooltip erscheint verzögert.
+- 720×56, gestapelt über dem Frame; eigene Normal/Hover/Pressed/Disabled-Texturen.
+- Hover: Opacity-Nudge-Animation (`Anim_Hover`, ~80 ms).
+- Gesperrte-aber-sichtbare Choices (`FailedButVisible`): **Lock-Icon** wird eingeblendet, Text wechselt auf die Disabled-Farbe (`#8A857E`).
 
-> 📸 **Bild-Platzhalter:** `theme-horror-choice-hover.png` — PIE-Viewport, Horror-Theme, PlayerChoice aktiv. Button 1 gehovered: roter Glow um den Button-Bereich. Button 2 normal. Button 3 disabled (kaum sichtbar). Maus-Cursor sichtbar.
-> *Setup:* Horror-Theme, PlayerChoice-Node mit 3 Choices (1 unavailable), Maus über Button 1 hovern, Screenshot.
+> 📸 **Bild-Platzhalter:** `theme-horror-choice-hover.png` — PIE-Viewport, Horror-Theme, PlayerChoice aktiv. Button 1 gehovered (Hover-Textur + aufgehellter Text). Ein gesperrter Button mit Lock-Icon und abgedunkeltem Text. Maus-Cursor sichtbar.
+> *Setup:* Horror-Theme, PlayerChoice-Node mit 3 Choices (1 davon mit nicht erfülltem Requirement, FailResult = Failed But Visible), Maus über Button 1 hovern, Screenshot.
 
 ---
 
 ## Visual-Novel-Theme
 
-> 📸 **Bild-Platzhalter:** `theme-vn-ingame.png` — PIE-Viewport, VN-Theme aktiv. Helles, halbtransparentes Panel unten zentriert (70% Breite). Portrait links groß (256×256), daneben Speaker-Name als Badge über dem Text. Sanfte Slide-Up-Animation abgeschlossen. Drei zentrierte Choice-Zeilen.
-> *Setup:* VN-Theme-Widget setzen, Dialog mit Portrait und PlayerChoice starten. Screenshot nach abgeschlossener Einblende.
+> 📸 **Bild-Platzhalter:** `theme-vn-ingame.png` — PIE-Viewport, VN-Theme aktiv (Sample-Map `L_VN_Scene` anspielen). Tiefviolettes, breites Panel (1400×300) unten zentriert, Speaker-Name als abgerundete Pill in Quicksand, heller Nunito-Sans-Fließtext. Weicher Fade abgeschlossen.
+> *Setup:* `L_VN_Scene` in PIE starten, an Jun/Riley herantreten — der Speaker-Wechsel pro Zeile ist Teil des Samples. Screenshot nach abgeschlossener Einblende.
 
 **Dialog Frame**
-- Hintergrund: 70% Deckkraft, Pergament-Farbe, 12 px Abrundung.
-- Position: unten zentriert, 70% Bildschirmbreite.
-- Einblend-Animation: Slide-Up + 300 ms Ease-Out.
+- Panel: tiefes Violett (`#322B4D`), 1400×300 @1080p — das breiteste der drei Themes.
+- Einblend-Animation: weicher Fade (~280 ms), Ausblenden ~220 ms.
 
 **Speaker**
-- Portrait: 256×256, links positioniert.
-- Emotion-Tags steuern Portrait-Wechsel via DataTable (Emotion → Texture).
-- Name-Badge: über dem Text-Bereich, nicht im Speaker-Widget selbst.
+- Name-**Pill** (abgerundet) statt eckigem Nameplate; Name in **Quicksand SemiBold**, 17 pt.
+- Großzügiger `PortraitImage`-Slot (384×480) für VN-Portraits — standardmäßig collapsed; per Subclass mit Texturen belegen.
 
 **Text**
+- Body-Font: **Nunito Sans** 20 pt in fast weißem Ton (`#F7F4FA`) — das einzige Theme mit eigener Fließtext-Schrift.
 - Typewriter mittlere Geschwindigkeit.
-- Font: Sans-Serif, gut lesbar.
 
 **Choice-Buttons**
-- Zentrierte Hover-Zeilen.
-- Optional: Tasten-Hinweis (Q, W, E, R) am Button-Ende.
+- **Schweben mittig im Bild** (Center-Anchor) statt über dem Frame — klassisches VN-Entscheidungs-Layout, 840×64 pro Zeile.
+- Gesperrte Choices zeigen Lock-Icon + Disabled-Farbe (`#A9A1BE`).
 
-> 📸 **Bild-Platzhalter:** `theme-vn-choice-layout.png` — PIE-Viewport, VN-Theme, drei zentrierte Choice-Buttons. Jeder Button hat am rechten Rand einen Tasten-Hinweis ("Q", "W", "E"). Button 2 gehovered (Highlight-Farbe). Keine Disabled-Buttons in diesem Screenshot.
-> *Setup:* VN-Theme, PlayerChoice mit 3 Choices, Tasten-Hints in WBP_ChoiceButton integriert, Screenshot.
+> 📸 **Bild-Platzhalter:** `theme-vn-choice-layout.png` — PIE-Viewport, VN-Theme, drei mittig schwebende Choice-Zeilen (Center-Anchor, nicht am Frame). Button 2 gehovered (Hover-Textur). Panel mit laufender Frage unten sichtbar.
+> *Setup:* VN-Theme, PlayerChoice mit 3 Choices, Maus über Button 2, Screenshot des ganzen Viewports (damit das Schweben sichtbar ist).
 
 ---
 
 ## RPG-Theme
 
-> 📸 **Bild-Platzhalter:** `theme-rpg-ingame.png` — PIE-Viewport, RPG-Theme aktiv. Pergament-farbenes Banner unten (80% Breite), verzierter Rand, Name-Plate separat über dem Frame, kleines Portrait links (64×64), Dialog-Text in Serif-Font. Drei Choice-Buttons mit Icons links (Schild-Icon, Sprech-Icon, Lauf-Icon).
-> *Setup:* RPG-Theme-Widget setzen, Dialog mit kleinem Portrait und 3 Choices mit unterschiedlichen Icons starten.
+> 📸 **Bild-Platzhalter:** `theme-rpg-ingame.png` — PIE-Viewport, RPG-Theme aktiv (Sample-Map `L_DialogueShowcase` anspielen, z.B. Gatekeeper Marrow). Dunkles Slate-Panel (1260×232) mit Gilt-Rahmen unten zentriert, Cinzel-Nameplate links darüber, elfenbeinfarbener Text. Drei Choice-Buttons über dem Frame, einer gesperrt mit Lock-Icon.
+> *Setup:* `L_DialogueShowcase` in PIE starten, an Marrow herantreten — sein Dialog hat von Haus aus eine gesperrt-sichtbare Gate-Choice.
 
 **Dialog Frame**
-- Hintergrund: semi-opak, brauner Banner mit verziertem Border.
-- Position: unten, 80% Bildschirmbreite.
+- Panel: dunkles Slate (`#161A21`) mit vergoldetem 9-Slice-Rahmen, 1260×232 @1080p, unten zentriert.
+- Einblend-Animation: Fade ~200 ms, Ausblenden ~150 ms.
 
 **Speaker**
-- Name-Plate: separat über dem Frame, nicht im Frame selbst.
-- Portrait: klein (64×64), links.
+- Nameplate links über dem Frame; Name in **Cinzel** (Antiqua-Kapitälchen-Look), 17 pt, leicht gesperrt.
+- `PortraitImage`-Slot (96×96) vorhanden, standardmäßig collapsed.
 
 **Text**
+- Body-Font: Roboto 18 pt in Elfenbein (`#EDE4D3`) — der Text trägt die Pergament-Anmutung, nicht das Panel.
 - Typewriter schnell.
-- Font: Serif oder fantasievolle Kursive.
 
 **Choice-Buttons**
-- Icons neben dem Choice-Text (Kampf-Icon, Sprach-Icon, Magie-Icon).
+- 560×52, gestapelt über dem Frame, vergoldete Hover-Textur.
+- Gesperrte-aber-sichtbare Choices: **Lock-Icon** + Disabled-Farbe (`#978F7F`) — im Marrow-Sample direkt erlebbar.
 
 ---
 
