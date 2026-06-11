@@ -12,7 +12,7 @@ Kompakt-Referenz von `UMayDialogueSettings`.
 - **UI-Pfad**: *Edit → Project Settings → Plugins → MayDialogue*
 
 > 📸 **Bild-Platzhalter:** `project-settings-panel.png` — Screenshot des Project-Settings-Panels.
-> *Setup:* Editor geöffnet, Edit → Project Settings → Plugins → MayDialogue. Vollständiger Screenshot des Settings-Panels mit allen Kategorien sichtbar: Widget, UMG-Komponenten-Defaults, Dialog-Defaults, Typewriter, Input, Audio, Babel-Voice, Kamera. Roter Pfeil zeigt auf den Navigations-Pfad oben im Settings-Fenster.
+> *Setup:* Editor geöffnet, Edit → Project Settings → Plugins → MayDialogue. Vollständiger Screenshot des Settings-Panels mit allen Kategorien sichtbar: Widget, UMG-Komponenten-Defaults, Dialog-Defaults, Typewriter, Input, Enhanced Input, Audio, Babel-Voice, Kamera, Wait, Barrierefreiheit, GAS Lifecycle Cues. Roter Pfeil zeigt auf den Navigations-Pfad oben im Settings-Fenster.
 
 ---
 
@@ -21,8 +21,8 @@ Kompakt-Referenz von `UMayDialogueSettings`.
 | Property | Typ | Default | Bedeutung |
 |---|---|---|---|
 | `DefaultDialogueWidgetClass` | `TSoftClassPtr<UMayDialogueWidget>` | *(leer)* | UMG-Widget das als Dialog-Overlay angezeigt wird. Leer → Slate-Debug-Fallback. |
-| `bUseSlateDialogueWidget` | `bool` | `true` | Slate-Debug-Widget einblenden solange `DefaultDialogueWidgetClass` leer ist. |
-| `PanelBlurStrength` | `float` | `10.0` | Blur-Stärke der Slate-Panels (nur im Slate-Debug-Widget wirksam). |
+| `bUseSlateDialogueWidget` | `bool` | `true` | `true` → das eingebaute Slate-Widget spawnen; `false` → stattdessen das UMG-Widget aus `DefaultDialogueWidgetClass`. |
+| `PanelBlurStrength` | `float` | `10.0` | Blur-Stärke der Slate-Panels (nur wirksam wenn `bUseSlateDialogueWidget` true ist). |
 
 ---
 
@@ -66,7 +66,27 @@ Fallback-Klassen für den komponenten-basierten UMG-Workflow. Wenn `DefaultDialo
 | `bAllowSkipTypewriter` | `bool` | `true` | Spieler-Input zipped den Typewriter sofort auf den vollen Text. |
 | `bAllowSkipVoiceLine` | `bool` | `true` | Spieler-Input stoppt laufende Voice und advanced weiter. |
 | `bSwitchToUIInputDuringDialogue` | `bool` | `true` | Input-Mode `GameAndUI` für die Dialog-Dauer. |
-| `bShowMouseCursorDuringDialogue` | `bool` | `true` | Maus-Cursor während des Dialogs einblenden. |
+| `bShowMouseCursorDuringDialogue` | `bool` | `true` | Maus-Cursor während des Dialogs einblenden (nur wenn `bSwitchToUIInputDuringDialogue`). |
+
+---
+
+## Enhanced Input
+
+Optionale Enhanced-Input-Integration. Jedes Feld außer `bUseEnhancedInput` graut aus (`EditCondition`), wenn der Master-Switch aus ist. Die hardcoded Tasten bleiben als Fallback, sodass Dialog-Input auch ohne Konfiguration funktioniert. Siehe [Runtime → Enhanced Input](../runtime/enhanced-input.md) für das vollständige Schritt-für-Schritt-Setup.
+
+| Property | Typ | Default | Bedeutung |
+|---|---|---|---|
+| `bUseEnhancedInput` | `bool` | `true` | Master-Switch. Aus = nur die Fallback-Tasten gelten. |
+| `DialogueMappingContext` | `TSoftObjectPtr<UInputMappingContext>` | *(leer)* | IMC, das beim Dialog-Start hinzugefügt und am Ende entfernt wird. |
+| `MappingContextPriority` | `int32` | `100` | Priorität, mit der das IMC gepusht wird (höher schlägt niedrigere Kontexte). |
+| `AdvanceAction` | `TSoftObjectPtr<UInputAction>` | *(leer)* | Advance / Typewriter-Skip. |
+| `SkipAction` | `TSoftObjectPtr<UInputAction>` | *(leer)* | Voice- / Line-Skip. |
+| `AbortAction` | `TSoftObjectPtr<UInputAction>` | *(leer)* | Dialog abbrechen. |
+| `ChoiceUpAction` | `TSoftObjectPtr<UInputAction>` | *(leer)* | Choice-Cursor hoch. |
+| `ChoiceDownAction` | `TSoftObjectPtr<UInputAction>` | *(leer)* | Choice-Cursor runter. |
+| `ChoiceConfirmAction` | `TSoftObjectPtr<UInputAction>` | *(leer)* | Hervorgehobene Choice bestätigen. |
+| `ChoiceByIndexActions` | `TArray<TSoftObjectPtr<UInputAction>>` | *(leer)* | Direkt-Auswahl: Index 0 = Choice 1, … (bis zu neun). |
+| `bAutoDetectInputDevice` | `bool` | `true` | Tastatur/Gamepad automatisch erkennen und Skip-Glyph + Slate-Hint speisen. |
 
 ---
 
@@ -95,6 +115,15 @@ Fallback-Klassen für den komponenten-basierten UMG-Workflow. Wenn `DefaultDialo
 |---|---|---|---|
 | `bAutoFocusSpeaker` | `bool` | `false` | Automatischer CameraFocus auf den aktuellen SayLine-Speaker. |
 | `DefaultCameraBlendTime` | `float` | `0.5` | Blend-Dauer in Sekunden für CameraFocus ohne explizite Angabe. |
+| `DefaultAnchorRestoreBlendTime` | `float` | `0.5` | Blend-Zeit beim Wiederherstellen des ursprünglichen ViewTargets nach einem Camera-Anchor-/Shot-Focus bei Dialog-Ende (0 = snap). |
+
+---
+
+## Wait
+
+| Property | Typ | Default | Bedeutung |
+|---|---|---|---|
+| `LatchedEventWindowSeconds` | `float` | `0.1` | Wie weit zurück (Sekunden) ein Gameplay-Event gefeuert worden sein darf, bevor ein Wait-Node aktiviert wird, und trotzdem als "gerade gefeuert" zählt (Latched-Event-Catch-up). Clamped `0.0–5.0`. |
 
 ---
 
