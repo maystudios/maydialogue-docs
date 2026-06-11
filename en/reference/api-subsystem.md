@@ -154,6 +154,37 @@ bool IsAnyDialogueActive() const;
 
 ---
 
+## Dialogue UI Theme (world-scoped widget override)
+
+| Signature | Return | Description |
+|---|---|---|
+| `SetDialogueWidgetClassOverride(WidgetClass)` | `void` | Override the dialogue widget class for **this world**. Live-switches the on-screen UI if a dialogue is running; `None` clears it. |
+| `GetDialogueWidgetClassOverride()` | `TSoftClassPtr<UMayDialogueWidget>` | The current world-scoped override (`None` when unset). |
+
+```cpp
+UFUNCTION(BlueprintCallable, Category = "MayDialogue|UI")
+void SetDialogueWidgetClassOverride(TSoftClassPtr<UMayDialogueWidget> WidgetClass);
+
+UFUNCTION(BlueprintPure, Category = "MayDialogue|UI")
+TSoftClassPtr<UMayDialogueWidget> GetDialogueWidgetClassOverride() const;
+```
+
+**Semantics:**
+
+- The override is **world-scoped** — it lives and dies with this world's subsystem and is never persisted. Travelling to a level without an override falls back to the project default automatically.
+- **Precedence** in the auto-spawn path:
+
+  ```text
+  world override  >  bUseSlateDialogueWidget  >  DefaultDialogueWidgetClass  >  built-in UMayDialogueWidget fallback
+  ```
+
+  A world override therefore outranks *both* the Slate debug widget and the project-wide `DefaultDialogueWidgetClass`.
+- **Live switch:** setting a (non-`None`) class while a dialogue UI is on screen tears the old widget down and, if a dialogue is running, immediately respawns the new widget and rebinds it (via `BindToInstance`) to the newest active instance.
+- Passing **`None`** clears the override; the default UI returns at the next `StartDialogue` (a project default is not re-applied mid-conversation).
+- Convenience setters: drop an **`AMayDialogueThemeSetter`** actor into a level (its `ThemeWidgetClass` is applied on `BeginPlay`; its `EventThemes` map switches live when a dialogue fires a mapped `FireEvent` tag). See [Runtime Theme Switching](../recipes/runtime-theme-switch.md).
+
+---
+
 ## Subsystem Delegates
 
 | Delegate | Type | Fire Time |

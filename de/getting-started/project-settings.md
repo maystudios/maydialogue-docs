@@ -30,6 +30,10 @@ MayDialogue registriert zwei Einstellungsabschnitte:
 **Schnellste Wahl für den Start:** Lass `DefaultDialogueWidgetClass` leer und `bUseSlateDialogueWidget = true`. Das Debug-Widget erscheint automatisch, kein Widget-Blueprint nötig. Tausche es gegen dein eigenes aus, sobald das Design steht.
 {% endhint %}
 
+{% hint style="info" %}
+**`DefaultDialogueWidgetClass` ist der projektweite Default, nicht der einzige Weg, eine UI zu wählen.** Für ein anderes Theme pro Level oder zum Live-Umschalten mitten im Gespräch hält das Subsystem ein **welt-bezogenes Override**, das diese Einstellung schlägt — ziehe einen `AMayDialogueThemeSetter`-Actor ins Level oder rufe `UMayDialogueSubsystem::SetDialogueWidgetClassOverride` aus Blueprint/C++ auf. Siehe [Theme-Wechsel zur Laufzeit](../recipes/runtime-theme-switch.md).
+{% endhint %}
+
 ### UI: Komponenten-Defaults
 
 Wenn du `DefaultDialogueWidgetClass` nutzt, aber nicht alle Sub-Widgets als `BindWidget` darin hardcodieren willst, kannst du Fallback-Klassen für jeden Slot setzen:

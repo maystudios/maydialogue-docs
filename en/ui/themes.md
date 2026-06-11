@@ -163,10 +163,19 @@ DefaultDialogueWidgetClass = /Game/UI/Themes/YourTheme/WBP_MayDialogue_Theme.WBP
 
 ## Multiple themes in the same project
 
-For different dialogue contexts (main story vs. tutorial vs. cutscene) you swap the widget before starting the dialogue:
+`DefaultDialogueWidgetClass` (above) is the project-wide default, but you are **not** limited to one theme per project. The subsystem holds a **world-scoped widget-class override** that lets you pick a theme per level, or switch live mid-conversation.
 
-{% hint style="info" %}
-A dedicated API hook for per-dialogue widget swapping is planned. For now: set the widget class in Settings before starting the dialogue, or build your own widget manager that swaps the widget at dialogue start.
-{% endhint %}
+**Precedence (which UI the subsystem auto-spawns):**
+
+```text
+world override  >  bUseSlateDialogueWidget  >  DefaultDialogueWidgetClass  >  built-in UMayDialogueWidget fallback
+```
+
+You set the world override two ways:
+
+* **`AMayDialogueThemeSetter`** — a drop-in level actor. Set its `Theme Widget Class` for a static per-level theme (zero code), and/or fill its `EventThemes` map so a dialogue's `FireEvent` tag live-switches the theme mid-conversation.
+* **`UMayDialogueSubsystem::SetDialogueWidgetClassOverride(WidgetClass)`** — call from Blueprint/C++ for programmatic switching (settings menu, per-NPC look, cutscene). If a dialogue is on screen, the UI live-switches immediately (old widget torn down, new one spawned and rebound); passing **None** clears the override back to the project default at the next dialogue start.
+
+The override is world-scoped, so travelling to a level without a ThemeSetter automatically returns the project default. Full walkthrough: [Runtime Theme Switching](../recipes/runtime-theme-switch.md).
 
 End of UI chapter. Next: [Audio System](../audio/README.md).

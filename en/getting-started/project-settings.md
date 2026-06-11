@@ -30,6 +30,10 @@ Open both under **Edit → Project Settings → Plugins**.
 **Quickest choice to get started:** Leave `DefaultDialogueWidgetClass` empty and keep `bUseSlateDialogueWidget = true`. The debug widget appears automatically, no widget Blueprint needed. Swap it for your own widget once the design is ready.
 {% endhint %}
 
+{% hint style="info" %}
+**`DefaultDialogueWidgetClass` is the project-wide default, not the only way to pick a UI.** For a different theme per level, or to switch live mid-conversation, the subsystem holds a **world-scoped override** that outranks this setting — drop an `AMayDialogueThemeSetter` actor into a level, or call `UMayDialogueSubsystem::SetDialogueWidgetClassOverride` from Blueprint/C++. See [Runtime Theme Switching](../recipes/runtime-theme-switch.md).
+{% endhint %}
+
 ### UI: Component Defaults
 
 If you use `DefaultDialogueWidgetClass` but don't want to hardcode all sub-widgets as `BindWidget` inside it, you can set fallback classes for each slot:

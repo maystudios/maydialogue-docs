@@ -154,6 +154,37 @@ bool IsAnyDialogueActive() const;
 
 ---
 
+## Dialog-UI-Theme (welt-bezogenes Widget-Override)
+
+| Signatur | Rückgabe | Beschreibung |
+|---|---|---|
+| `SetDialogueWidgetClassOverride(WidgetClass)` | `void` | Überschreibt die Dialog-Widget-Klasse für **diese Welt**. Wechselt die UI auf dem Bildschirm live, wenn ein Dialog läuft; `None` löscht es. |
+| `GetDialogueWidgetClassOverride()` | `TSoftClassPtr<UMayDialogueWidget>` | Das aktuelle welt-bezogene Override (`None` wenn nicht gesetzt). |
+
+```cpp
+UFUNCTION(BlueprintCallable, Category = "MayDialogue|UI")
+void SetDialogueWidgetClassOverride(TSoftClassPtr<UMayDialogueWidget> WidgetClass);
+
+UFUNCTION(BlueprintPure, Category = "MayDialogue|UI")
+TSoftClassPtr<UMayDialogueWidget> GetDialogueWidgetClassOverride() const;
+```
+
+**Semantik:**
+
+- Das Override ist **welt-bezogen** — es lebt und stirbt mit dem Subsystem dieser Welt und wird nie persistiert. Das Reisen in ein Level ohne Override fällt automatisch auf den Projekt-Default zurück.
+- **Präzedenz** im Auto-Spawn-Pfad:
+
+  ```text
+  Welt-Override  >  bUseSlateDialogueWidget  >  DefaultDialogueWidgetClass  >  eingebauter UMayDialogueWidget-Fallback
+  ```
+
+  Ein Welt-Override schlägt also *sowohl* das Slate-Debug-Widget *als auch* den projektweiten `DefaultDialogueWidgetClass`.
+- **Live-Wechsel:** Das Setzen einer (Nicht-`None`-)Klasse, während eine Dialog-UI auf dem Bildschirm liegt, baut das alte Widget ab und spawnt, falls ein Dialog läuft, sofort das neue Widget und bindet es (via `BindToInstance`) an die neueste aktive Instanz neu.
+- **`None`** übergeben löscht das Override; die Default-UI kehrt beim nächsten `StartDialogue` zurück (ein Projekt-Default wird nicht mitten im Gespräch neu angewendet).
+- Komfort-Setter: Ziehe einen **`AMayDialogueThemeSetter`**-Actor ins Level (seine `ThemeWidgetClass` wird in `BeginPlay` angewendet; seine `EventThemes`-Map wechselt live, wenn ein Dialog einen gemappten `FireEvent`-Tag feuert). Siehe [Theme-Wechsel zur Laufzeit](../recipes/runtime-theme-switch.md).
+
+---
+
 ## Subsystem-Delegates
 
 | Delegate | Typ | Feuer-Zeitpunkt |
