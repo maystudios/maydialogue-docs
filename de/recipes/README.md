@@ -31,7 +31,8 @@ Die Rezept-Galerie sammelt **fertige Lösungs-Muster** für wiederkehrende Dialo
 | 19 | [Timed Choice (Auto-Auswahl)](timed-choice.md) | Anfänger | Branching, UI |
 | 20 | [Wait auf externes GameplayEvent](wait-for-event.md) | Fortgeschritten | GAS |
 | 21 | [Eigenes UMG-Widget anbinden](custom-umg-widget.md) | Fortgeschritten | UI, Extension |
-| 22 | [Eigenen Requirement in Blueprint bauen](custom-blueprint-requirement.md) | Fortgeschritten | Extension |
+| 22 | [Theme-Wechsel zur Laufzeit](runtime-theme-switch.md) | Fortgeschritten | UI, Extension |
+| 23 | [Eigenen Requirement in Blueprint bauen](custom-blueprint-requirement.md) | Fortgeschritten | Extension |
 
 ## Empfohlene Reihenfolge für Einsteiger
 
@@ -59,7 +60,7 @@ Fortgeschritten (nach Bedarf):
        Beziehungs-Score → NPC erinnert sich
        Kamera → Jump-Scare → NPC-Animation
        Timed Choice → Wait auf Event
-       Eigenes Widget → Eigener Requirement
+       Eigenes Widget → Theme-Wechsel zur Laufzeit → Eigener Requirement
 ```
 
 ## Voraussetzungen

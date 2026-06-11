@@ -31,7 +31,8 @@ The recipe gallery collects **ready-made solution patterns** for recurring dialo
 | 19 | [Timed Choice (Auto-Select)](timed-choice.md) | Beginner | Branching, UI |
 | 20 | [Wait for External GameplayEvent](wait-for-event.md) | Advanced | GAS |
 | 21 | [Attach Custom UMG Widget](custom-umg-widget.md) | Advanced | UI, Extension |
-| 22 | [Build Custom Requirement in Blueprint](custom-blueprint-requirement.md) | Advanced | Extension |
+| 22 | [Runtime Theme Switching](runtime-theme-switch.md) | Advanced | UI, Extension |
+| 23 | [Build Custom Requirement in Blueprint](custom-blueprint-requirement.md) | Advanced | Extension |
 
 ## Recommended Order for Beginners
 
@@ -59,7 +60,7 @@ Advanced (as needed):
        Relationship Score → NPC Remembers
        Camera → Jump Scare → NPC Animation
        Timed Choice → Wait for Event
-       Custom Widget → Custom Requirement
+       Custom Widget → Runtime Theme Switching → Custom Requirement
 ```
 
 ## Prerequisites

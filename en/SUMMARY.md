@@ -152,6 +152,7 @@
 * [Timed Choice (Auto-Select)](recipes/timed-choice.md)
 * [Wait for an External GameplayEvent](recipes/wait-for-event.md)
 * [Connecting a Custom UMG Widget](recipes/custom-umg-widget.md)
+* [Runtime Theme Switching](recipes/runtime-theme-switch.md)
 * [Building a Custom Requirement in Blueprint](recipes/custom-blueprint-requirement.md)
 
 ## Reference
