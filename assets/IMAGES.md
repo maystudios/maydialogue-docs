@@ -259,9 +259,7 @@ Once a file is uploaded, the corresponding placeholder in the Markdown files can
 - [ ] `req-hastag-details.png`
 - [ ] `req-checkattribute-details.png`
 - [ ] `req-hasability-details.png`
-- [ ] `action-addtag-details.png`
-- [ ] `action-applyeffect-details.png`
-- [ ] `action-triggercue-details.png`
+  *(`action-addtag-details.png`, `action-applyeffect-details.png` and `action-triggercue-details.png` are shared with the Nodes—Actions section above — tracked once there, referenced by both chapters.)*
 - [ ] `gasext-req-create-class.png`
 - [ ] `gasext-req-variables.png`
 - [ ] `gasext-req-bp-graph.png`
