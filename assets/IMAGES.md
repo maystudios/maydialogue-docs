@@ -7,7 +7,7 @@ Once a file is uploaded, the corresponding placeholder in the Markdown files can
 
 ## Hero / Landing
 
-- [ ] `hero-running-dialogue.png`
+- [x] `hero-running-dialogue.png` *(Showcase-Map, Marrow-Dialog mit RPG-Theme: Choices + gesperrte Choice + Skip-Pill; kein Portrait — Setup-Notiz war idealisiert)*
 - [ ] `hero-graph-overview.png`
 
 ---
@@ -65,7 +65,7 @@ Once a file is uploaded, the corresponding placeholder in the Markdown files can
 - [ ] `editor-workflow-steps.png`
 - [ ] `asset-content-browser.png`
 - [ ] `asset-editor-compiler-results.png`
-- [ ] `asset-editor-details-sayline.png`
+- [x] `asset-editor-details-sayline.png` *(Marrow-SayLine statt „Halt!"-Beispiel; ohne roten Pfeil)*
 - [ ] `asset-editor-new-asset-context.png`
 - [ ] `asset-editor-tabs-overview.png`
 - [ ] `asset-editor-toolbar-annotated.png`
@@ -101,7 +101,7 @@ Once a file is uploaded, the corresponding placeholder in the Markdown files can
 
 ### Outline / Find
 
-- [ ] `outline-panel.png`
+- [x] `outline-panel.png` *(Marrow-Outline mit Farb-Chips, Text-Vorschau, Typ-Badges; keine blaue Auswahl-Markierung)*
 - [ ] `outline-overview.png`
 - [ ] `outline-click-to-jump.png`
 - [ ] `outline-filter-dropdown.png`
@@ -154,8 +154,8 @@ Once a file is uploaded, the corresponding placeholder in the Markdown files can
 
 ## Nodes — Core
 
-- [ ] `entry-node-graph.png`
-- [ ] `entry-details-panel.png`
+- [x] `entry-node-graph.png` *(Marrow-Entry, ausgewählt, Zoom 1:1; ohne SideEffect-Pill/Description — kein Beispiel-Asset mit gefülltem Entry vorhanden)*
+- [x] `entry-details-panel.png` *(leeres EntryDescription — siehe oben)*
 - [ ] `entry-example-graph.png`
 - [ ] `exit-node-graph.png`
 - [ ] `exit-node-details.png`

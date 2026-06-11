@@ -13,8 +13,7 @@ description: >-
 **Fünf Minuten von Null bis spielbar.** Kein Blueprint-Boilerplate, kein UI-Setup. Schau dir den [Quick Start](getting-started/quick-start.md) an.
 {% endhint %}
 
-> 📸 **Bild-Platzhalter:** `hero-running-dialogue.png` — Screenshot eines laufenden Dialogs im Spiel.
-> *Setup:* PIE-Session in einem Test-Level. Sichtbar: ein NPC im Vordergrund, Dialog-Widget am unteren Bildschirmrand mit Sprecher-Name "Wächter", Portrait links, Text "Halt! Wer bist du?" mit aktivem Typewriter (mittendrin), zwei Choice-Buttons "Ein Freund des Königs." / "Das geht dich nichts an." Skip-Hinweis "Space drücken" am rechten Rand.
+![Laufender Dialog im Spiel: Sprecher-Plate, Dialog-Text, Choices (eine davon gesperrt mit Schloss-Icon) und Skip-Hinweis — RPG-Theme aus der Showcase-Map](../assets/hero-running-dialogue.png)
 
 ## Was du bekommst
 

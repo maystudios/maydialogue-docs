@@ -13,8 +13,7 @@ description: >-
 **Five minutes from zero to playable.** No Blueprint boilerplate, no UI setup. Check out the [Quick Start](getting-started/quick-start.md).
 {% endhint %}
 
-> 📸 **Image placeholder:** `hero-running-dialogue.png` — Screenshot of a running dialogue in-game.
-> *Setup:* PIE session in a test level. Visible: an NPC in the foreground, dialogue widget at the bottom of the screen with speaker name "Guard", portrait on the left, text "Halt! Who are you?" with an active typewriter effect (mid-animation), two choice buttons "A friend of the king." / "That's none of your business." Skip hint "Press Space" on the right edge.
+![Running in-game dialogue: speaker plate, dialogue text, choices (one locked with a lock icon), and skip hint — RPG theme from the showcase map](../assets/hero-running-dialogue.png)
 
 ## What you get
 

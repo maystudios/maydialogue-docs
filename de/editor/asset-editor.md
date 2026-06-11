@@ -99,8 +99,7 @@ Drag-and-Drop aus der Palette in den Graph. Alternativ: Rechtsklick auf leere Gr
 
 Zeigt die bearbeitbaren Properties des aktuell selektierten Nodes. Bei SayLine-Nodes erscheint beim `SpeakerTag`-Feld kein generischer Tag-Picker, sondern ein **Dropdown mit allen im Asset definierten Sprechern** – inklusive Farb-Chip und DisplayName.
 
-> 📸 **Bild-Platzhalter:** `asset-editor-details-sayline.png` — Details-Panel einer selektierten SayLine.
-> *Setup:* SayLine „Halt! Wer bist du?" auswählen. Details-Panel zeigt: SpeakerTag-Dropdown mit Guard-Eintrag (dunkelroter Farb-Chip), DialogueText-Feld gefüllt, AdvanceModeOverride auf Manual, EmotionTags-Array leer. Roter Pfeil auf das Speaker-Dropdown.
+![Details-Panel einer selektierten SayLine: Speaker-Dropdown, Dialogue Text, Emotion Tags, Advance-Mode](../../assets/asset-editor-details-sayline.png)
 
 ## Validator-Checks (Kurzreferenz)
 

@@ -117,8 +117,7 @@ All colors can be customized under **Project Settings → MayDialogue Editor**.
 
 When the graph gets too large to search for a specific line: the **Outline panel** lists all nodes in a flat list — with speaker color chip, text preview, and type badge. Full-text search and type filter are built in. Clicking an entry jumps directly to the node in the graph.
 
-> 📸 **Image placeholder:** `outline-panel.png` — Outline panel with a populated node list.
-> *Setup:* Outline panel tab open (to the right of the graph). List shows 8–10 entries: each entry has a colored chip on the left (speaker color), then speaker name and first line of text (truncated to 60 characters), and a type badge on the right (`Say`, `PC`, `Br`, `X` etc.). Search field at top is empty. One entry is highlighted blue (selected).
+![Outline panel with node list: speaker color chips, text previews, and type badges](../../assets/outline-panel.png)
 
 ## Summary
 

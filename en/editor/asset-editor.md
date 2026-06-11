@@ -99,8 +99,7 @@ Drag and drop from the Palette into the graph. Alternatively: right-clicking on 
 
 Shows the editable properties of the currently selected node. For SayLine nodes, the `SpeakerTag` field shows not a generic tag picker but a **dropdown listing all speakers defined in the asset** — including color chip and DisplayName.
 
-> 📸 **Image placeholder:** `asset-editor-details-sayline.png` — Details panel of a selected SayLine.
-> *Setup:* Select SayLine "Halt! Who are you?". Details panel shows: SpeakerTag dropdown with Guard entry (dark red color chip), DialogueText field filled, AdvanceModeOverride set to Manual, EmotionTags array empty. Red arrow on the speaker dropdown.
+![Details panel of a selected SayLine: speaker dropdown, Dialogue Text, Emotion Tags, advance mode](../../assets/asset-editor-details-sayline.png)
 
 ## Validator checks (quick reference)
 

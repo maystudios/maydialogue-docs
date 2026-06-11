@@ -117,8 +117,7 @@ Alle Farben lassen sich unter **Project Settings → MayDialogue Editor** anpass
 
 Wenn der Graph zu groß wird, um nach einer bestimmten Zeile zu suchen: Das **Outline-Panel** listet alle Nodes flach auf — mit Sprecher-Farb-Chip, Text-Vorschau und Typ-Badge. Volltextsuche und Typ-Filter sind eingebaut. Klick auf einen Eintrag springt direkt zum Node im Graph.
 
-> 📸 **Bild-Platzhalter:** `outline-panel.png` — Outline-Panel mit gefüllter Node-Liste.
-> *Setup:* Outline-Panel-Tab geöffnet (rechts neben dem Graph). Liste zeigt 8–10 Einträge: jeder Eintrag hat links einen farbigen Chip (Sprecher-Farbe), daneben Sprecher-Name und erste Zeile des Texts (abgekürzt auf 60 Zeichen), rechts ein Typ-Badge (`Say`, `PC`, `Br`, `X` etc.). Suchfeld oben ist leer. Ein Eintrag ist blau markiert (ausgewählt).
+![Outline-Panel mit Node-Liste: Sprecher-Farb-Chips, Text-Vorschau und Typ-Badges](../../assets/outline-panel.png)
 
 ## Zusammenfassung
 

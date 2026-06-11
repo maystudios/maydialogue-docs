@@ -21,11 +21,9 @@ Der Entry-Node ist der Startpunkt jedes Dialog-Assets. Jedes Asset hat genau ein
 `EntryDescription` hilft Teams, den Einstiegspunkt zu verstehen — besonders wenn du mehrere Sub-Graphen mit eigenen Entry-Nodes im selben Asset hast.
 {% endhint %}
 
-> 📸 **Bild-Platzhalter:** `entry-node-graph.png` — Entry-Node im Graph mit Output-Verbindung.
-> *Setup:* Asset `DA_Bsp_Entry` öffnen. Sichtbar: `Entry`-Node (grüne Titelleiste, kompakt) mit gefülltem `EntryDescription = "Erster Kontakt mit dem Wächter"`. Output-Pin verbunden mit einem `SayLine`-Node rechts davon. Im Body des Entry-Nodes eine SideEffect-Pill sichtbar: `AddTag: Story.DialogStarted`.
+![Entry-Node im Graph (ausgewählt) mit verbundenem Output-Pin](../../../assets/entry-node-graph.png)
 
-> 📸 **Bild-Platzhalter:** `entry-details-panel.png` — Details-Panel des Entry-Nodes.
-> *Setup:* Entry-Node auswählen. Im Details-Panel sichtbar: `EntryDescription = "Erster Kontakt mit dem Wächter"`, Abschnitt `SideEffects` mit einem Eintrag `AddTag: Story.DialogStarted`.
+![Details-Panel des Entry-Nodes mit EntryDescription, Fail Behavior, Requirements und Side Effects](../../../assets/entry-details-panel.png)
 
 ## Mini-Beispiel
 

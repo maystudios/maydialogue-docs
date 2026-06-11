@@ -21,11 +21,9 @@ The Entry Node is the start point of every dialogue asset. Each asset has exactl
 `EntryDescription` helps teams understand the entry point — especially useful when you have multiple sub-graphs with their own Entry Nodes in the same asset.
 {% endhint %}
 
-> 📸 **Image placeholder:** `entry-node-graph.png` — Entry Node in the graph with an output connection.
-> *Setup:* Open asset `DA_Example_Entry`. Visible: `Entry` Node (green title bar, compact) with `EntryDescription = "First contact with the guard"` filled in. Output pin connected to a `SayLine` Node to the right. In the Entry Node body, a SideEffect pill is visible: `AddTag: Story.DialogStarted`.
+![Entry Node in the graph (selected) with a connected output pin](../../../assets/entry-node-graph.png)
 
-> 📸 **Image placeholder:** `entry-details-panel.png` — Details panel of the Entry Node.
-> *Setup:* Select the Entry Node. In the Details panel: `EntryDescription = "First contact with the guard"`, section `SideEffects` with one entry `AddTag: Story.DialogStarted`.
+![Details panel of the Entry Node with EntryDescription, Fail Behavior, Requirements and Side Effects](../../../assets/entry-details-panel.png)
 
 ## Mini Example
 
