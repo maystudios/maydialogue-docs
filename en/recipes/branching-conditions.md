@@ -10,9 +10,9 @@ A guard at the city gate reacts differently depending on whether the player has 
 
 ## What You Will Learn
 
-- Create a Branch node with multiple BranchPoints.
-- Configure a HasTag Requirement on a BranchPoint.
-- Use the fallback BranchPoint as the default path.
+- Create a Branch node and configure its `Condition`.
+- Configure a HasTag Requirement as the Branch condition.
+- Route the True / False outputs (and the optional Default fallback).
 - The difference between Branch (entire path) and Choice Requirement (individual option).
 
 ## Prerequisites
@@ -44,51 +44,47 @@ Asset: `DA_Guard_Gate`. Speaker in the Speakers panel: `DisplayName = Guard`, `S
 
 ### 2. Insert the Branch Node
 
-From the Entry output → **Create Node → Branch**. The Branch node appears in the graph as a diamond shape with one input and multiple output pins.
+From the Entry output → **Create Node → Branch**. The Branch node appears in the graph with one input and two output pins, **True** and **False**.
 
-### 3. Configure the First BranchPoint
+### 3. Configure the Condition
 
-Select the Branch node. In the Details panel under `BranchPoints`:
-- **Add** → `Description: "With Pass"`.
-- Under Requirements: **Add → HasTag**.
+Select the Branch node. In the Details panel, set its `Condition` to a **HasTag** requirement:
 
 | Property | Value |
 |----------|------|
 | `RequiredTag` | `Story.Pass.CityGate` |
 | `bCheckOnInstigator` | `true` (checks the player, not the NPC) |
 
+When the condition passes the Branch takes its **True** output; when it fails (`FailedButVisible` or `FailedAndHidden`, both treated as "false") it takes the **False** output. Leave the `Condition` empty and the Branch always takes True.
+
 > 📸 **Image placeholder:** `branching-conditions-branch-details.png` — Details panel of the Branch node with HasTag Requirement.
-> *Setup:* Branch node selected. Details panel shows: `BranchPoints[0].Description = "With Pass"`, below it the expanded HasTag Requirement with `RequiredTag = Story.Pass.CityGate`, `bCheckOnInstigator = true`. BranchPoints[1] without Requirements (fallback).
+> *Setup:* Branch node selected. Details panel shows the `Condition` set to a HasTag Requirement with `RequiredTag = Story.Pass.CityGate`, `bCheckOnInstigator = true`, and `bHasFallback = false`.
 
-### 4. Second BranchPoint as Fallback
+### 4. Wire Up the Success Path
 
-**Add** → `Description: "Fallback"`. Leave Requirements empty. This point activates whenever no earlier one matches.
+Branch **True** output pin → SayLine *"Welcome back. The gate is open."* → Exit (`Completed`).
 
-### 5. Wire Up the Success Path
+### 5. Wire Up the Rejection Path
 
-BranchPoint[0] output pin → SayLine *"Welcome back. The gate is open."* → Exit (`Completed`).
-
-### 6. Wire Up the Rejection Path
-
-BranchPoint[1] output pin → SayLine *"Halt! Who goes there?"* → PlayerChoice with two choices:
+Branch **False** output pin → SayLine *"Halt! Who goes there?"* → PlayerChoice with two choices:
 - Choice 1: *"I have no pass."* → Exit (`Failed`).
 - Choice 2: *"I'm looking for the gatekeeper."* → SayLine *"Then go to the chamber on the left."* → Exit (`Completed`).
 
-### 7. Compile and Test
+### 6. Compile and Test
 
-In the Preview Runner, the dialogue runs with the fallback path (no tag set). Add the tag to the Player ASC in the Debugger to test the success path.
+In the Preview Runner, the dialogue runs with the False (rejection) path while no tag is set. Add the tag to the Player ASC in the Debugger to test the True (success) path.
 
-## BranchPoint Evaluation Logic
+## Branch Evaluation Logic
 
-BranchPoints are evaluated **in order**. The first one whose Requirements return `Passed` wins.
+The Branch evaluates its single `Condition` requirement and routes accordingly:
 
-| Result | Behavior |
+| Condition result | Output taken |
 |----------|-----------|
-| `Passed` | This path is taken, the rest is ignored. |
-| `FailedButVisible` | Skip, continue to the next point. |
-| `FailedAndHidden` | Skip, continue to the next point. |
+| `Passed` | **True** output. |
+| `FailedButVisible` | **False** output. |
+| `FailedAndHidden` | **False** output. |
 
-The last BranchPoint without Requirements is the **default path**. Without a fallback and without a match → the dialogue aborts.
+Enable `bHasFallback` to expose a third **Default** output for degenerate cases (e.g. the instigator has no ASC, so the tag check cannot run at all). For more than a True/False split (e.g. completed / active / not-started), **chain Branch nodes** — feed one Branch's False output into the next Branch.
 
 ## Setting the GAS Tag for Testing
 
@@ -145,5 +141,5 @@ Open the [Debugger](../editor/debugger.md) in PIE and check whether the tag is a
 **Success path never reached, even though the tag is present.**
 `bCheckOnInstigator = false` → the Requirement checks the NPC instead of the player. Or the actor has no ASC. The Requirement then always returns `Fail`.
 
-**Branch aborts with "No BranchPoint passed".**
-The last BranchPoint has Requirements. Add an empty default point or set `FailBehavior = Skip` on the Branch node.
+**Branch always falls through to one side unexpectedly.**
+Re-check the `Condition`: a `FailedButVisible` or `FailedAndHidden` result both route to the **False** output. If you need a third path for the "condition could not be evaluated" case (e.g. missing ASC), enable `bHasFallback` and wire the Default output.

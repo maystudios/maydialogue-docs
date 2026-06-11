@@ -57,24 +57,25 @@ Asset: `DA_Informant_Corvus`. **Variables-Panel** → **Add Variable**:
 
 ### 2. Branch für Erst-/Wiedertreffen
 
-Branch-Node. BranchPoint[0]: **CheckVariable**:
+Branch-Node. Seine `Condition` auf eine **CheckVariable**-Requirement setzen:
 
 | Property | Wert |
 |----------|------|
 | `VariableName` | `HasMetBefore` |
+| `VariableType` | `Bool` |
 | `Scope` | `Participant` |
 | `ComparisonOp` | `==` |
-| `ComparisonValue` | `true` |
+| `BoolValue` | `true` |
 
-BranchPoint[1]: Fallback (kein Requirement).
+Der **True**-Output ist der Wiedertreffen-Pfad; der **False**-Output ist der Ersttreffen-Pfad. (Kein `bHasFallback` nötig — eine Bool-Bedingung ist immer der eine oder der andere Zweig.)
 
 ### 3. Wiedertreffen-Pfad
 
-BranchPoint[0]-Output → SayLine *„Ah, du wieder! Was bringst du mir?"* → PlayerChoice → Exit.
+Branch **True**-Output → SayLine *„Ah, du wieder! Was bringst du mir?"* → PlayerChoice → Exit.
 
 ### 4. Ersttreffen-Pfad
 
-BranchPoint[1]-Output → SayLine *„Wer bist du? Ich kenne dich nicht."* → SayLine *„...na gut. Ich heiße Corvus."* → PlayerChoice → Exit.
+Branch **False**-Output → SayLine *„Wer bist du? Ich kenne dich nicht."* → SayLine *„...na gut. Ich heiße Corvus."* → PlayerChoice → Exit.
 
 ### 5. Variable beim Exit setzen
 

@@ -10,9 +10,9 @@ Ein Wachmann am Stadttor reagiert unterschiedlich, je nachdem ob der Spieler den
 
 ## Was du lernst
 
-- Branch-Node mit mehreren BranchPoints anlegen.
-- HasTag-Requirement an einem BranchPoint konfigurieren.
-- Den Fallback-BranchPoint als Default-Pfad nutzen.
+- Branch-Node anlegen und seine `Condition` konfigurieren.
+- HasTag-Requirement als Branch-Condition konfigurieren.
+- Die True- / False-Outputs (und den optionalen Default-Fallback) verdrahten.
 - Den Unterschied zwischen Branch (ganzer Pfad) und Choice-Requirement (einzelne Option).
 
 ## Voraussetzungen
@@ -44,51 +44,47 @@ Asset: `DA_Guard_Gate`. Speaker im Speakers-Panel: `DisplayName = Wachmann`, `Sp
 
 ### 2. Branch-Node einfügen
 
-Vom Entry-Output → **Create Node → Branch**. Der Branch-Node zeigt im Graph eine Diamant-Form mit einem Input und mehreren Ausgangs-Pins.
+Vom Entry-Output → **Create Node → Branch**. Der Branch-Node zeigt im Graph einen Input und zwei Ausgangs-Pins, **True** und **False**.
 
-### 3. Ersten BranchPoint konfigurieren
+### 3. Condition konfigurieren
 
-Branch-Node auswählen. Im Details-Panel unter `BranchPoints`:
-- **Add** → `Description: "Mit Pass"`.
-- Unter Requirements: **Add → HasTag**.
+Branch-Node auswählen. Im Details-Panel die `Condition` auf eine **HasTag**-Requirement setzen:
 
 | Property | Wert |
 |----------|------|
 | `RequiredTag` | `Story.Pass.CityGate` |
 | `bCheckOnInstigator` | `true` (prüft den Spieler, nicht den NPC) |
 
+Passt die Condition, nimmt der Branch seinen **True**-Output; schlägt sie fehl (`FailedButVisible` oder `FailedAndHidden`, beide als „false" behandelt), den **False**-Output. Lässt du die `Condition` leer, nimmt der Branch immer True.
+
 > 📸 **Bild-Platzhalter:** `branching-conditions-branch-details.png` — Details-Panel des Branch-Nodes mit HasTag-Requirement.
-> *Setup:* Branch-Node ausgewählt. Details-Panel zeigt: `BranchPoints[0].Description = "Mit Pass"`, darunter aufgeklapptes HasTag-Requirement mit `RequiredTag = Story.Pass.CityGate`, `bCheckOnInstigator = true`. BranchPoints[1] ohne Requirements (Fallback).
+> *Setup:* Branch-Node ausgewählt. Details-Panel zeigt die `Condition` als HasTag-Requirement mit `RequiredTag = Story.Pass.CityGate`, `bCheckOnInstigator = true` und `bHasFallback = false`.
 
-### 4. Zweiten BranchPoint als Fallback
+### 4. Erfolgs-Pfad verdrahten
 
-**Add** → `Description: "Fallback"`. Keine Requirements eintragen. Dieser Point greift immer, wenn kein vorheriger passt.
+Branch **True**-Output-Pin → SayLine *„Willkommen zurück. Tor ist offen."* → Exit (`Completed`).
 
-### 5. Erfolgs-Pfad verdrahten
+### 5. Ablehnungs-Pfad verdrahten
 
-BranchPoint[0]-Output-Pin → SayLine *„Willkommen zurück. Tor ist offen."* → Exit (`Completed`).
-
-### 6. Ablehnungs-Pfad verdrahten
-
-BranchPoint[1]-Output-Pin → SayLine *„Halt! Wer geht da?"* → PlayerChoice mit zwei Choices:
+Branch **False**-Output-Pin → SayLine *„Halt! Wer geht da?"* → PlayerChoice mit zwei Choices:
 - Choice 1: *„Ich habe keinen Pass."* → Exit (`Failed`).
 - Choice 2: *„Ich suche den Torvorsteher."* → SayLine *„Dann geh zur Kammer links."* → Exit (`Completed`).
 
-### 7. Compile und testen
+### 6. Compile und testen
 
-Im Preview-Runner läuft der Dialog mit dem Fallback-Pfad (kein Tag gesetzt). Füge im Debugger testweise den Tag am Player-ASC hinzu und prüfe den Erfolgs-Pfad.
+Im Preview-Runner läuft der Dialog mit dem False- (Ablehnungs-)Pfad, solange kein Tag gesetzt ist. Füge im Debugger testweise den Tag am Player-ASC hinzu und prüfe den True- (Erfolgs-)Pfad.
 
-## BranchPoint-Auswertungslogik
+## Branch-Auswertungslogik
 
-BranchPoints werden **in Reihenfolge** ausgewertet. Der erste, dessen Requirements `Passed` liefern, gewinnt.
+Der Branch wertet seine einzelne `Condition`-Requirement aus und routet entsprechend:
 
-| Ergebnis | Verhalten |
+| Condition-Ergebnis | Genommener Output |
 |----------|-----------|
-| `Passed` | Dieser Pfad wird genommen, Rest wird ignoriert. |
-| `FailedButVisible` | Überspringen, weiter zum nächsten Point. |
-| `FailedAndHidden` | Überspringen, weiter zum nächsten Point. |
+| `Passed` | **True**-Output. |
+| `FailedButVisible` | **False**-Output. |
+| `FailedAndHidden` | **False**-Output. |
 
-Der letzte BranchPoint ohne Requirements ist der **Default-Pfad**. Ohne Fallback und ohne Match → Dialog bricht ab.
+Aktiviere `bHasFallback` für einen dritten **Default**-Output bei Degenerate-Fällen (z.B. der Instigator hat kein ASC, sodass die Tag-Prüfung gar nicht laufen kann). Für mehr als ein True/False-Split (z.B. completed / active / not-started) **verkette Branch-Nodes** — leite den False-Output eines Branch in den nächsten Branch.
 
 ## GAS-Tag für den Test setzen
 
@@ -145,5 +141,5 @@ void AGuardNPC::BeginConversation(AActor* Player)
 **Erfolgs-Pfad nie erreicht, obwohl Tag vorhanden.**
 `bCheckOnInstigator = false` → Requirement prüft den NPC statt den Spieler. Oder der Actor hat keinen ASC. Requirement liefert dann immer `Fail`.
 
-**Branch bricht mit "No BranchPoint passed" ab.**
-Letzter BranchPoint hat Requirements. Füge einen leeren Default-Point hinzu oder setze `FailBehavior = Skip` am Branch-Node.
+**Branch fällt unerwartet immer auf eine Seite.**
+Prüfe die `Condition` erneut: Ein `FailedButVisible`- oder `FailedAndHidden`-Ergebnis routet beides auf den **False**-Output. Brauchst du einen dritten Pfad für den Fall „Condition konnte nicht ausgewertet werden" (z.B. fehlendes ASC), aktiviere `bHasFallback` und verdrahte den Default-Output.

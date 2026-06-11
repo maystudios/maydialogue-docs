@@ -57,24 +57,25 @@ Asset: `DA_Informant_Corvus`. **Variables panel** → **Add Variable**:
 
 ### 2. Branch for First/Return Meeting
 
-Branch node. BranchPoint[0]: **CheckVariable**:
+Branch node. Set its `Condition` to a **CheckVariable** requirement:
 
 | Property | Value |
 |----------|------|
 | `VariableName` | `HasMetBefore` |
+| `VariableType` | `Bool` |
 | `Scope` | `Participant` |
 | `ComparisonOp` | `==` |
-| `ComparisonValue` | `true` |
+| `BoolValue` | `true` |
 
-BranchPoint[1]: fallback (no Requirement).
+The **True** output is the return-meeting path; the **False** output is the first-meeting path. (No `bHasFallback` needed — a Bool condition is always one branch or the other.)
 
 ### 3. Return Meeting Path
 
-BranchPoint[0] output → SayLine *"Ah, you again! What do you bring me?"* → PlayerChoice → Exit.
+Branch **True** output → SayLine *"Ah, you again! What do you bring me?"* → PlayerChoice → Exit.
 
 ### 4. First Meeting Path
 
-BranchPoint[1] output → SayLine *"Who are you? I don't know you."* → SayLine *"...fine. My name is Corvus."* → PlayerChoice → Exit.
+Branch **False** output → SayLine *"Who are you? I don't know you."* → SayLine *"...fine. My name is Corvus."* → PlayerChoice → Exit.
 
 ### 5. Set the Variable at Exit
 

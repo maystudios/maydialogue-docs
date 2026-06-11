@@ -10,8 +10,8 @@ Ein Questgeber reagiert unterschiedlich, je nachdem ob der Spieler die zugehöri
 
 ## Was du lernst
 
-- Mehrere HasTag-Requirements an einem Branch für drei Zustände konfigurieren.
-- Priorisierung der BranchPoints für korrekte Reihenfolge nutzen.
+- Zwei Branch-Nodes verketten, um drei Quest-Zustände zu routen.
+- Die Checks korrekt anordnen (Completed vor Active).
 - Quest-Tags am Spieler-ASC lesen (Tag-Konvention).
 
 ## Voraussetzungen
@@ -34,8 +34,8 @@ Ein Questgeber reagiert unterschiedlich, je nachdem ob der Spieler die zugehöri
            → [SayLine: "Ich brauche deine Hilfe. Willst du einen Auftrag?"] → [PlayerChoice: Annehmen/Ablehnen]
 ```
 
-> 📸 **Bild-Platzhalter:** `quest-status-in-dialogue-graph-overview.png` — Asset-Editor mit Branch und drei BranchPoints.
-> *Setup:* Asset `DA_QuestGiver_Artifact` geöffnet. Entry → Branch-Node (Diamant, drei Ausgangs-Pins). Oberer Pin → kurze Kette SayLine + ApplyEffect → Exit. Mittlerer Pin → SayLine → Exit. Unterer Pin → SayLine → PlayerChoice → zwei Exits. Alle drei Pfade gut lesbar auseinandergezogen.
+> 📸 **Bild-Platzhalter:** `quest-status-in-dialogue-graph-overview.png` — Asset-Editor mit zwei verketteten Branch-Nodes.
+> *Setup:* Asset `DA_QuestGiver_Artifact` geöffnet. Entry → Branch A (Condition: HasTag Completed). Branch A True → kurze Kette SayLine + ApplyEffect → Exit. Branch A False → Branch B (Condition: HasTag Active). Branch B True → SayLine → Exit. Branch B False → SayLine → PlayerChoice → zwei Exits. Alle drei Pfade gut lesbar auseinandergezogen.
 
 ## Schritt-für-Schritt
 
@@ -47,30 +47,34 @@ In `DefaultGameplayTags.ini`:
 +GameplayTagList=(Tag="Quest.FindArtifact.Completed")
 ```
 
-### 2. Branch mit drei BranchPoints
+### 2. Zwei verkettete Branch-Nodes (drei Ausgänge)
 
-Branch-Node einfügen. Drei BranchPoints in dieser Reihenfolge:
+Ein Branch wertet eine einzelne `Condition` aus und routet nach **True** / **False** (plus optionalem Default). Für ein dreifaches *completed / active / not-started*-Split **verkette zwei Branch-Nodes**:
 
-**BranchPoint[0]:** HasTag `Quest.FindArtifact.Completed`, `bCheckOnInstigator: true`.
-**BranchPoint[1]:** HasTag `Quest.FindArtifact.Active`, `bCheckOnInstigator: true`.
-**BranchPoint[2]:** Kein Requirement (Fallback – Quest noch nicht gestartet).
+**Branch A** — `Condition` = HasTag `Quest.FindArtifact.Completed`, `bCheckOnInstigator: true`.
+- **True** → Abschluss-Pfad (Schritt 3).
+- **False** → **Branch B**.
 
-Die Reihenfolge ist entscheidend: `Completed` muss vor `Active` geprüft werden, da ein Spieler nach Abschluss möglicherweise beide Tags trägt.
+**Branch B** — `Condition` = HasTag `Quest.FindArtifact.Active`, `bCheckOnInstigator: true`.
+- **True** → Aktiv-Pfad (Schritt 4).
+- **False** → Nicht-gestartet-Pfad (Schritt 5).
 
-> 📸 **Bild-Platzhalter:** `quest-status-in-dialogue-branch-details.png` — Details-Panel des Branch-Nodes mit drei BranchPoints.
-> *Setup:* Branch-Node ausgewählt. Details zeigt: `BranchPoints[0]: Description = "Completed", Requirement: HasTag Quest.FindArtifact.Completed`. `BranchPoints[1]: Description = "Active", Requirement: HasTag Quest.FindArtifact.Active`. `BranchPoints[2]: Description = "Nicht gestartet", keine Requirements`.
+Die Reihenfolge ist entscheidend: `Completed` **zuerst** prüfen (Branch A), da ein Spieler nach Abschluss möglicherweise beide Tags trägt — sonst würde der Aktiv-Pfad eine abgeschlossene Quest abfangen.
 
-### 3. Abschluss-Pfad (BranchPoint 0)
+> 📸 **Bild-Platzhalter:** `quest-status-in-dialogue-branch-details.png` — Zwei verkettete Branch-Nodes im Graph.
+> *Setup:* Entry → Branch A (Condition: HasTag Quest.FindArtifact.Completed). Branch A True → Abschluss-Pfad; Branch A False → Branch B (Condition: HasTag Quest.FindArtifact.Active). Branch B True → Aktiv-Pfad; Branch B False → Nicht-gestartet-Pfad. Alle Verbindungen sichtbar.
+
+### 3. Abschluss-Pfad (Branch A → True)
 
 SayLine *„Exzellent! Du hast das Artefakt!"* → **ApplyEffect**-Node (`GE_QuestReward`) → Exit (`Completed`).
 
 Damit die Quest nicht doppelt belohnt wird: Am Exit-Node SideEffect `RemoveTag(Quest.FindArtifact.Active)` und `RemoveTag(Quest.FindArtifact.Completed)` – oder das Quest-System reagiert auf `OnDialogueEnded` mit Status `Completed` und räumt auf.
 
-### 4. Aktiv-Pfad (BranchPoint 1)
+### 4. Aktiv-Pfad (Branch B → True)
 
 SayLine *„Du bist noch dran. Das Artefakt liegt südlich vom Turm."* → Exit.
 
-### 5. Nicht-gestartet-Pfad (BranchPoint 2)
+### 5. Nicht-gestartet-Pfad (Branch B → False)
 
 SayLine *„Ich brauche deine Hilfe."* → PlayerChoice:
 - *„Ja, ich übernehme das."* → SideEffect: `AddTag(Quest.FindArtifact.Active)` am Player → Exit.
@@ -78,7 +82,7 @@ SayLine *„Ich brauche deine Hilfe."* → PlayerChoice:
 
 ### 6. Compile und testen
 
-Im PIE: ohne Tags → Fallback-Pfad. `Quest.FindArtifact.Active` setzen → mittlerer Pfad. `Quest.FindArtifact.Completed` setzen → oberer Pfad.
+Im PIE: ohne Tags → Nicht-gestartet-Pfad. `Quest.FindArtifact.Active` setzen → Aktiv-Pfad. `Quest.FindArtifact.Completed` setzen → Abschluss-Pfad.
 
 ## Blueprint-Triggering
 
@@ -103,9 +107,9 @@ Im PIE: ohne Tags → Fallback-Pfad. `Quest.FindArtifact.Active` setzen → mitt
 ## Troubleshooting
 
 **Abschluss-Pfad nie erreicht, obwohl Completed-Tag gesetzt.**
-BranchPoints in falscher Reihenfolge: `Active` vor `Completed`. Swap die Reihenfolge.
+Die Branches sind in falscher Reihenfolge verkettet: `Active` (Branch A) vor `Completed`. Mach den **Completed**-Check zum ersten Branch, da eine abgeschlossene Quest beide Tags tragen kann.
 
-**Fallback-Pfad läuft obwohl Quest aktiv.**
+**Nicht-gestartet-Pfad läuft obwohl Quest aktiv.**
 `bCheckOnInstigator = false` → Tag wird am NPC geprüft. Oder Tag-Name-Tippfehler.
 
 **Belohnung kommt mehrfach.**

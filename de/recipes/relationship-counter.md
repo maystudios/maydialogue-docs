@@ -60,16 +60,17 @@ Asset: `DA_Advisor_Talk`. **Variables-Panel** öffnen → **Add Variable**:
 
 ### 2. Branch mit CheckVariable
 
-Branch-Node einfügen. BranchPoint[0]: **Requirements → Add → CheckVariable**:
+Branch-Node einfügen und seine `Condition` auf eine **CheckVariable**-Requirement setzen:
 
 | Property | Wert |
 |----------|------|
 | `VariableName` | `Relationship` |
+| `VariableType` | `Int` |
 | `Scope` | `Participant` |
 | `ComparisonOp` | `>=` |
-| `ComparisonValue` | `10` |
+| `IntValue` | `10` |
 
-BranchPoint[1]: leer (Fallback).
+Der **True**-Output des Branch läuft, wenn die Bedingung passt (Relationship ≥ 10); der **False**-Output sonst. Aktiviere `bHasFallback` nur, wenn du zusätzlich einen dritten Degenerate-Pfad brauchst.
 
 ### 3. PlayerChoice mit Relationship-SideEffects
 

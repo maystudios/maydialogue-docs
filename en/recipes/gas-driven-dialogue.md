@@ -60,14 +60,14 @@ In the asset `DA_Herbwoman_Visit` under **Variables panel**: variable `PotionsBo
 
 ### 2. Branch for First/Return Meeting
 
-Insert a Branch node. BranchPoint[0]: HasTag Requirement:
+Insert a Branch node and set its `Condition` to a HasTag requirement:
 
 | Property | Value |
 |----------|------|
 | `RequiredTag` | `Story.Met.Herbwoman` |
 | `bCheckOnInstigator` | `true` |
 
-BranchPoint[1]: empty (fallback).
+The Branch's **True** output is the return-meeting path; its **False** output is the first-meeting path.
 
 ### 3. First Meeting Path: Set the Tag
 

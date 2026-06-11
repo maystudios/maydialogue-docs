@@ -60,14 +60,14 @@ Im Asset `DA_Herbwoman_Visit` unter **Variables-Panel**: Variable `PotionsBought
 
 ### 2. Branch für Erst-/Wiedertreffen
 
-Branch-Node einfügen. BranchPoint[0]: HasTag-Requirement:
+Branch-Node einfügen und seine `Condition` auf eine HasTag-Requirement setzen:
 
 | Property | Wert |
 |----------|------|
 | `RequiredTag` | `Story.Met.Herbwoman` |
 | `bCheckOnInstigator` | `true` |
 
-BranchPoint[1]: leer (Fallback).
+Der **True**-Output des Branch ist der Wiedertreffen-Pfad; sein **False**-Output ist der Ersttreffen-Pfad.
 
 ### 3. Ersttreffen-Pfad: Tag setzen
 

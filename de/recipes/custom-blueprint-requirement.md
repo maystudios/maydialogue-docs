@@ -11,7 +11,7 @@ Du brauchst eine Bedingung, die MayDialogue noch nicht liefert: *„Spieler trä
 ## Was du lernst
 
 - Blueprint-Subklasse von `UMayDialogueRequirement` anlegen.
-- `CheckRequirement()`-Funktion in Blueprint implementieren.
+- `IsRequirementSatisfied()`-Funktion in Blueprint implementieren.
 - `Passed`, `FailedButVisible`, `FailedAndHidden` als Return-Wert nutzen.
 - Eigene Properties für den Editor konfigurieren (Inventar-Item-Name).
 - Den neuen Requirement-Typ im Dialog-Asset nutzen.
@@ -47,38 +47,40 @@ Im Blueprint-Editor: **Variables → Add Variable**:
 > 📸 **Bild-Platzhalter:** `custom-blueprint-requirement-variable.png` — Blueprint-Editor mit ItemName-Variable.
 > *Setup:* `BPReq_HasInventoryItem` Blueprint geöffnet. Variables-Panel links: `ItemName (Name, Instance Editable)` sichtbar. Details-Panel rechts zeigt Checkbox `Instance Editable = true`.
 
-### 3. CheckRequirement-Funktion überschreiben
+### 3. IsRequirementSatisfied-Funktion überschreiben
 
-Im Event-Graph: **Override → CheckRequirement**. Die Funktion bekommt `Instigator` und `Target` als Actor-Parameter und soll einen `EMayDialogueRequirementResult` zurückgeben.
+Im Event-Graph: **Override → Is Requirement Satisfied**. Die Funktion bekommt den `Context` (ein `FMayDialogueContext`) und soll einen `EMayDialogueRequirementResult` zurückgeben. Den Instigator liest du aus dem Context (`Context → Instigator`).
 
 ```text
-[CheckRequirement(Instigator, Target)]
+[Is Requirement Satisfied (Context)]
    │
    ▼
-[Get Inventory Component from Instigator]
+[Context → Instigator] → [Get Inventory Component]
    │
    ▼
 [Has Item? (ItemName)]
    ├─ True  → [Return: Passed]
-   └─ False → [Return: FailedButVisible]
+   └─ False → [Return: Get Fail Result (Self)]
 ```
 
-> 📸 **Bild-Platzhalter:** `custom-blueprint-requirement-graph.png` — CheckRequirement-Implementierung im Blueprint-Graph.
-> *Setup:* `BPReq_HasInventoryItem` Event-Graph. Override `CheckRequirement` ausgeklappt. Nodes: `Instigator` (Actor-Pin) → `Get Component by Class (InventoryComponent)` → `Has Item (ItemName Variable)` → Branch → zwei Return-Nodes: `Return Passed` (grün) und `Return FailedButVisible` (gelb).
+Mit `Get Fail Result (Self)` im Fehlerfall respektierst du das `FailResult`-Property, das du pro Instanz im Details-Panel setzt — derselbe Blueprint kann so an einer Choice ausgegraut und an einer anderen versteckt rendern.
+
+> 📸 **Bild-Platzhalter:** `custom-blueprint-requirement-graph.png` — IsRequirementSatisfied-Implementierung im Blueprint-Graph.
+> *Setup:* `BPReq_HasInventoryItem` Event-Graph. Override `Is Requirement Satisfied` ausgeklappt. Nodes: `Context` (Struct) → `Break` / `Instigator`-Pin → `Get Component by Class (InventoryComponent)` → `Has Item (ItemName Variable)` → Branch → zwei Return-Nodes: `Return Passed` (grün) und `Return Get Fail Result` (gelb).
 
 ### 4. Requirement im Dialog-Asset nutzen
 
 In jedem Requirement-Dropdown (Branch, Choice, RandomLine-Entry) erscheint `BPReq_HasInventoryItem` jetzt automatisch als Option.
 
-Choice oder BranchPoint auswählen → **Requirements → Add → Has Inventory Item** → `ItemName`-Property im Details-Panel ausfüllen:
+Eine Choice (oder eine Branch-Condition) auswählen → **Requirements → Add → Has Inventory Item** → `ItemName`-Property im Details-Panel ausfüllen:
 
 | Property | Wert |
 |----------|------|
 | `ItemName` | `Key_RedDoor` |
-| `FailureResult` | `FailedAndHidden` |
+| `FailResult` | `FailedAndHidden` |
 
 > 📸 **Bild-Platzhalter:** `custom-blueprint-requirement-in-use.png` — Details-Panel einer Choice mit dem neuen Requirement.
-> *Setup:* Dialog-Asset geöffnet, Choice ausgewählt. Details: Requirement-Liste zeigt `BPReq_HasInventoryItem`, darunter Property `ItemName = "Key_RedDoor"`, `FailureResult = FailedAndHidden`.
+> *Setup:* Dialog-Asset geöffnet, Choice ausgewählt. Details: Requirement-Liste zeigt `BPReq_HasInventoryItem`, darunter Property `ItemName = "Key_RedDoor"`, `FailResult = FailedAndHidden`.
 
 ### 5. Compile und testen
 
@@ -92,11 +94,11 @@ Im PIE: Dialog starten ohne das Item → Choice versteckt. Item ins Inventar leg
 | `FailedButVisible` | Nicht erfüllt, aber Option sichtbar + ausgegraut |
 | `FailedAndHidden` | Nicht erfüllt, Option vollständig versteckt |
 
-Wähle `FailedButVisible` wenn der Spieler wissen soll, dass die Option existiert (z.B. *„Du brauchst einen Schlüssel"*). Wähle `FailedAndHidden` für versteckte Pfade.
+Gib bevorzugt `Get Fail Result (Self)` zurück und lass das Pro-Instanz-`FailResult`-Property über sichtbar vs. versteckt entscheiden — so steuern Designer es pro Choice, ohne den Blueprint zu ändern. Wähle `FailedButVisible` wenn der Spieler wissen soll, dass die Option existiert (z.B. *„Du brauchst einen Schlüssel"*). Wähle `FailedAndHidden` für versteckte Pfade.
 
 ## C++-Variante
 
-Für mehr Kontrolle und Performance: C++-Subklasse.
+Für mehr Kontrolle und Performance: C++-Subklasse. Überschreibe `IsRequirementSatisfied_Implementation` (die `_Implementation`-Hälfte des `BlueprintNativeEvent` — markiere sie **nicht** erneut als `UFUNCTION`).
 
 ```cpp
 UCLASS()
@@ -107,19 +109,23 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Requirement")
     FName ItemName;
 
-    virtual EMayDialogueRequirementResult CheckRequirement(
-        AActor* Instigator, AActor* Target) const override
+    virtual EMayDialogueRequirementResult IsRequirementSatisfied_Implementation(
+        const FMayDialogueContext& Context) const override
     {
-        if (UInventoryComponent* Inv = Instigator->FindComponentByClass<UInventoryComponent>())
+        if (UInventoryComponent* Inv = Context.Instigator
+            ? Context.Instigator->FindComponentByClass<UInventoryComponent>()
+            : nullptr)
         {
             return Inv->HasItem(ItemName)
                 ? EMayDialogueRequirementResult::Passed
-                : EMayDialogueRequirementResult::FailedButVisible;
+                : GetFailResult();
         }
-        return EMayDialogueRequirementResult::FailedButVisible;
+        return GetFailResult();
     }
 };
 ```
+
+`GetFailResult()` kommt aus der Basisklasse und resolved Hidden vs. Visible aus dem Editor-konfigurierbaren `FailResult`-Property.
 
 ## Variation / Weiter gehen
 
@@ -135,5 +141,5 @@ Blueprint muss von `UMayDialogueRequirement` erben (direkt oder indirekt). Klass
 **`ItemName`-Property erscheint nicht im Details-Panel.**
 `Instance Editable` am Variable nicht aktiviert. Im Blueprint-Editor: Variable auswählen → Details → Checkbox `Instance Editable = true`.
 
-**CheckRequirement gibt immer Passed zurück.**
-Inventar-Komponente auf dem Instigator nicht gefunden (`GetComponentByClass` returned null). Prüfe ob der Spieler-Pawn die Komponente hat und ob `Instigator` der Spieler ist (nicht der NPC).
+**IsRequirementSatisfied gibt immer Passed zurück.**
+Inventar-Komponente auf dem Instigator nicht gefunden (`Get Component by Class` returned null). Prüfe ob der Spieler-Pawn die Komponente hat und ob `Context.Instigator` der Spieler ist (nicht der NPC).
