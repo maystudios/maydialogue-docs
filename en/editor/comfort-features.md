@@ -10,7 +10,9 @@ The small helpers that make big dialogues manageable. Everything that makes the 
 
 **Toolbar → Auto-Layout** or `Ctrl+L` (if configured).
 
-The graph is sorted by graph depth: Entry stays on the left, its direct successors one level further right, and so on. Within a level, nodes are arranged to minimize wire crossings.
+The graph is sorted by graph depth: Entry stays on the left, its direct successors one level further right, and so on. Within a level, nodes are arranged to minimize wire crossings. Connected nodes are additionally aligned vertically with one another (the Brandes–Köpf "Fast & Simple" method) so wires run as **straight** as possible instead of slanted; node height drives the spacing so nodes in a column never overlap. The result is balanced and fully deterministic (same graph → same layout).
+
+When a node has **multiple outputs** (e.g. PlayerChoice, Branch, or RandomLine), its target nodes are arranged in **pin order** — the topmost output pin leads to the topmost target, the middle one to the middle, and so on (never in a random order).
 
 When to use it:
 - The graph is messy after many edits
@@ -23,6 +25,29 @@ When to touch up manually:
 
 > 📸 **Image placeholder:** `autolayout-before-after.png` — Before/after: chaotic graph on the left, the same graph after Auto-Layout on the right.
 > *Setup:* Two parts. Left: an asset with 8 nodes scattered randomly, wires crossing multiple times. Right: the same asset after clicking Auto-Layout — Entry on the left, nodes arranged neatly in three vertical columns, no wire crossings. Red arrow pointing at the Auto-Layout button in the toolbar (between the two variants).
+
+## Auto-Reroute
+
+**Toolbar → Auto-Reroute** (toggle; also under *Project Settings ▸ Plugins ▸ MayDialogue Editor ▸ Layout*).
+
+Long edges that skip several layers would otherwise cut across the graph as one long diagonal. Auto-Reroute makes Auto-Layout insert **aligned reroute (knot) nodes** along such edges, so the wire runs in clean segments through the layout's routing channels — the way you would route it by hand. **On by default.**
+
+- **Minimal:** a knot is added **only where a wire actually bends**. Edges the layout already routes straight stay a single clean wire — the graph is never littered with unnecessary reroutes.
+- **On/off** via the toolbar toggle (or *Project Settings ▸ … ▸ Layout*); then click **Auto Layout** to apply it.
+- Auto-generated reroutes are **rebuilt on every Auto-Layout run** (idempotent — they never pile up); **your own** reroute nodes are left untouched.
+- Runtime-transparent: the compiler collapses knot chains anyway, so the dialogue behaviour does not change.
+
+## Auto-Grid
+
+**Toolbar → Auto-Grid** (toggle) plus the **Grid Size** dropdown right next to it.
+
+By default the graph editor uses Unreal's fine 16 px grid. Auto-Grid switches to a **coarser grid** (16/32/64/128/256 px) that nodes align to automatically — when **dragging, pasting, creating, and during auto-layout**. The background grid is drawn at the chosen size, so it's immediately clear what nodes snap to.
+
+- **On/off** via the toolbar toggle; the setting is project-wide and persists.
+- **Size** via the dropdown or under *Project Settings ▸ Plugins ▸ MayDialogue Editor ▸ Auto-Grid*.
+- **Off = unchanged default behaviour** (the engine's 16 px grid).
+
+When to use it: when you want to keep nodes tidily lined up by hand without having to aim pixel-perfectly — the larger grid snaps nodes flush automatically.
 
 ## Comment Boxes
 

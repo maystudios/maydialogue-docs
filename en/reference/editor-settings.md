@@ -72,6 +72,25 @@ Visible only during a PIE session in the debugger.
 
 ---
 
+## Layout & Auto-Grid
+
+Controls **Auto-Layout** (Toolbar → Auto-Layout) and the optional **Auto-Grid**. See also [Comfort Features](../editor/comfort-features.md).
+
+| Property | Type | Default | Meaning |
+|---|---|---|---|
+| `AutoLayoutHorizontalSpacing` | `float` | `420` | Horizontal distance (px) between successive node columns. |
+| `AutoLayoutVerticalSpacing` | `float` | `180` | Minimum centre-to-centre distance (px) between nodes in a column. |
+| `AutoLayoutInterRowGap` | `float` | `80` | Extra padding (px) above/below each node on top of its height. |
+| `AutoLayoutGridSize` | `float` | `16` | Grid (px) that positions are snapped to after auto-layout (when Auto-Grid is off). |
+| `AutoLayoutMaxBarycenterSweeps` | `int32` | `24` | Max. number of barycenter sweeps for crossing minimization. |
+| `bAutoLayoutInsertReroutes` | `bool` | `true` | Auto-Layout inserts aligned reroute knots along long edges — **only at genuine bends** (already-straight edges are left alone). Auto-reroutes are rebuilt each run; your own reroutes are kept. Also a toolbar toggle. |
+| `bEnableAutoGrid` | `bool` | `false` | Enables a coarser alignment grid (larger than the engine default of 16 px). On: nodes snap to `AutoGridSize` on drag, paste, creation, and auto-layout, and the background grid is drawn at that size. |
+| `AutoGridSize` | `int32` | `64` | Grid size (px) used when Auto-Grid is enabled (16–512; a multiple of 16 is recommended). |
+
+> Auto-Layout uses the Brandes–Köpf "Fast & Simple" method: connected nodes are aligned vertically so edges run as straight as possible, and node height prevents overlaps. The result is deterministic.
+
+---
+
 ## Consistent Team Settings
 
 1. Configure the settings locally as desired.

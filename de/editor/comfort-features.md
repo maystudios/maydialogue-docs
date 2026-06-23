@@ -10,7 +10,9 @@ Kleine Helfer, die große Dialoge handhabbar machen. Hier findest du alles, was 
 
 **Toolbar → Auto-Layout** oder `Ctrl+L` (falls konfiguriert).
 
-Der Graph wird nach Graph-Tiefe sortiert: Entry bleibt links, direkte Nachfolger eine Ebene weiter rechts, und so weiter. Innerhalb einer Ebene werden Nodes so angeordnet, dass Draht-Kreuzungen minimiert werden.
+Der Graph wird nach Graph-Tiefe sortiert: Entry bleibt links, direkte Nachfolger eine Ebene weiter rechts, und so weiter. Innerhalb einer Ebene werden Nodes so angeordnet, dass Draht-Kreuzungen minimiert werden. Verbundene Nodes werden zusätzlich vertikal aneinander ausgerichtet (Brandes-Köpf-„Fast & Simple"-Verfahren), sodass Drähte möglichst **gerade** verlaufen statt schräg; die Knotenhöhe bestimmt den Abstand, damit sich in einer Spalte nie etwas überlappt. Das Ergebnis ist ausbalanciert und vollständig deterministisch (gleicher Graph → gleiches Layout).
+
+Hat ein Node **mehrere Ausgänge** (z. B. PlayerChoice, Branch oder RandomLine), werden die Zielknoten in **Pin-Reihenfolge** angeordnet — der oberste Ausgangs-Pin führt zum obersten Ziel, der mittlere zur Mitte usw. (nicht in zufälliger Reihenfolge).
 
 Wann nutzen:
 - Graph ist nach vielen Änderungen unordentlich
@@ -23,6 +25,29 @@ Wann manuell nacharbeiten:
 
 > 📸 **Bild-Platzhalter:** `autolayout-before-after.png` — Vorher/Nachher: Links chaotischer Graph, rechts derselbe Graph nach Auto-Layout.
 > *Setup:* Zweiteilig. Links: Asset mit 8 Nodes zufällig verteilt, Drähte kreuzen sich mehrfach. Rechts: Dasselbe Asset nach Auto-Layout-Klick – Entry links, Nodes in drei vertikalen Spalten sauber angeordnet, keine Draht-Kreuzungen. Roter Pfeil auf Auto-Layout-Button in der Toolbar (zwischen beiden Varianten).
+
+## Auto-Reroute
+
+**Toolbar → Auto-Reroute** (Umschalter; auch unter *Projekteinstellungen ▸ Plugins ▸ MayDialogue Editor ▸ Layout*).
+
+Lange Kanten, die mehrere Ebenen überspringen, würden als lange Diagonale quer durch den Graph laufen. Auto-Reroute fügt das Auto-Layout entlang solcher Kanten **ausgerichtete Reroute-Knoten (Knots)** ein, sodass der Draht in sauberen Segmenten durch die Routing-Kanäle des Layouts verläuft – so wie man es von Hand machen würde. **Standardmäßig an.**
+
+- **Minimal:** ein Knot entsteht **nur dort, wo der Draht tatsächlich abknickt**. Kanten, die das Layout ohnehin gerade führt, bleiben ein einzelner sauberer Draht – der Graph wird nicht mit überflüssigen Reroutes zugepflastert.
+- **An/Aus** über den Toolbar-Umschalter (oder *Projekteinstellungen ▸ … ▸ Layout*); klicke danach **Auto Layout**, um es anzuwenden.
+- Automatisch erzeugte Reroutes werden bei jedem Auto-Layout **neu aufgebaut** (idempotent – sie sammeln sich nicht an); **deine eigenen** Reroute-Knoten bleiben unangetastet.
+- Laufzeit-transparent: der Compiler löst Knot-Ketten ohnehin auf, das Dialog-Verhalten ändert sich also nicht.
+
+## Auto-Grid
+
+**Toolbar → Auto-Grid** (Umschalter) plus das **Grid Size**-Dropdown direkt daneben.
+
+Standardmäßig nutzt der Graph-Editor das feine Unreal-Raster von 16 px. Auto-Grid schaltet auf ein **gröberes Raster** (16/32/64/128/256 px) um, an dem sich Nodes automatisch ausrichten – beim **Ziehen, Einfügen, Erstellen und beim Auto-Layout**. Das Hintergrundraster wird in der gewählten Größe gezeichnet, sodass sofort sichtbar ist, woran gesnappt wird.
+
+- **An/Aus** über den Toolbar-Umschalter; die Einstellung gilt projektweit und bleibt erhalten.
+- **Größe** über das Dropdown oder unter *Projekteinstellungen ▸ Plugins ▸ MayDialogue Editor ▸ Auto-Grid*.
+- **Aus = unverändertes Standardverhalten** (16-px-Raster der Engine).
+
+Wann nutzen: Wenn du Nodes von Hand sauber in Reih und Glied halten willst, ohne pixelgenau zielen zu müssen – das größere Raster „rastet" Nodes automatisch bündig ein.
 
 ## Comment-Boxes
 

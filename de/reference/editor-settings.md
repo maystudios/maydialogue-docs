@@ -72,6 +72,25 @@ Sichtbar nur während einer PIE-Session im Debugger.
 
 ---
 
+## Layout & Auto-Grid
+
+Steuert das **Auto-Layout** (Toolbar → Auto-Layout) und das optionale **Auto-Grid**. Siehe auch [Komfort-Funktionen](../editor/comfort-features.md).
+
+| Property | Typ | Default | Bedeutung |
+|---|---|---|---|
+| `AutoLayoutHorizontalSpacing` | `float` | `420` | Horizontaler Abstand (px) zwischen aufeinanderfolgenden Node-Spalten. |
+| `AutoLayoutVerticalSpacing` | `float` | `180` | Mindest-Abstand (px, Mitte zu Mitte) zwischen Nodes in einer Spalte. |
+| `AutoLayoutInterRowGap` | `float` | `80` | Zusätzlicher Abstand (px) über/unter jedem Node, oben auf die Knotenhöhe. |
+| `AutoLayoutGridSize` | `float` | `16` | Raster (px), auf das Positionen nach dem Auto-Layout gesnappt werden (wenn Auto-Grid aus). |
+| `AutoLayoutMaxBarycenterSweeps` | `int32` | `24` | Max. Anzahl Barycenter-Durchläufe zur Kreuzungs-Minimierung. |
+| `bAutoLayoutInsertReroutes` | `bool` | `true` | Auto-Layout fügt entlang langer Kanten ausgerichtete Reroute-Knoten ein – **nur an echten Knickpunkten** (gerade Kanten bleiben unangetastet). Auto-Reroutes werden bei jedem Lauf neu aufgebaut; eigene Reroutes bleiben erhalten. Auch als Toolbar-Umschalter. |
+| `bEnableAutoGrid` | `bool` | `false` | Aktiviert ein gröberes Ausrichtungsraster (größer als die Engine-Standard-16 px). An: Nodes snappen beim Ziehen, Einfügen, Erstellen und Auto-Layout an `AutoGridSize`, und das Hintergrundraster wird in dieser Größe gezeichnet. |
+| `AutoGridSize` | `int32` | `64` | Rastergröße (px) bei aktivem Auto-Grid (16–512; ein Vielfaches von 16 wird empfohlen). |
+
+> Auto-Layout nutzt das Brandes-Köpf-„Fast & Simple"-Verfahren: verbundene Nodes werden vertikal ausgerichtet, sodass Kanten möglichst gerade verlaufen, und die Knotenhöhe verhindert Überlappungen. Das Ergebnis ist deterministisch.
+
+---
+
 ## Einheitliche Team-Settings
 
 1. Lokal die Settings nach Wunsch konfigurieren.
