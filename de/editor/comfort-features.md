@@ -12,6 +12,8 @@ Kleine Helfer, die große Dialoge handhabbar machen. Hier findest du alles, was 
 
 Der Graph wird nach Graph-Tiefe sortiert: Entry bleibt links, direkte Nachfolger eine Ebene weiter rechts, und so weiter. Innerhalb einer Ebene werden Nodes so angeordnet, dass Draht-Kreuzungen minimiert werden. Verbundene Nodes werden zusätzlich vertikal aneinander ausgerichtet (Brandes-Köpf-„Fast & Simple"-Verfahren), sodass Drähte möglichst **gerade** verlaufen statt schräg; die Knotenhöhe bestimmt den Abstand, damit sich in einer Spalte nie etwas überlappt. Das Ergebnis ist ausbalanciert und vollständig deterministisch (gleicher Graph → gleiches Layout).
 
+Die Ausrichtung erfolgt an der **Pin-Reihe (Oberkante)** der Nodes, nicht am Zentrum – so verlaufen Verbindungen zwischen unterschiedlich hohen Nodes (z. B. einer hohen Say-Line und einem kleinen Exit) **wirklich waagerecht** statt leicht schräg. Einzelfluss-Ketten werden dadurch schnurgerade.
+
 Hat ein Node **mehrere Ausgänge** (z. B. PlayerChoice, Branch oder RandomLine), werden die Zielknoten in **Pin-Reihenfolge** angeordnet — der oberste Ausgangs-Pin führt zum obersten Ziel, der mittlere zur Mitte usw. (nicht in zufälliger Reihenfolge).
 
 Wann nutzen:

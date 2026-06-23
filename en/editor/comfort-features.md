@@ -12,6 +12,8 @@ The small helpers that make big dialogues manageable. Everything that makes the 
 
 The graph is sorted by graph depth: Entry stays on the left, its direct successors one level further right, and so on. Within a level, nodes are arranged to minimize wire crossings. Connected nodes are additionally aligned vertically with one another (the Brandes–Köpf "Fast & Simple" method) so wires run as **straight** as possible instead of slanted; node height drives the spacing so nodes in a column never overlap. The result is balanced and fully deterministic (same graph → same layout).
 
+Nodes are aligned by their **pin row (top), not their centre**, so connections between nodes of very different heights (e.g. a tall Say Line and a short Exit) render **truly horizontal** instead of subtly slanted. Single-flow chains come out dead straight.
+
 When a node has **multiple outputs** (e.g. PlayerChoice, Branch, or RandomLine), its target nodes are arranged in **pin order** — the topmost output pin leads to the topmost target, the middle one to the middle, and so on (never in a random order).
 
 When to use it:
