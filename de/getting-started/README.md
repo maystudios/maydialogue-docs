@@ -4,14 +4,14 @@ description: In drei Schritten vom leeren Projekt zum spielbaren Dialog.
 
 # Erste Schritte
 
-MayDialogue ist ein Dialog-Plugin für Unreal Engine 5.7. Du bekommst einen visuellen Graph-Editor, eine fertige UI-Schicht, 3D-Audio mit prozeduralem Babel-Fallback, Kamerasteuerung, Typewriter-Effekte und GAS-Integration. Alles steckt in einem einzigen Plugin, ohne fremde Abhängigkeiten.
+MayDialogue ist ein Dialog-Plugin für Unreal Engine 5.8. Du bekommst einen visuellen Graph-Editor, eine fertige UI-Schicht, 3D-Audio mit prozeduralem Babel-Fallback, Kamerasteuerung, Typewriter-Effekte und GAS-Integration. Alles steckt in einem einzigen Plugin, ohne fremde Abhängigkeiten.
 
 > 📸 **Bild-Platzhalter:** `getting-started-overview.png`: Screenshot des MayDialogue-Editors mit einem geöffneten Dialog-Asset.
 > *Setup:* Asset `DA_Gate_Guardian` im Editor offen. Sichtbar: der Graph mit mehreren farbigen Nodes (Entry grün, SayLines dunkelrot/grau, PlayerChoice breit, Exit rot), das Speakers-Panel rechts mit zwei Einträgen, das Outline-Panel links mit Node-Liste. Bildunterschrift: "Der Graph ist das Dokument."
 
 ## Was du brauchst
 
-* **Unreal Engine 5.7** (Binary- oder Source-Build)
+* **Unreal Engine 5.8** (Binary- oder Source-Build)
 * Ein bestehendes Projekt (Blueprint- oder C++-Projekt)
 * Grundkenntnisse in Blueprint oder C++. Plugin-Interna musst du nicht kennen.
 

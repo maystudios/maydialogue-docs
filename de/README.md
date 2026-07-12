@@ -1,13 +1,13 @@
 ---
 description: >-
-  Ein Dialog-Plugin für Unreal Engine 5.7 mit visuellem Graph-Editor,
+  Ein Dialog-Plugin für Unreal Engine 5.8 mit visuellem Graph-Editor,
   3D-Audio, Typewriter, Kamera-Steuerung, GAS-Integration und einem fertigen
   UI-Set – sofort einsetzbar, ohne Boilerplate.
 ---
 
 # Willkommen bei MayDialogue
 
-**MayDialogue** ist ein vollständiges Dialogsystem für Unreal Engine 5.7. Du musst kein Audio-Routing aufsetzen, keine UMG-Hierarchie bauen, keine Input-Mode-Logik schreiben. Plugin aktivieren, NPC mit einer Komponente versehen, Dialog-Asset zuweisen, Start-Funktion aufrufen — Audio läuft in 3D, das Widget erscheint, Text läuft per Typewriter, Choices sind klickbar, der Dialog endet sauber.
+**MayDialogue** ist ein vollständiges Dialogsystem für Unreal Engine 5.8. Du musst kein Audio-Routing aufsetzen, keine UMG-Hierarchie bauen, keine Input-Mode-Logik schreiben. Plugin aktivieren, NPC mit einer Komponente versehen, Dialog-Asset zuweisen, Start-Funktion aufrufen — Audio läuft in 3D, das Widget erscheint, Text läuft per Typewriter, Choices sind klickbar, der Dialog endet sauber.
 
 {% hint style="success" %}
 **Fünf Minuten von Null bis spielbar.** Kein Blueprint-Boilerplate, kein UI-Setup. Schau dir den [Quick Start](getting-started/quick-start.md) an.
@@ -101,9 +101,9 @@ Such dir den Pfad, der zu dir passt:
 
 | Information | Wert |
 | --- | --- |
-| Engine | Unreal Engine 5.7 |
-| Plugin-Version | 0.1.0 (Beta) |
-| Letzte Aktualisierung | 2026-04-27 |
+| Engine | Unreal Engine 5.8 |
+| Plugin-Version | 0.9.0 (Beta) |
+| Letzte Aktualisierung | 2026-07-12 |
 | Dependencies | `GameplayAbilities`, `GameplayTags`, `StructUtils` |
 
 Aktuelle Limitierungen findest du unter [Bekannte Issues](troubleshooting/known-issues.md). Neu hier? Fang mit dem [Quick Start](getting-started/quick-start.md) an.

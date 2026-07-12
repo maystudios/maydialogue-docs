@@ -10,7 +10,7 @@ MayDialogue ist ein UE-Plugin mit drei Modulen. Die Installation läuft in fünf
 
 | Komponente | Mindestversion | Hinweis |
 | --- | --- | --- |
-| Unreal Engine | 5.7 | Binary- oder Source-Build |
+| Unreal Engine | 5.8 | Binary- oder Source-Build |
 | Visual Studio 2022 | 17.9+ | Nur wenn dein Projekt ein C++-Modul hat |
 | JetBrains Rider | 2024.3+ | Optional |
 
@@ -53,8 +53,8 @@ Nur notwendig, wenn dein Projekt ein C++-Modul hat (`.uproject` enthält `"Modul
 Rechtsklick auf `.uproject` → **Generate Visual Studio project files**, oder in einer Shell:
 
 ```bash
-"C:/Program Files/Epic Games/UE_5.7/Engine/Build/BatchFiles/GenerateProjectFiles.bat" \
-  -project="C:/Pfad/Zu/MeinProjekt.uproject" -game -rocket
+"C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.exe" \
+  -projectfiles -project="C:/Pfad/Zu/MeinProjekt.uproject" -game -engine -progress
 ```
 {% endtab %}
 
@@ -72,7 +72,7 @@ Rechtsklick auf `.uproject` → **Generate Visual Studio project files**, oder i
 Alternativ per Batch:
 
 ```bash
-"C:/Program Files/Epic Games/UE_5.7/Engine/Build/BatchFiles/Build.bat" \
+"C:/Program Files/Epic Games/UE_5.8/Engine/Build/BatchFiles/Build.bat" \
   MeinProjektEditor Win64 Development "-project=C:/Pfad/Zu/MeinProjekt.uproject"
 ```
 

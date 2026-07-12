@@ -10,7 +10,7 @@ MayDialogue is a UE plugin with three modules. Installation runs in five steps a
 
 | Component | Minimum version | Note |
 | --- | --- | --- |
-| Unreal Engine | 5.7 | Binary or source build |
+| Unreal Engine | 5.8 | Binary or source build |
 | Visual Studio 2022 | 17.9+ | Only if your project has a C++ module |
 | JetBrains Rider | 2024.3+ | Optional |
 
@@ -53,8 +53,8 @@ Only required if your project has a C++ module (`.uproject` contains `"Modules"`
 Right-click on `.uproject` → **Generate Visual Studio project files**, or in a shell:
 
 ```bash
-"C:/Program Files/Epic Games/UE_5.7/Engine/Build/BatchFiles/GenerateProjectFiles.bat" \
-  -project="C:/Path/To/MyProject.uproject" -game -rocket
+"C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.exe" \
+  -projectfiles -project="C:/Path/To/MyProject.uproject" -game -engine -progress
 ```
 {% endtab %}
 
@@ -72,7 +72,7 @@ Open the `.sln` in Rider or Visual Studio and build the **Editor target** (`MyPr
 Alternatively, via batch file:
 
 ```bash
-"C:/Program Files/Epic Games/UE_5.7/Engine/Build/BatchFiles/Build.bat" \
+"C:/Program Files/Epic Games/UE_5.8/Engine/Build/BatchFiles/Build.bat" \
   MyProjectEditor Win64 Development "-project=C:/Path/To/MyProject.uproject"
 ```
 
