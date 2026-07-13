@@ -137,7 +137,7 @@ Pre-warm is **best-effort**, not a guarantee. If a player blitzes through a dial
 
 ## Measurements
 
-Measured in the 1.0 perf pass (2026-06): UE 5.7, Win64 **Development editor PIE**, AMD Ryzen 9 9950X3D, sample map `L_DialogueShowcase` with sample dialogues. Per-frame values are `stat DumpAve` averages over 60–120 frames; the `StartDialogue` timings are in-process measurements around the subsystem call. A Shipping build without editor overhead tends to come in lower — treat these as orders of magnitude, not guarantees, and re-measure on your target hardware.
+Measured in the 1.0 perf pass (2026-06): UE 5.7, Win64 **Development editor PIE**, AMD Ryzen 9 9950X3D, on the legacy pre-Showcase-V2 `L_DialogueShowcase` map, which is no longer shipped. Per-frame values are `stat DumpAve` averages over 60–120 frames; the `StartDialogue` timings are in-process measurements around the subsystem call. Treat these as historical orders of magnitude, not current Showcase V2 or packaged-build results, and re-measure on your target hardware.
 
 | What | Configuration | Cost | Notes |
 |---|---|---|---|
