@@ -63,6 +63,22 @@ In the other direction, the server pushes display data to the owning client via 
 | `ClientUpdateConversation(Message)` | `OnMessageReceived` (+ native) | Display the new line |
 | `ClientUpdateConversationTaskChoiceData(Choices, PromptText)` | `OnChoicesReceived` (+ native) | Display the choice list |
 
+### Querying the client mirror
+
+The Client RPC handlers update the participant's queryable mirror **before**
+they broadcast these delegates. The same fields reach non-owning peers through
+replication. This makes the following API safe in Standalone, on authority, and
+on remote clients:
+
+- `IsInDialogue()` — true while the participant belongs to at least one active
+  conversation, even though the client has no `UMayDialogueInstance`;
+- `GetConversationsActive()` — the mirrored active-conversation reference count;
+- `CurrentMessage`, `CurrentChoices`, and `CurrentChoicePromptText` — the latest
+  presentation payload, cleared when the dialogue ends or aborts.
+
+Do not use `ActiveDialogue` as a client-state check. It intentionally stays null
+on clients because the instance exists only on the server.
+
 > 📸 **Image placeholder:** `mp-client-flow-bp.png` — BP graph of a multiplayer-safe interaction on the player character.
 > *Setup:* Player Character Blueprint. Graph: `On Interact Input Action` → `Get Component by Class (MayDialogueParticipant)` (Target: Self) → `Request Start Dialogue` (Target: NPC Actor Reference). Below, a separate strip: a UMG button's `OnClicked` → `Request Select Choice` (Choice Index from the button). Both nodes flagged with a comment box "Net-safe — works on client and listen-server host."
 
