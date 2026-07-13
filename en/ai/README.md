@@ -28,7 +28,27 @@ The tools return real shipped documentation, not a separate collection of market
 
 ## Safety model
 
-Documentation tools are read-only. Authoring tools use structured requests, validate inputs before mutation, and expose preview or dry-run behavior where the operation can change multiple assets. Keep the MCP server bound to loopback unless you deliberately secure a different network arrangement.
+Documentation tools are read-only. Authoring tools use structured requests, validate inputs before mutation, and expose preview or dry-run behavior where the operation can change multiple assets. Keep the MCP server bound to loopback. Do not expose, proxy, tunnel, port-forward, or firewall-publish it; the local endpoint does not provide authentication.
+
+## Safe SubGraph authoring
+
+Use `MayDialogueMCP.MayDialogueGraphToolset.ConfigureSubgraph` after you have an exact SubGraph source `nodeGuid` and the current asset `revision` from `InspectDialogueAsset`. The tool configures the designer-facing name and return behavior and can create the embedded graph when it is missing:
+
+```json
+{
+  "assetPath": "/Game/Dialogues/DA_QuestGuide",
+  "expectedRevision": "A1B2C3D4",
+  "nodeGuid": "11111111-2222-3333-4444-555555555555",
+  "subGraphName": "Quest Accepted",
+  "bReturnAfterSubGraph": true,
+  "bCreateIfMissing": true,
+  "bSave": false
+}
+```
+
+When creation is allowed, a missing graph starts as a valid **Entry → Say Line → Exit** scaffold. The result returns `graphPath`, `entryNodeGuid`, `exitNodeGuids`, `nodeCount`, before/after revisions, and `bCreated`/`bChanged`. Re-inspect the asset before the next mutation and connect the parent SubGraph node with `ConnectPins` as a separate, explicit operation.
+
+Set `bCreateIfMissing=false` when you only intend to update an existing embedded graph. A missing graph then returns `MayDialogue.Subgraph.NotConfigured` without changing source state. The tool rejects foreign or unregistered graph references and never deletes, detaches, imports, re-parents, or guesses a graph. Saving remains explicit and defaults to off.
 
 ## Start here
 

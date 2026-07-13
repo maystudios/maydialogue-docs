@@ -28,7 +28,27 @@ Die Tools liefern echte ausgelieferte Dokumentation, keine getrennte Sammlung fe
 
 ## Sicherheitsmodell
 
-Dokumentations-Tools sind schreibgeschützt. Authoring-Tools verwenden strukturierte Requests, validieren Eingaben vor jeder Mutation und bieten bei Operationen über mehrere Assets eine Vorschau oder einen Dry Run. Lass den MCP-Server an Loopback gebunden, sofern du nicht bewusst eine andere Netzwerkkonfiguration absicherst.
+Dokumentations-Tools sind schreibgeschützt. Authoring-Tools verwenden strukturierte Requests, validieren Eingaben vor jeder Mutation und bieten bei Operationen über mehrere Assets eine Vorschau oder einen Dry Run. Lass den MCP-Server an Loopback gebunden. Stelle ihn nicht öffentlich bereit, proxye oder tunnle ihn nicht, richte kein Port-Forwarding ein und veröffentliche ihn nicht per Firewall-Regel; der lokale Endpunkt bietet keine Authentifizierung.
+
+## Sichere SubGraph-Bearbeitung
+
+Verwende `MayDialogueMCP.MayDialogueGraphToolset.ConfigureSubgraph`, nachdem du über `InspectDialogueAsset` die exakte `nodeGuid` eines SubGraph-Source-Nodes und die aktuelle Asset-`revision` erhalten hast. Das Tool konfiguriert Anzeigename und Rückkehrverhalten und kann den eingebetteten Graph bei Bedarf anlegen:
+
+```json
+{
+  "assetPath": "/Game/Dialogues/DA_QuestGuide",
+  "expectedRevision": "A1B2C3D4",
+  "nodeGuid": "11111111-2222-3333-4444-555555555555",
+  "subGraphName": "Quest Accepted",
+  "bReturnAfterSubGraph": true,
+  "bCreateIfMissing": true,
+  "bSave": false
+}
+```
+
+Wenn die Erstellung erlaubt ist, beginnt ein fehlender Graph als gültiges **Entry → Say Line → Exit**-Gerüst. Das Ergebnis liefert `graphPath`, `entryNodeGuid`, `exitNodeGuids`, `nodeCount`, Vorher-/Nachher-Revisionen sowie `bCreated`/`bChanged`. Inspiziere das Asset vor der nächsten Mutation erneut und verbinde den übergeordneten SubGraph-Node mit `ConnectPins` als getrennte, explizite Operation.
+
+Setze `bCreateIfMissing=false`, wenn du ausschließlich einen vorhandenen eingebetteten Graph aktualisieren willst. Fehlt der Graph, liefert das Tool dann `MayDialogue.Subgraph.NotConfigured`, ohne den Source-Zustand zu ändern. Fremde oder nicht registrierte Graph-Referenzen werden abgelehnt; das Tool löscht, trennt, importiert, verschiebt oder errät keinen Graph. Speichern bleibt explizit und ist standardmäßig deaktiviert.
 
 ## Einstieg
 

@@ -12,6 +12,10 @@ http://127.0.0.1:8000/mcp
 
 In diese Beispiele gehören weder API-Key noch Token oder MayDialogue-Zugangsdaten. Der Endpunkt ist ein lokaler Editor-Dienst; Zugangsdaten für das verwendete Modell verwaltet dein KI-Client getrennt.
 
+{% hint style="warning" %}
+Belasse diesen Endpunkt auf `127.0.0.1`. Stelle ihn nicht öffentlich bereit, proxye oder tunnle ihn nicht, richte kein Port-Forwarding ein und veröffentliche ihn nicht per Firewall-Regel. Loopback-Zugriff ist kein Authentifizierungsverfahren, und der Unreal-MCP-Server ergänzt keine Authentifizierung für dich.
+{% endhint %}
+
 ## Unreal Engine vorbereiten
 
 1. Aktiviere unter **Edit → Plugins** das Plugin **Model Context Protocol**. MayDialogue aktiviert dessen benötigte Toolset-Registry-Abhängigkeit.

@@ -12,6 +12,10 @@ http://127.0.0.1:8000/mcp
 
 No API key, token, or MayDialogue credential belongs in these examples. The endpoint is a local editor service; your AI client handles its own model credentials separately.
 
+{% hint style="warning" %}
+Keep this endpoint on `127.0.0.1`. Do not expose, proxy, tunnel, port-forward, or firewall-publish it. Loopback access is not an authentication mechanism, and the Unreal MCP server does not add authentication for you.
+{% endhint %}
+
 ## Prepare Unreal Engine
 
 1. In **Edit → Plugins**, enable **Model Context Protocol**. MayDialogue enables its required Toolset Registry dependency.
