@@ -11,6 +11,11 @@
 * [Ein vollständiger Walkthrough](getting-started/first-dialogue.md)
 * [Projekt-Einstellungen](getting-started/project-settings.md)
 
+## KI-Clients und MCP
+
+* [Überblick](ai/README.md)
+* [Client-Einrichtung](ai/client-setup.md)
+
 ## Kern-Konzepte
 
 * [Überblick](concepts/README.md)
@@ -164,6 +169,7 @@
 * [MayDialogueSubsystem](reference/api-subsystem.md)
 * [Delegates & Events](reference/api-delegates.md)
 * [Typen & Enums](reference/types.md)
+* [Validator-Diagnosen](reference/diagnostics.md)
 
 ## Troubleshooting
 
