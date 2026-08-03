@@ -63,6 +63,22 @@ In die andere Richtung schiebt der Server Anzeige-Daten zum besitzenden Client �
 | `ClientUpdateConversation(Message)` | `OnMessageReceived` (+ native) | Neue Zeile anzeigen |
 | `ClientUpdateConversationTaskChoiceData(Choices, PromptText)` | `OnChoicesReceived` (+ native) | Choice-Liste anzeigen |
 
+### Den Client-Mirror abfragen
+
+Die Client-RPC-Handler aktualisieren den abfragbaren Mirror des Participants,
+**bevor** sie diese Delegates broadcasten. Nicht-besitzende Peers erhalten
+dieselben Felder über Replikation. Damit ist folgende API in Standalone, auf
+Authority und auf Remote-Clients sicher nutzbar:
+
+- `IsInDialogue()` — true, solange der Participant zu mindestens einem aktiven
+  Dialog gehört, obwohl auf dem Client keine `UMayDialogueInstance` existiert;
+- `GetConversationsActive()` — der gespiegelte Referenzzähler aktiver Dialoge;
+- `CurrentMessage`, `CurrentChoices` und `CurrentChoicePromptText` — die letzte
+  Darstellungs-Payload, die bei Dialogende oder Abort geleert wird.
+
+Nutze `ActiveDialogue` nicht als Client-State-Prüfung. Der Wert bleibt auf
+Clients absichtlich null, weil die Instance ausschließlich auf dem Server lebt.
+
 > 📸 **Bild-Platzhalter:** `mp-client-flow-bp.png` — BP-Graph einer multiplayer-sicheren Interaktion am Spieler-Charakter.
 > *Setup:* Spieler-Charakter-Blueprint. Graph: `On Interact Input Action` → `Get Component by Class (MayDialogueParticipant)` (Target: Self) → `Request Start Dialogue` (Target: NPC-Actor-Referenz). Darunter ein separater Strang: das `OnClicked` eines UMG-Buttons → `Request Select Choice` (Choice Index vom Button). Beide Nodes mit einer Kommentar-Box "Netz-sicher — funktioniert auf Client und Listen-Server-Host" markiert.
 

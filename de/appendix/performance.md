@@ -137,7 +137,7 @@ Pre-Warm ist **Best-Effort**, keine Garantie. Wenn ein Spieler schneller durch e
 
 ## Messwerte
 
-Gemessen im 1.0-Perf-Durchlauf (2026-06): UE 5.7, Win64 **Development-Editor-PIE**, AMD Ryzen 9 9950X3D, Sample-Map `L_DialogueShowcase` mit Sample-Dialogen. Diese Werte bleiben als historische UE-5.7-Baseline erhalten; das aktuelle Plugin-Ziel ist UE 5.8 und muss vor neuen Performance-Claims erneut vermessen werden. Per-Frame-Werte sind `stat DumpAve`-Mittel über 60–120 Frames; die `StartDialogue`-Zeiten sind In-Prozess-Messungen um den Subsystem-Aufruf. Ein Shipping-Build ohne Editor-Overhead liegt eher darunter — nimm die Werte als Größenordnung, nicht als Garantie, und miss auf deiner Zielhardware nach.
+Gemessen im 1.0-Perf-Durchlauf (2026-06): UE 5.7, Win64 **Development-Editor-PIE**, AMD Ryzen 9 9950X3D, auf der alten Vor-Showcase-V2-Map `L_DialogueShowcase`, die nicht mehr ausgeliefert wird. Diese Werte bleiben als historische UE-5.7-Baseline erhalten; das aktuelle Plugin-Ziel ist UE 5.8 und muss vor neuen Performance-Claims erneut vermessen werden. Per-Frame-Werte sind `stat DumpAve`-Mittel über 60–120 Frames; die `StartDialogue`-Zeiten sind In-Prozess-Messungen um den Subsystem-Aufruf. Ein Shipping-Build ohne Editor-Overhead liegt eher darunter — nimm die Werte als historische Größenordnung, nicht als aktuelles Showcase-V2- oder Packaged-Build-Ergebnis, und miss auf deiner Zielhardware nach.
 
 | Was | Konfiguration | Kosten | Notizen |
 |---|---|---|---|

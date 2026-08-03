@@ -5,13 +5,13 @@ description: Horror-, Visual-Novel- und RPG-Theme — wie du ein Theme wählst, 
 # Themes & Starterkits
 
 {% hint style="success" %}
-**Drei fertige Themes liefert das Plugin mit** — unter `/MayDialogue/Themes`: Horror (**Pale Static**), Visual Novel (**Daybreak**) und RPG (**Gilded Slate**) — dazu ein neutrales `WBP_DialogueTheme_Default` unter `/MayDialogue/Samples/UI`. Jede Sample-Map setzt ihr Theme automatisch über einen `AMayDialogueThemeSetter`-Actor, sodass du jedes Sample-Level starten und sofort ein fertiges Theme sehen kannst. Nimm eins davon als Ausgangspunkt und subklasse es, oder bau dir mit dem Abschnitt **Eigenes Theme bauen** unten ein eigenes von Grund auf.
+**Drei fertige Themes liefert das Plugin mit** — unter `/MayDialogue/Themes`: Horror (**Pale Static**), Visual Novel (**Daybreak**) und RPG (**Gilded Slate**). Das kanonische Level `/MayDialogue/Samples/Maps/L_MayDialogue_Showcase` startet mit RPG und schaltet über die echte Event-Map eines `AMayDialogueThemeSetter` live zwischen allen drei Themes um. Nimm ein Theme als Ausgangspunkt und subklasse es, oder bau dir mit dem Abschnitt **Eigenes Theme bauen** unten ein eigenes von Grund auf.
 {% endhint %}
 
 MayDialogue liefert das Widget-Framework und obendrauf fertige Themes. Die **visuellen Themes** sind Blueprint-Subklassen — jedes ist ein vollständiger Satz Widget-Klassen, der das Aussehen deines Dialogs bestimmt.
 
 > 📸 **Bild-Platzhalter:** `themes-overview-comparison.png` — Drei PIE-Viewport-Screenshots nebeneinander: links Horror-Theme (fast schwarzes Panel, Typewriter-Schrift im Nameplate), Mitte VN-Theme (tiefviolettes Panel, Name-Pill, helle Sans-Serif), rechts RPG-Theme (dunkles Slate-Panel mit Gilt-Rahmen, Cinzel-Nameplate, elfenbeinfarbener Text). Gleicher Dialog-Text in allen drei.
-> *Setup:* Denselben Dialog dreimal mit unterschiedlichen Widget-Klassen starten (je Sample-Map einmal anspielen — der ThemeSetter setzt das Theme automatisch). Screenshots in PIE.
+> *Setup:* `L_MayDialogue_Showcase` spielen, zum Curator gehen und nacheinander jedes Theme wählen. Der ThemeSetter setzt die Widget-Klasse live in derselben PIE-Session.
 
 ## Welche Themes gibt es?
 
@@ -23,7 +23,7 @@ Drei Themes liegen fertig nutzbar unter `/MayDialogue/Themes`. Jedes ist ein vol
 | **Visual Novel** — *Daybreak* | `WBP_MayDlg_Theme_VN` | Tiefviolettes, breites Panel, Name-Pill (Quicksand), Nunito-Sans-Fließtext, Choices schweben mittig im Bild | VN, Story-Adventures |
 | **RPG** — *Gilded Slate* | `WBP_MayDlg_Theme_RPG` | Dunkles Slate-Panel mit Gilt-Rahmen, Cinzel-Nameplate, elfenbeinfarbener Text, Lock-Icon auf gesperrten Choices | RPG, Adventure |
 
-Ein neutrales `WBP_DialogueTheme_Default` (unter `/MayDialogue/Samples/UI`) ist die schlichte Basis, die genutzt wird, wenn kein Theme gesetzt ist. Die Widget-Klassen sind subclassbar — du nimmst ein beliebiges Theme als Ausgangspunkt und passt es an.
+Es wird kein separates neutrales UMG-Starter-Asset ausgeliefert. Slate bleibt der Zero-Setup-Fallback; für einen produktiven UMG-Ausgangspunkt subklassierst du das Theme, das deinem Projekt am nächsten kommt.
 
 ---
 
@@ -36,7 +36,7 @@ Für einen projektweiten Default setze in den Project Settings:
 DefaultDialogueWidgetClass = /MayDialogue/Themes/Horror/Widgets/WBP_MayDlg_Theme_Horror.WBP_MayDlg_Theme_Horror_C
 ```
 
-Fertig. Beim nächsten Dialog-Start erscheint das Theme. Um ein Theme pro Level zu setzen — oder live mitten im Gespräch umzuschalten — nutze den `AMayDialogueThemeSetter`-Actor (siehe **Mehrere Themes im selben Projekt** unten); genau so setzt jede Sample-Map ihr Theme.
+Fertig. Beim nächsten Dialog-Start erscheint das Theme. Um ein Theme pro Level zu setzen — oder live mitten im Gespräch umzuschalten — nutze den `AMayDialogueThemeSetter`-Actor (siehe **Mehrere Themes im selben Projekt** unten). Genau diesen Pfad verwenden die Theme-Choices des Curators im kanonischen Showcase.
 
 > 📸 **Bild-Platzhalter:** `themes-project-settings.png` — Project Settings → MayDialogue. Feld `DefaultDialogueWidgetClass` mit einem ausgefüllten Widget-Pfad, roter Pfeil darauf.
 > *Setup:* Project Settings → MayDialogue, Screenshot nur diesen Abschnitt.
@@ -45,8 +45,8 @@ Fertig. Beim nächsten Dialog-Start erscheint das Theme. Um ein Theme pro Level 
 
 ## Horror-Theme
 
-> 📸 **Bild-Platzhalter:** `theme-horror-ingame.png` — PIE-Viewport, Horror-Theme aktiv (Sample-Map `L_Horror_Corridor` anspielen). Fast schwarzes Panel (1120×240) unten zentriert, Speaker-Nameplate links darüber in Special-Elite-Typewriter-Schrift, fahler grauweißer Text. Einblend-Animation fast fertig (CRT-Flicker-Fade).
-> *Setup:* `L_Horror_Corridor` in PIE starten, an den NPC herantreten (Proximity-Start). Screenshot kurz nach dem Einblenden.
+> 📸 **Bild-Platzhalter:** `theme-horror-ingame.png` — PIE-Viewport in `L_MayDialogue_Showcase`, Horror-Theme aktiv. Fast schwarzes Panel (1120×240) unten zentriert, Speaker-Nameplate links darüber in Special-Elite-Typewriter-Schrift, fahler grauweißer Text. Einblend-Animation fast fertig (CRT-Flicker-Fade).
+> *Setup:* Beim Curator Horror wählen und danach im Fork Gallery zum Horror Attendant gehen. Screenshot kurz nach dem Einblenden.
 
 **Dialog Frame**
 - Panel: fast schwarz (`#131316`), 1120×240 @1080p, unten zentriert.
@@ -73,8 +73,8 @@ Fertig. Beim nächsten Dialog-Start erscheint das Theme. Um ein Theme pro Level 
 
 ## Visual-Novel-Theme
 
-> 📸 **Bild-Platzhalter:** `theme-vn-ingame.png` — PIE-Viewport, VN-Theme aktiv (Sample-Map `L_VN_Scene` anspielen). Tiefviolettes, breites Panel (1400×300) unten zentriert, Speaker-Name als abgerundete Pill in Quicksand, heller Nunito-Sans-Fließtext. Weicher Fade abgeschlossen.
-> *Setup:* `L_VN_Scene` in PIE starten, an Jun/Riley herantreten — der Speaker-Wechsel pro Zeile ist Teil des Samples. Screenshot nach abgeschlossener Einblende.
+> 📸 **Bild-Platzhalter:** `theme-vn-ingame.png` — PIE-Viewport in `L_MayDialogue_Showcase`, VN-Theme aktiv. Tiefviolettes, breites Panel (1400×300) unten zentriert, Speaker-Name als abgerundete Pill in Quicksand, heller Nunito-Sans-Fließtext. Weicher Fade abgeschlossen.
+> *Setup:* Beim Curator VN wählen und danach im Interface Atelier zu Jun gehen — der Speaker-Wechsel pro Zeile ist Teil des Samples. Screenshot nach abgeschlossener Einblende.
 
 **Dialog Frame**
 - Panel: tiefes Violett (`#322B4D`), 1400×300 @1080p — das breiteste der drei Themes.
@@ -99,8 +99,8 @@ Fertig. Beim nächsten Dialog-Start erscheint das Theme. Um ein Theme pro Level 
 
 ## RPG-Theme
 
-> 📸 **Bild-Platzhalter:** `theme-rpg-ingame.png` — PIE-Viewport, RPG-Theme aktiv (Sample-Map `L_DialogueShowcase` anspielen, z.B. Gatekeeper Marrow). Dunkles Slate-Panel (1260×232) mit Gilt-Rahmen unten zentriert, Cinzel-Nameplate links darüber, elfenbeinfarbener Text. Drei Choice-Buttons über dem Frame, einer gesperrt mit Lock-Icon.
-> *Setup:* `L_DialogueShowcase` in PIE starten, an Marrow herantreten — sein Dialog hat von Haus aus eine gesperrt-sichtbare Gate-Choice.
+> 📸 **Bild-Platzhalter:** `theme-rpg-ingame.png` — PIE-Viewport in `L_MayDialogue_Showcase`, RPG-Theme aktiv bei Gatekeeper Marrow. Dunkles Slate-Panel (1260×232) mit Gilt-Rahmen unten zentriert, Cinzel-Nameplate links darüber, elfenbeinfarbener Text. Drei Choice-Buttons über dem Frame, einer gesperrt mit Lock-Icon.
+> *Setup:* `L_MayDialogue_Showcase` in PIE starten und zu Marrow gehen — RPG ist das Start-Theme, und sein Dialog hat von Haus aus eine gesperrt-sichtbare Gate-Choice.
 
 **Dialog Frame**
 - Panel: dunkles Slate (`#161A21`) mit vergoldetem 9-Slice-Rahmen, 1260×232 @1080p, unten zentriert.
