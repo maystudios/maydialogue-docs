@@ -1,13 +1,13 @@
 ---
 description: >-
-  A dialogue plugin for Unreal Engine 5.7 with visual graph editor,
+  A dialogue plugin for Unreal Engine 5.8 with visual graph editor,
   3D audio, typewriter, camera controls, GAS integration, and a ready-made
   UI set — ready to use out of the box, no boilerplate required.
 ---
 
 # Welcome to MayDialogue
 
-**MayDialogue** is a complete dialogue system for Unreal Engine 5.7. You don't need to set up audio routing, build a UMG hierarchy, or write input mode logic. Enable the plugin, add a component to your NPC, assign a dialogue asset, call the start function — audio plays in 3D, the widget appears, text runs with a typewriter effect, choices are clickable, and the dialogue ends cleanly.
+**MayDialogue** is a complete dialogue system for Unreal Engine 5.8. You don't need to set up audio routing, build a UMG hierarchy, or write input mode logic. Enable the plugin, add a component to your NPC, assign a dialogue asset, call the start function — audio plays in 3D, the widget appears, text runs with a typewriter effect, choices are clickable, and the dialogue ends cleanly.
 
 {% hint style="success" %}
 **Five minutes from zero to playable.** No Blueprint boilerplate, no UI setup. Check out the [Quick Start](getting-started/quick-start.md).
@@ -101,9 +101,9 @@ Choose the path that suits you:
 
 | Information | Value |
 | --- | --- |
-| Engine | Unreal Engine 5.7 |
-| Plugin Version | 0.1.0 (Beta) |
-| Last Updated | 2026-04-27 |
+| Engine | Unreal Engine 5.8 |
+| Plugin Version | 0.9.0 (Beta) |
+| Last Updated | 2026-07-12 |
 | Dependencies | `GameplayAbilities`, `GameplayTags`, `StructUtils` |
 
 Current limitations are listed under [Known Issues](troubleshooting/known-issues.md). New here? Start with the [Quick Start](getting-started/quick-start.md).

@@ -72,7 +72,7 @@ For the fallback key `""` (empty string): used when the current culture is not i
 Via CLI:
 
 ```bash
-"C:/Program Files/Epic Games/UE_5.7/Engine/Binaries/Win64/UnrealEditor-Cmd.exe" ^
+"C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe" ^
   "C:/UnrealEngine/VHS/VHS.uproject" ^
   -run=GatherText -Target=Game
 ```
